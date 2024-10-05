@@ -21,7 +21,7 @@ return new class extends Migration
             $table->date('date_birth');
             $table->enum('gender', ['M', 'F']); // 'M' = Male, 'F' = Female
             $table->string('photo_profile')->nullable();
-            $table->enum('role', ['M','U']); // 'M' = mahasiswa,'U' = umum
+            $table->enum('role', ['M','U','P']); // 'M' = mahasiswa,'U' = umum, 'P' = Psikolog
             $table->rememberToken();
             $table->timestamps();
         });

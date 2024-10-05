@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\API;
 
 use App\Models\User;
+use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -19,7 +21,7 @@ class AuthController extends BaseController
      *
      * @return \Illuminate\Http\Response
      */
-    public function loginAction(Request $request)
+    public function userloginAction(Request $request)
     {
         Validator::make($request->all(), [
             'email' => 'required|string|email',
@@ -45,7 +47,7 @@ class AuthController extends BaseController
         }
     }
 
-    public function registerSave(Request $request)
+    public function userRegisterSave(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
@@ -54,44 +56,116 @@ class AuthController extends BaseController
             'phone_number' => 'nullable|string|regex:/^[0-9]{10,}$/',
             'date_birth' => 'required|date',
             'gender' => 'required|in:M,F', // 'M' = Male, 'F' = Female
-            'role' => 'required|in:M,U', // 'M' = mahasiswa, 'U' = umum
         ], [
             'name.required' => 'Nama wajib diisi.',
             'email.required' => 'Email wajib diisi.',
             'email.unique' => 'Email sudah terdaftar.',
             'password.required' => 'Password wajib diisi.',
-            // 'password.confirmed' => 'Konfirmasi password tidak cocok.',
             'date_birth.required' => 'Tanggal lahir wajib diisi.',
             'gender.required' => 'Gender wajib diisi.',
-            'role.required' => 'Role wajib diisi.',
         ]);
 
-        // Jika validasi gagal, kembalikan error
         if ($validator->fails()) {
             return $this->sendError('Validation Error', $validator->errors(), 422);
         }
 
-        // Buat pengguna baru
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password), // Hash password
-            'phone_number' => $request->phone_number,
-            'date_birth' => $request->date_birth,
-            'gender' => $request->gender,
-            'role' => $request->role,
+        try {
+            DB::beginTransaction(); 
+
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password), // Hash password
+                'phone_number' => $request->phone_number,
+                'date_birth' => $request->date_birth,
+                'gender' => $request->gender,
+                'role' => 'U', // Default role untuk user umum
+            ]);
+
+            DB::commit();
+
+            // Buat token untuk pengguna baru
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            $success = [
+                'token' => $token,
+                'name' => $user->name,
+            ];
+
+            return $this->sendResponse($success, 'Anda berhasil terdaftar.');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return $this->sendError('Register Error', 'Terjadi kesalahan saat mendaftarkan pengguna: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function mahasiswaRegisterSave(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|unique:users,email',
+            'password' => 'required|string|min:8',
+            'phone_number' => 'nullable|string|regex:/^[0-9]{10,}$/',
+            'date_birth' => 'required|date',
+            'gender' => 'required|in:M,F', // 'M' = Male, 'F' = Female
+            'universitas' => 'required|string|max:255',
+            'nim' => 'required|string|max:100',
+            'jurusan' => 'required|string|max:255',
+        ], [
+            'name.required' => 'Nama wajib diisi.',
+            'email.required' => 'Email wajib diisi.',
+            'email.unique' => 'Email sudah terdaftar.',
+            'password.required' => 'Password wajib diisi.',
+            'date_birth.required' => 'Tanggal lahir wajib diisi.',
+            'gender.required' => 'Jenis kelamin wajib diisi.',
+            'universitas.required' => 'Universitas wajib diisi.',
+            'nim.required' => 'NIM wajib diisi.',
+            'jurusan.required' => 'Jurusan wajib diisi.',
         ]);
 
-        // Buat token untuk pengguna baru
-        $token = $user->createToken('auth_token')->plainTextToken;
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error', $validator->errors(), 422);
+        }
 
-        $success = [
-            'token' => $token,
-            'name' => $user->name,
-        ];
+        try {
+            DB::beginTransaction(); 
 
-        return $this->sendResponse($success, 'Anda berhasil terdaftar.');
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password), // Hash password
+                'phone_number' => $request->phone_number,
+                'date_birth' => $request->date_birth,
+                'gender' => $request->gender,
+                'role' => 'M', // Role mahasiswa
+            ]);
+
+            // Masukkan data mahasiswa 
+            $mahasiswa = Mahasiswa::create([
+                'user_id' => $user->id,
+                'universitas' => $request->universitas,
+                'nim' => $request->nim,
+                'jurusan' => $request->jurusan,
+            ]);
+            DB::commit();
+
+            // Buat token untuk pengguna baru
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            $success = [
+                'token' => $token,
+                'name' => $user->name,
+            ];
+
+            return $this->sendResponse($success, 'Anda berhasil terdaftar.');
+            
+        } catch (\Exception $e) {
+            DB::rollback();
+            return $this->sendError('Register Error', 'Terjadi kesalahan saat mendaftarkan mahasiswa: ' . $e->getMessage(), 500);
+        }
     }
+
 
     // Redirect ke Google
     public function redirectToGoogle()
@@ -125,6 +199,8 @@ class AuthController extends BaseController
             return redirect('/login');
         }
     }
+
+    
 
 
 }

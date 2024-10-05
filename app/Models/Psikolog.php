@@ -16,7 +16,13 @@ class Psikolog extends Model
         'pskolog_price_id',
         'description',
         'sipp',
+        'practice_start_date',
         'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'practice_start_date' => 'date', 
     ];
 
     public function user()
