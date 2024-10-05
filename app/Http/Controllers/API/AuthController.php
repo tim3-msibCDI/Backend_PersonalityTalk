@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController;
 
@@ -50,7 +51,7 @@ class AuthController extends BaseController
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|unique:users,email',
             'password' => 'required|string|min:8',
-            'phone_number' => 'nullable|string|max:15',
+            'phone_number' => 'nullable|string|regex:/^[0-9]{10,}$/',
             'date_birth' => 'required|date',
             'gender' => 'required|in:M,F', // 'M' = Male, 'F' = Female
             'role' => 'required|in:M,U', // 'M' = mahasiswa, 'U' = umum
@@ -90,6 +91,39 @@ class AuthController extends BaseController
         ];
 
         return $this->sendResponse($success, 'Anda berhasil terdaftar.');
+    }
+
+    // Redirect ke Google
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    // Menangani callback dari Google
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->stateless()->user();
+            $user = User::where('email', $googleUser->getEmail())->first();
+
+            if ($user) {
+                Auth::login($user);
+            } else {
+                // Jika pengguna belum terdaftar, buat akun baru
+                $user = User::create([
+                    'name' => $googleUser->getName(),
+                    'email' => $googleUser->getEmail(),
+                    'google_id' => $googleUser->getId(),
+                    'password' => bcrypt('password_default'),
+                ]);
+                Auth::login($user);
+            }
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return redirect()->to('http://localhost:3000/auth/callback?token=' . $token);
+        } catch (\Exception $e) {
+            return redirect('/login');
+        }
     }
 
 

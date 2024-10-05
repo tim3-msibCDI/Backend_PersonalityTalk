@@ -17,9 +17,8 @@ return new class extends Migration
             $table->string('universitas');
             $table->string('jurusan');
             $table->string('nim')->unique(); 
-            $table->timestamps();
             $table->foreign('user_id')->references('id')->on('users')->onUpdate('cascade')->onDelete('cascade');
-       
+            $table->timestamps();       
         });
     }
 
@@ -28,6 +27,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('mahasiswa', function (Blueprint $table) {
+            $table->dropForeign(['user_id']);
+        });
+
         Schema::dropIfExists('mahasiswa');
     }
 };

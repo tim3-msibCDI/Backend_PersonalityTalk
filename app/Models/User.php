@@ -25,6 +25,8 @@ class User extends Authenticatable
         'date_birth',
         'gender',
         'photo_profile',
+        'social_id',
+        'social_type'
     ];
 
     /**
@@ -53,5 +55,10 @@ class User extends Authenticatable
     public function mahasiswa()
     {
         return $this->hasOne(Mahasiswa::class, 'user_id', 'id');
+    }
+
+    public function psikolog()
+    {
+        return $this->hasOne(Psikolog::class, 'user_id', 'id');
     }
 }

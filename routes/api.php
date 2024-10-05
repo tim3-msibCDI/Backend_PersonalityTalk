@@ -11,5 +11,6 @@ Route::get('/user', function (Request $request) {
 Route::controller(AuthController::class)->group(function () {
     Route::post('/register', 'registerSave')->name('register-save');
     Route::post('/login', 'loginAction')->name('login-action');
+    Route::get('/auth/google', 'redirectToGoogle')->name('auth.google.redirect');
+    Route::get('/auth/google/callback', 'handleGoogleCallback')->name('auth.google.callback');
 });
-
