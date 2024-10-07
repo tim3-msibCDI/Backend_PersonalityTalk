@@ -11,12 +11,12 @@ class CategoryController extends BaseController
     public function index()
     {
         $categories = PsikologCategory::all();
-        return $this->sendResponse($categories, 'Kategori berhasil diambil.');
+        return $this->sendResponse($categories, 'Data seluruh kategori berhasil diambil.');
     }
 
     public function show($id)
     {
-        $category = PsikologCategory::find($id);
+        $category = PsikologCategory::findOrFail($id);
 
         if (!$category) {
             return $this->sendError('Kategori tidak ditemukan', [], 404);
@@ -34,15 +34,15 @@ class CategoryController extends BaseController
         ]);
 
         $category = PsikologCategory::create([
-            'category_name' => $request->category_name, // Perbaiki dari $request->name ke $request->category_name
+            'category_name' => $request->category_name, 
         ]);
 
-        return $this->sendResponse($category, 'Kategori berhasil dibuat.');
+        return $this->sendResponse($category, 'Kategori baru berhasil ditambahkan');
     }
 
     public function update(Request $request, $id)
     {
-        $category = PsikologCategory::find($id);
+        $category = PsikologCategory::findOrFail($id);
 
         if (!$category) {
             return $this->sendError('Kategori tidak ditemukan', [], 404);
@@ -55,7 +55,7 @@ class CategoryController extends BaseController
         ]);
 
         $category->update([
-            'category_name' => $request->category_name, // Perbaiki dari $request->name ke $request->category_name
+            'category_name' => $request->category_name, 
         ]);
 
         return $this->sendResponse($category, 'Kategori berhasil diperbarui.');
@@ -63,7 +63,7 @@ class CategoryController extends BaseController
 
     public function destroy($id)
     {
-        $category = PsikologCategory::find($id);
+        $category = PsikologCategory::findOrFail($id);
 
         if (!$category) {
             return $this->sendError('Kategori tidak ditemukan', [], 404);
@@ -72,6 +72,6 @@ class CategoryController extends BaseController
         $categoryName = $category->category_name; // Simpan nama kategori sebelum dihapus
         $category->delete();
 
-        return $this->sendResponse(null, "Kategori '{$categoryName}' berhasil dihapus."); // Kembalikan null karena tidak ada data
+        return $this->sendResponse(null, "Kategori '{$categoryName}' berhasil dihapus."); 
     }
 }
