@@ -16,7 +16,7 @@ class TopicController extends BaseController
 
     public function show($id)
     {
-        $topic = Topic::findOrFail($id);
+        $topic = Topic::find($id);
 
         if (!$topic) {
             return $this->sendError('Topik yang dicari tidak ditemukan', [], 404);
@@ -42,7 +42,7 @@ class TopicController extends BaseController
 
     public function update(Request $request, $id)
     {
-        $topic = Topic::findOrFail($id);
+        $topic = Topic::find($id);
         // dd($topic);
 
         if (!$topic) {
@@ -65,7 +65,7 @@ class TopicController extends BaseController
 
     public function destroy($id)
     {
-        $topic = Topic::findOrFail($id);
+        $topic = Topic::find($id);
 
         if (!$topic) {
             return $this->sendError('Topik tidak ditemukan', [], 404);

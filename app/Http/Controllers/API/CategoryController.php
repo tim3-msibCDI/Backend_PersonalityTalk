@@ -16,7 +16,7 @@ class CategoryController extends BaseController
 
     public function show($id)
     {
-        $category = PsikologCategory::findOrFail($id);
+        $category = PsikologCategory::find($id);
 
         if (!$category) {
             return $this->sendError('Kategori tidak ditemukan', [], 404);
@@ -42,7 +42,7 @@ class CategoryController extends BaseController
 
     public function update(Request $request, $id)
     {
-        $category = PsikologCategory::findOrFail($id);
+        $category = PsikologCategory::find($id);
 
         if (!$category) {
             return $this->sendError('Kategori tidak ditemukan', [], 404);
@@ -63,7 +63,7 @@ class CategoryController extends BaseController
 
     public function destroy($id)
     {
-        $category = PsikologCategory::findOrFail($id);
+        $category = PsikologCategory::find($id);
 
         if (!$category) {
             return $this->sendError('Kategori tidak ditemukan', [], 404);
