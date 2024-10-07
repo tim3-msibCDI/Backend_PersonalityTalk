@@ -38,7 +38,8 @@ class AuthController extends BaseController
 
             $success = [
                 'token' => $token,
-                'name' => $user->name
+                'name' => $user->name,
+                'role' => $user->role
             ];
 
             return $this->sendResponse($success, 'Anda berhasil login.');
@@ -75,11 +76,11 @@ class AuthController extends BaseController
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
-                'password' => Hash::make($request->password), // Hash password
+                'password' => Hash::make($request->password), 
                 'phone_number' => $request->phone_number,
                 'date_birth' => $request->date_birth,
                 'gender' => $request->gender,
-                'role' => 'U', // Default role untuk user umum
+                'role' => 'U' // Role pengguna umum
             ]);
 
             DB::commit();
@@ -90,6 +91,7 @@ class AuthController extends BaseController
             $success = [
                 'token' => $token,
                 'name' => $user->name,
+                'role' =>$user->role,
             ];
 
             return $this->sendResponse($success, 'Anda berhasil terdaftar.');
@@ -134,7 +136,7 @@ class AuthController extends BaseController
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
-                'password' => Hash::make($request->password), // Hash password
+                'password' => Hash::make($request->password),
                 'phone_number' => $request->phone_number,
                 'date_birth' => $request->date_birth,
                 'gender' => $request->gender,

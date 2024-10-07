@@ -40,9 +40,9 @@ class Psikolog extends Model
         return $this->belongsTo(PsikologPrice::class, 'pskolog_price_id', 'id');
     }
 
-    
-
-
-
+    public function psikolog_topic()
+    {
+        return $this->hasMany(PsikologTopic::class, 'psikolog_id');
+    }
 
 }
