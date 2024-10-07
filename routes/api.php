@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\CategoryController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -17,4 +18,10 @@ Route::controller(AuthController::class)->group(function () {
     // Route::get('/auth/google/callback', 'handleGoogleCallback')->name('auth.google.callback');
 });
 
-
+Route::controller(CategoryController::class)->group(function () {
+    Route::get('/categories', 'index'); 
+    Route::get('/categories/{id}', 'show'); 
+    Route::post('/categories', 'store'); 
+    Route::put('/categories/{id}', 'update'); 
+    Route::delete('/categories/{id}','destroy'); 
+});
