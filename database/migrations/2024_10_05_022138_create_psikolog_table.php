@@ -15,13 +15,13 @@ return new class extends Migration
             $table->id();
             $table->bigInteger('user_id')->unsigned();
             $table->bigInteger('category_id')->unsigned();
-            $table->bigInteger('pskolog_price_id')->unsigned();
+            $table->bigInteger('psikolog_price_id')->unsigned();
             $table->string('description');
             $table->string('sipp');
             $table->boolean('is_active')->default(false);
             $table->foreign('user_id')->references('id')->on('users')->onUpdate('cascade')->onDelete('cascade');
             $table->foreign('category_id')->references('id')->on('psikolog_categories')->onUpdate('cascade')->onDelete('restrict');
-            $table->foreign('pskolog_price_id')->references('id')->on('psikolog_prices')->onUpdate('cascade')->onDelete('restrict');
+            $table->foreign('psikolog_price_id')->references('id')->on('psikolog_prices')->onUpdate('cascade')->onDelete('restrict');
             $table->timestamps();
 
         });
@@ -36,7 +36,7 @@ return new class extends Migration
         Schema::table('psikolog', function (Blueprint $table) {
             $table->dropForeign(['user_id']);
             $table->dropForeign(['category_id']);
-            $table->dropForeign(['pskolog_price_id']);
+            $table->dropForeign(['psikolog_price_id']);
 
         });
 

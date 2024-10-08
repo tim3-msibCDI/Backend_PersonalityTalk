@@ -26,7 +26,8 @@ class User extends Authenticatable
         'gender',
         'photo_profile',
         'social_id',
-        'social_type'
+        'social_type',
+        'role'
     ];
 
     /**

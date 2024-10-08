@@ -13,4 +13,5 @@ class Topic extends Model
     protected $fillable = [
         'topic_name', 
     ];
+
 }
