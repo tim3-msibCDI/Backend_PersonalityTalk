@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\TopicController;
 use App\Http\Controllers\API\CategoryController;
+use App\Http\Controllers\API\PsikologController;
 use App\Http\Controllers\API\PsikologPriceController;
 
 Route::get('/user', function (Request $request) {
@@ -42,4 +43,8 @@ Route::controller(PsikologPriceController::class)->group(function () {
     Route::post('/psikolog-price', 'store')->name('psikolog.price.store'); 
     Route::put('/psikolog-price/{id}', 'update')->name('psikolog.price.update'); 
     Route::delete('/psikolog-price/{id}','destroy')->name('psikolog.price.destroy'); 
+});
+
+Route::controller(PsikologController::class)->group(function () {
+    Route::post('/psikolog-register', 'psikologRegister')->name('psikolog.register'); 
 });

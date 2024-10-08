@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use Illuminate\Http\Request;
 use App\Models\PsikologCategory;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\API\BaseController;
 
 class CategoryController extends BaseController
 {

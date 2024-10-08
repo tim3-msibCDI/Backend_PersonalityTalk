@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Models\Topic;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\API\BaseController;
 
 class TopicController extends BaseController
 {

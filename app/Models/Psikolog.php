@@ -13,7 +13,7 @@ class Psikolog extends Model
     protected $fillable = [
         'user_id', 
         'category_id',
-        'pskolog_price_id',
+        'psikolog_price_id',
         'description',
         'sipp',
         'practice_start_date',
