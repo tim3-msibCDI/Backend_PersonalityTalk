@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Psikolog extends Model
 {
@@ -19,6 +20,11 @@ class Psikolog extends Model
         'practice_start_date',
         'is_active',
     ];
+
+    public function getYearsOfExperience()
+    {
+        return Carbon::parse($this->practice_start_date)->diffInYears(Carbon::now());
+    }
 
     protected $casts = [
         'is_active' => 'boolean',

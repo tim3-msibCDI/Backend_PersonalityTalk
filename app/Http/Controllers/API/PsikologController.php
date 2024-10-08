@@ -12,7 +12,17 @@ use Illuminate\Support\Facades\Validator;
 
 class PsikologController extends BaseController
 {
+    protected $psikologService;
 
+    // PsikologService constructor
+    public function __construct(PsikologService $psikologService)
+    {
+        $this->psikologService = $psikologService;
+    }
+
+    /**
+     * Handle the psikolog registration process
+     */
     public function psikologRegister(Request $request)
     {
         // Validasi input untuk user dan psikolog
@@ -53,59 +63,17 @@ class PsikologController extends BaseController
         }
 
         try {
-            DB::beginTransaction();
+            // Menggunakan function yang terdapat pada PsikologService
+            $psikolog = $this->psikologService->registerPsikolog($request->all());
 
-            // Upload foto profil
-            $photoProfilePath = null;
-            if ($request->hasFile('photo_profile')) {
-                $photoProfilePath = $request->file('photo_profile')->store('profile_photos', 'public'); // Simpan ke direktori storage/public/profile_photos
-            }
-
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'phone_number' => $request->phone_number,
-                'date_birth' => $request->date_birth,
-                'gender' => $request->gender,
-                'photo_profile' => $photoProfilePath, //Simpan path foto pforil
-                'role' => 'P', // P = psikolog
-            ]);
-
-            // Simpan data psikolog di tabel 'psikolog'
-            $psikolog = Psikolog::create([
-                'user_id' => $user->id,
-                'category_id' => $request->category_id,
-                'psikolog_price_id' => $request->psikolog_price_id,
-                'description' => $request->description,
-                'sipp' => $request->sipp,
-                'practice_start_date' => $request->practice_start_date,
-                'is_active' => false, // Default false
-            ]);
-
-            // Simpan topik-topik yang dipilih di tabel 'psikolog_topics'
-            foreach ($request->topics as $topicId) {
-                DB::table('psikolog_topics')->insert([
-                    'psikolog_id' => $psikolog->id,
-                    'topic_id' => $topicId,
-                ]);
-            }
-
-            DB::commit();
-
-            // Mengembalikan respon sukses
             return response()->json([
                 'message' => 'Psikolog berhasil didaftarkan.',
                 'psikolog' => $psikolog,
-                'user' => $user,
             ], 201);
 
         } catch (\Exception $e) {
-            DB::rollBack();
             return response()->json(['error' => 'Terjadi kesalahan saat registrasi psikolog. ' . $e->getMessage()], 500);
         }
     }
-
-
 
 }
