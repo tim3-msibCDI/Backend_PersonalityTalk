@@ -18,6 +18,7 @@ class Psikolog extends Model
         'description',
         'sipp',
         'practice_start_date',
+        'status',
         'is_active',
     ];
 
