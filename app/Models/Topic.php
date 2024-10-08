@@ -14,5 +14,4 @@ class Topic extends Model
         'topic_name', 
     ];
 
-
 }
