@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\AdminController;
 use App\Http\Controllers\API\TopicController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\PsikologController;
@@ -47,4 +48,9 @@ Route::controller(PsikologPriceController::class)->group(function () {
 
 Route::controller(PsikologController::class)->group(function () {
     Route::post('/psikolog-register', 'psikologRegister')->name('psikolog.register'); 
+});
+
+Route::controller(AdminController::class)->group(function () {
+    Route::post('/approve-psikolog/{id}', 'approvePsikolog')->name('approve.psikolog'); 
+    Route::post('/reject-psikolog/{id}', 'rejectPsikolog')->name('reject.psikolog'); 
 });
