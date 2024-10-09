@@ -2,10 +2,8 @@
 
 namespace Database\Seeders;
 
-use Carbon\Carbon;
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
 
 class MainScheduleTableSeeder extends Seeder
 {
@@ -21,8 +19,9 @@ class MainScheduleTableSeeder extends Seeder
         // Define days of the week
         $daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
+        // Loop through each day
         foreach ($daysOfWeek as $day) {
-            // Loop setiap jam
+            // Loop through each hour from 6:00 AM to 10:00 PM
             for ($hour = $startHour; $hour < $endHour; $hour++) {
                 // Create a new schedule entry for each hour
                 DB::table('main_schedules')->insert([
