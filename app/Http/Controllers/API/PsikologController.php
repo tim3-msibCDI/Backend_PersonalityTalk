@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Models\User;
 use App\Models\Psikolog;
 use Illuminate\Http\Request;
+use App\Services\PsikologService;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
@@ -25,7 +26,7 @@ class PsikologController extends BaseController
      */
     public function psikologRegister(Request $request)
     {
-        // Validasi input untuk user dan psikolog
+        // Validasi input
         $validator = Validator::make($request->all(), [
             // Validasi untuk tabel 'users'
             'name' => 'required|string|max:255',

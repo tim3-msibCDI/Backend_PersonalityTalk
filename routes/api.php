@@ -8,14 +8,15 @@ use App\Http\Controllers\API\TopicController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\PsikologController;
 use App\Http\Controllers\API\PsikologPriceController;
+use App\Http\Controllers\API\PsikologScheduleController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
 Route::controller(AuthController::class)->group(function () {
-    Route::post('/register-user', 'userRegisterSave')->name('register.user.save');
-    Route::post('/register-mahasiswa', 'mahasiswaRegisterSave')->name('register.mahasiswa.save');
+    Route::post('/register/user', 'userRegisterSave')->name('register.user.save');
+    Route::post('/register/mahasiswa', 'mahasiswaRegisterSave')->name('register.mahasiswa.save');
     Route::post('/login', 'userloginAction')->name('user.login');
     // 
     // Route::get('/auth/google', 'redirectToGoogle')->name('auth.google.redirect');
@@ -47,7 +48,11 @@ Route::controller(PsikologPriceController::class)->group(function () {
 });
 
 Route::controller(PsikologController::class)->group(function () {
-    Route::post('/psikolog-register', 'psikologRegister')->name('psikolog.register'); 
+    Route::post('/psikolog/register', 'psikologRegister')->name('psikolog.register'); 
+});
+
+Route::controller(PsikologScheduleController::class)->group(function () {
+    Route::post('/psikolog/schedule/generate', 'generatePsikologSchedule');
 });
 
 Route::controller(AdminController::class)->group(function () {
