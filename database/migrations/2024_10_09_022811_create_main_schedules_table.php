@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('main_schedules', function (Blueprint $table) {
             $table->id();
-            $table->enum('day', ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']); 
+            $table->enum('day', ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']);
             $table->time('start_hour'); 
             $table->time('end_hour'); 
             $table->timestamps();
