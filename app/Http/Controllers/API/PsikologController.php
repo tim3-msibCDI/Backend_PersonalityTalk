@@ -25,7 +25,7 @@ class PsikologController extends BaseController
      */
     public function psikologRegister(Request $request)
     {
-        // Validasi input untuk user dan psikolog
+        // Validasi input
         $validator = Validator::make($request->all(), [
             // Validasi untuk tabel 'users'
             'name' => 'required|string|max:255',

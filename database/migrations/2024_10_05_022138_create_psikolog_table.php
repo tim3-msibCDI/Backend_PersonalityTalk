@@ -23,7 +23,6 @@ return new class extends Migration
             $table->foreign('category_id')->references('id')->on('psikolog_categories')->onUpdate('cascade')->onDelete('restrict');
             $table->foreign('psikolog_price_id')->references('id')->on('psikolog_prices')->onUpdate('cascade')->onDelete('restrict');
             $table->timestamps();
-
         });
     }
 
@@ -37,7 +36,6 @@ return new class extends Migration
             $table->dropForeign(['user_id']);
             $table->dropForeign(['category_id']);
             $table->dropForeign(['psikolog_price_id']);
-
         });
 
         Schema::dropIfExists('psikolog');
