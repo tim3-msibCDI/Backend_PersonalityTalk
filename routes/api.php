@@ -7,6 +7,7 @@ use App\Http\Controllers\API\AdminController;
 use App\Http\Controllers\API\TopicController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\PsikologController;
+use App\Http\Controllers\API\ConsultationController;
 use App\Http\Controllers\API\PsikologPriceController;
 use App\Http\Controllers\API\PsikologScheduleController;
 
@@ -53,6 +54,12 @@ Route::controller(PsikologController::class)->group(function () {
 
 Route::controller(PsikologScheduleController::class)->group(function () {
     Route::post('/psikolog/schedule/generate', 'generatePsikologSchedule');
+});
+
+Route::controller(ConsultationController::class)->group(function () {
+    Route::get('/consultation/psikolog/topics', 'getPsikologTopics');
+    Route::get('/consultation/psikolog/available', 'getAvailablePsikolog');
+
 });
 
 Route::controller(AdminController::class)->group(function () {
