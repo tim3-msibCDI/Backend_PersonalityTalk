@@ -35,7 +35,7 @@ class ConsultationController extends Controller
     }
 
     /**
-     * Get available psychologists and counselors based on topic
+     * Get available psychologists and counselors based on topic 
      */
     public function getAvailablePsikolog(Request $request)
     {
