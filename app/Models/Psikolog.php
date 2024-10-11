@@ -24,7 +24,7 @@ class Psikolog extends Model
 
     public function getYearsOfExperience()
     {
-        return Carbon::parse($this->practice_start_date)->diffInYears(Carbon::now());
+        return floor(Carbon::parse($this->practice_start_date)->diffInYears(Carbon::now()));
     }
 
     protected $casts = [

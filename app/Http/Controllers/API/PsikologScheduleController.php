@@ -24,6 +24,8 @@ class PsikologScheduleController extends BaseController
             'month' => 'required|integer|between:1,12',
             'year' => 'required|integer|min:2024|max:2100',
         ],[
+            // 'psikolog_id.required' => 'Psikolog wajib dipilih.',
+            // 'psikolog_id.exists' => 'Psikolog tidak ditemukan di sistem.',        
             'month.required' => 'Bulan wajib dipilih.',
             'year.required' => 'Tahun wajib dipilih.',
         ]);
@@ -41,7 +43,7 @@ class PsikologScheduleController extends BaseController
                 ->whereMonth('date', $month)
                 ->whereYear('date', $year)
                 ->get();
-
+            
             // Prepare a list of new schedules to keep track of what should remain
             $newSchedules = [];
 
@@ -121,7 +123,6 @@ class PsikologScheduleController extends BaseController
         $dates = [];
 
         // dd($startOfMonth, $endOfMonth);
-
 
         // Loop through each day of the month and check if it matches the given day of the week
         for ($date = $startOfMonth->copy(); $date->lte($endOfMonth); $date->addDay()) {
