@@ -44,7 +44,7 @@ class Psikolog extends Model
 
     public function psikolog_price()
     {
-        return $this->belongsTo(PsikologPrice::class, 'pskolog_price_id', 'id');
+        return $this->belongsTo(PsikologPrice::class, 'psikolog_price_id', 'id');
     }
 
     public function psikolog_topic()

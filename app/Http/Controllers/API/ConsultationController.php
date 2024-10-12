@@ -7,6 +7,7 @@ use App\Models\Topic;
 use App\Models\Psikolog;
 use Illuminate\Http\Request;
 use App\Models\PsikologCategory;
+use App\Models\PsikologSchedule;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 
@@ -82,8 +83,7 @@ class ConsultationController extends Controller
                 'id' => $psikolog->psikolog_id,
                 'name' => $psikolog->name,
                 'photo_profile' => $psikolog->photo_profile,
-                'practice_start_date' => $psikolog->practice_start_date,
-                'years_of_experience' => $yearsOfExperience, 
+                'years_of_experience' => $yearsOfExperience,
                 'category_name' => $psikolog->category_name,
                 'available_schedule_count' => $psikolog->available_schedule_count, 
             ];
@@ -93,5 +93,54 @@ class ConsultationController extends Controller
             'list_psikolog' => $response,
         ]);
     }
+
+    /**
+     * 
+     */
+    public function getPsikologDetailsAndSchedules(Request $request, $id)
+    {
+        $request->validate([
+            'selected_date' => 'required|date', // Date selected (defaults to today)
+        ]);
+
+        $psikolog = Psikolog::with(['user', 'psikolog_category', 'psikolog_price', 'psikolog_topic.topic'])
+            ->where('id', $id)
+            ->firstOrFail();
+
+        // dd($psikolog);
+
+        $selectedDate = Carbon::parse($request->selected_date)->format('Y-m-d');
+
+        $availableSchedules = PsikologSchedule::where('psikolog_id', $id)
+            ->where('date', $selectedDate)
+            ->where('is_available', true)
+            ->with('mainSchedule')
+            ->get();
+
+        return response()->json([
+            'psikolog' => [
+                'id' => $psikolog->id,
+                'name' => $psikolog->user->name,
+                'photo_profile' => $psikolog->user->photo_profile,
+                'category_name' => $psikolog->psikolog_category->category_name,
+                'years_of_experience' => $psikolog->getYearsOfExperience(),
+                'price' => $psikolog->psikolog_price->price,
+                'description' => $psikolog->description,
+                'sipp' => $psikolog->sipp,
+                'topics' => $psikolog->psikolog_topic->map(function($pt) {
+                    return $pt->topic->topic_name; 
+                }),
+            ],
+            'available_schedules' => $availableSchedules->map(function($schedule) {
+                return [
+                    'msch_id' => $schedule->msch_id,
+                    'time_slot' => Carbon::parse($schedule->mainSchedule->start_hour)->format('H:i') 
+                               . ' - ' . 
+                               Carbon::parse($schedule->mainSchedule->end_hour)->format('H:i')
+                ];
+            })
+        ]);
+    }
+
 
 }
