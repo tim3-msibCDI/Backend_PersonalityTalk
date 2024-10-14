@@ -100,7 +100,7 @@ class ConsultationController extends Controller
     public function getPsikologDetailsAndSchedules(Request $request, $id)
     {
         $request->validate([
-            'selected_date' => 'required|date', // Date selected (defaults to today)
+            'selected_date' => 'required|date', 
         ]);
 
         $psikolog = Psikolog::with(['user', 'psikolog_category', 'psikolog_price', 'psikolog_topic.topic'])
@@ -133,7 +133,7 @@ class ConsultationController extends Controller
             ],
             'available_schedules' => $availableSchedules->map(function($schedule) {
                 return [
-                    'msch_id' => $schedule->msch_id,
+                    'psch_id' => $schedule->id,
                     'time_slot' => Carbon::parse($schedule->mainSchedule->start_hour)->format('H:i') 
                                . ' - ' . 
                                Carbon::parse($schedule->mainSchedule->end_hour)->format('H:i')
