@@ -59,7 +59,7 @@ Route::controller(PsikologScheduleController::class)->group(function () {
 Route::controller(ConsultationController::class)->group(function () {
     Route::get('/consultation/psikolog/topics', 'getPsikologTopics');
     Route::get('/consultation/psikolog/available', 'getAvailablePsikolog');
-
+    Route::get('/consultation/psikolog/{id}/details-and-schedules', 'getPsikologDetailsAndSchedules');
 });
 
 Route::controller(AdminController::class)->group(function () {
