@@ -5,17 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PsikologCategory extends Model
+class ArticleCategory extends Model
 {
     use HasFactory;
 
-    protected $table = 'psikolog_categories';
+    protected $table = 'article_categories';
+
     protected $fillable = [
-        'category_name', 
+        'name',
     ];
 
     public function category()
     {
-        return $this->hasMany(Article::class, 'category_id');
+        return $this->hasMany(Psikolog::class, 'category_id');
     }
 }
