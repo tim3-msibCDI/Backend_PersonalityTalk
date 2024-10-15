@@ -7,11 +7,11 @@ use App\Models\PsikologCategory;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\API\BaseController;
 
-class CategoryController extends BaseController
+class PsikologCategoryController extends BaseController
 {
     public function index()
     {
-        $categories = PsikologCategory::all();
+        $categories = PsikologCategory::select('id','category_name')->get();
         return $this->sendResponse($categories, 'Data seluruh kategori berhasil diambil.');
     }
 
@@ -70,7 +70,7 @@ class CategoryController extends BaseController
             return $this->sendError('Kategori tidak ditemukan', [], 404);
         }
 
-        $categoryName = $category->category_name; // Simpan nama kategori sebelum dihapus
+        $categoryName = $category->category_name; 
         $category->delete();
 
         return $this->sendResponse(null, "Kategori '{$categoryName}' berhasil dihapus."); 

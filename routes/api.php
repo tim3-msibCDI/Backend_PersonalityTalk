@@ -11,6 +11,8 @@ use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\PsikologController;
 use App\Http\Controllers\API\ConsultationController;
 use App\Http\Controllers\API\PsikologPriceController;
+use App\Http\Controllers\API\ArticleCategoryController;
+use App\Http\Controllers\API\PsikologCategoryController;
 use App\Http\Controllers\API\PsikologScheduleController;
 
 Route::get('/user', function (Request $request) {
@@ -26,12 +28,12 @@ Route::controller(AuthController::class)->group(function () {
     // Route::get('/auth/google/callback', 'handleGoogleCallback')->name('auth.google.callback');
 });
 
-Route::controller(CategoryController::class)->group(function () {
-    Route::get('/categories', 'index')->name('categories.index'); 
-    Route::get('/categories/{id}', 'show')->name('categories.show'); 
-    Route::post('/categories', 'store')->name('categories.store'); 
-    Route::put('/categories/{id}', 'update')->name('categories.update'); 
-    Route::delete('/categories/{id}','destroy')->name('categories.destroy'); 
+Route::controller(PsikologCategoryController::class)->group(function () {
+    Route::get('/piskolog/categories', 'index')->name('psikolog.categories.index'); 
+    Route::get('/piskolog/categories/{id}', 'show')->name('psikolog.categories.show'); 
+    Route::post('/piskolog/categories', 'store')->name('psikolog.categories.store'); 
+    Route::put('/piskolog/categories/{id}', 'update')->name('psikolog.categories.update'); 
+    Route::delete('/piskolog/categories/{id}','destroy')->name('psikolog.categories.destroy'); 
 });
 
 Route::controller(TopicController::class)->group(function () {
@@ -69,6 +71,13 @@ Route::controller(AdminController::class)->group(function () {
     Route::post('/reject-psikolog/{id}', 'rejectPsikolog')->name('reject.psikolog'); 
 });
 
+Route::controller(ArticleCategoryController::class)->group(function () {
+    Route::get('/article/categories', 'index')->name('article.categories.index'); 
+    Route::get('/article/categories/{id}', 'show')->name('article.categories.show'); 
+    Route::post('/article/categories', 'store')->name('article.categories.store'); 
+    Route::put('/article/categories/{id}', 'update')->name('article.categories.update'); 
+    Route::delete('/article/categories/{id}','destroy')->name('article.categories.destroy'); 
+});
 Route::controller(ArticleController::class)->group(function () {
     Route::get('/articles', 'index')->name('articles.index'); 
     Route::get('/articles/{id}', 'show')->name('articles.show'); 
