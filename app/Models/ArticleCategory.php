@@ -17,6 +17,6 @@ class ArticleCategory extends Model
 
     public function category()
     {
-        return $this->hasMany(Psikolog::class, 'category_id');
+        return $this->hasMany(Article::class, 'category_id');
     }
 }

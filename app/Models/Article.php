@@ -20,13 +20,14 @@ class Article extends Model
         'category_id',
     ];
 
-    public function category()
-    {
-        return $this->hasMany(Psikolog::class, 'category_id');
-    }
 
     public function article_category()
     {
         return $this->belongsTo(ArticleCategory::class, 'category_id', 'id');
+    }
+
+    public function admin_writer()
+    {
+        return $this->belongsTo(Admin::class, 'admin_id', 'id');
     }
 }

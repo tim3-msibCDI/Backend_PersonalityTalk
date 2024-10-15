@@ -1,10 +1,12 @@
 <?php
 
+use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\AdminController;
 use App\Http\Controllers\API\TopicController;
+use App\Http\Controllers\API\ArticleController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\PsikologController;
 use App\Http\Controllers\API\ConsultationController;
@@ -65,4 +67,12 @@ Route::controller(ConsultationController::class)->group(function () {
 Route::controller(AdminController::class)->group(function () {
     Route::post('/approve-psikolog/{id}', 'approvePsikolog')->name('approve.psikolog'); 
     Route::post('/reject-psikolog/{id}', 'rejectPsikolog')->name('reject.psikolog'); 
+});
+
+Route::controller(ArticleController::class)->group(function () {
+    Route::get('/articles', 'index')->name('articles.index'); 
+    Route::get('/articles/{id}', 'show')->name('articles.show'); 
+    Route::post('/articles', 'store')->name('articles.store'); 
+    Route::put('/articles/{id}', 'update')->name('articles.update'); 
+    Route::delete('/articles/{id}','destroy')->name('articles.destroy'); 
 });
