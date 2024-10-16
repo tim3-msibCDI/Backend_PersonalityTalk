@@ -19,6 +19,10 @@ class DatabaseSeeder extends Seeder
         $this->call(PsikologTableSeeder::class);
         $this->call(MainScheduleTableSeeder::class);
         $this->call(ArticleCategoryTableSeeder::class);
+        $this->call(AdminTableSeeder::class);
+        $this->call(ArticleTableSeeder::class);
+
+
 
 
 

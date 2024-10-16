@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
 use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
 
 class ArticleController extends Controller
 {
@@ -23,12 +24,12 @@ class ArticleController extends Controller
      */
     public function store(Request $request)
     {
-        // Validasi data input
         $validatedData = $request->validate([
             'article_title' => 'required|string|max:255',
             'content' => 'required|string',
             'publication_date' => 'required|date',
             'publisher_name' => 'required|string|max:255',
+            'article_img' => 'required|image|mimes:jpeg,png,jpg|max:2048', 
             'admin_id' => 'required|exists:admins,id',
             'category_id' => 'required|exists:article_categories,id',
         ], [
@@ -38,10 +39,23 @@ class ArticleController extends Controller
             'publisher_name.required' => 'Nama penerbit wajib diisi',
             'admin_id.required' => 'Admin wajib dipilih',
             'category_id.required' => 'Kategori artikel wajib dipilih',
+            'article_img.required' => 'Foto profil wajib diunggah.',
+            'article_img.image' => 'Foto profil harus berupa gambar.'
         ]);
 
-        // Membuat artikel baru
-        $article = Article::create($validatedData);
+        if (isset($data['article_img'])) {
+           $imagePath = Storage::disk('public')->put('article_photos', $data['article_img']);
+        }
+
+        $article = Article::create([
+            'article_title' => $validatedData['article_title'],
+            'content' => $validatedData['content'],
+            'publication_date' => $validatedData['publication_date'],
+            'publisher_name' => $validatedData['publisher_name'],
+            'article_img' => $imagePath, 
+            'admin_id' => $validatedData['admin_id'],
+            'category_id' => $validatedData['category_id'],
+        ]);
 
         return response()->json([
             'message' => 'Artikel berhasil dibuat',

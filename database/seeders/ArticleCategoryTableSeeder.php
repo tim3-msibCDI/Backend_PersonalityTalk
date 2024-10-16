@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\ArticleCategory;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class ArticleCategoryTableSeeder extends Seeder
@@ -12,7 +13,11 @@ class ArticleCategoryTableSeeder extends Seeder
      * Run the database seeds.
      */
     public function run(): void
-    {
+    {   
+        Schema::disableForeignKeyConstraints();
+        ArticleCategory::truncate();
+        Schema::enableForeignKeyConstraints();
+
         // Definisikan array kategori yang akan di-seed
         $categories = [
             ['name' => 'Teknologi'],
