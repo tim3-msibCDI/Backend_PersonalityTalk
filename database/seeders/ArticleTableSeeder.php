@@ -36,8 +36,6 @@ class ArticleTableSeeder extends Seeder
                           tenang dan rasional. Selain itu, berpikir positif juga dikaitkan dengan peningkatan kualitas 
                           tidur, produktivitas, dan hubungan interpersonal yang lebih baik.</p>
 
-                          <p><img src='https://example.com/images/positive-thinking.jpg' alt='Berpikir Positif' style='max-width:100%;'></p>
-
                           <p>Namun, berpikir positif bukan berarti mengabaikan masalah atau berusaha untuk selalu 
                           merasa bahagia. Ini lebih tentang bagaimana kita merespons tantangan dengan cara yang 
                           konstruktif dan tetap berusaha untuk menemukan sisi baik dalam setiap situasi. 
