@@ -78,10 +78,18 @@ Route::controller(ArticleCategoryController::class)->group(function () {
     Route::put('/article/categories/{id}', 'update')->name('article.categories.update'); 
     Route::delete('/article/categories/{id}','destroy')->name('article.categories.destroy'); 
 });
+
 Route::controller(ArticleController::class)->group(function () {
-    Route::get('/articles', 'index')->name('articles.index'); 
-    Route::get('/articles/{id}', 'show')->name('articles.show'); 
-    Route::post('/articles', 'store')->name('articles.store'); 
-    Route::put('/articles/{id}', 'update')->name('articles.update'); 
-    Route::delete('/articles/{id}','destroy')->name('articles.destroy'); 
+    Route::get('/admin/articles', 'indexAdmin')->name('articles.index'); 
+    Route::get('/admin/articles/{id}', 'show')->name('articles.show'); 
+    Route::post('/admin/articles', 'store')->name('articles.store'); 
+    Route::post('/admin/articles/{id}', 'update')->name('articles.update'); 
+    Route::delete('/admin/articles/{id}','destroy')->name('articles.destroy'); 
+});
+
+Route::controller(ArticleController::class)->group(function () {
+    Route::get('/articles', 'indexUser')->name('user.articles.index'); 
+    Route::get('/articles/{id}', 'showArticleWithRelated')->name('user.articles.show');
+    Route::get('/writer/{id}/articles', 'getArticlesByAdmin');
+
 });

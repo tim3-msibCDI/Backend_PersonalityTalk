@@ -146,7 +146,6 @@ class AuthController extends BaseController
             $mahasiswa = Mahasiswa::create([
                 'user_id' => $user->id,
                 'universitas' => $request->universitas,
-                'nim' => $request->nim,
                 'jurusan' => $request->jurusan,
             ]);
             DB::commit();

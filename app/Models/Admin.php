@@ -19,4 +19,10 @@ class Admin extends Authenticatable
         'email',
         'password',
     ];
+
+    public function articles()
+    {
+        return $this->hasMany(Article::class, 'admin_id');
+    }
+
 }
