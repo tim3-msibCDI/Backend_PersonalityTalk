@@ -20,8 +20,9 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::controller(AuthController::class)->group(function () {
-    Route::post('/register/user', 'userRegisterSave')->name('register.user.save');
-    Route::post('/register/mahasiswa', 'mahasiswaRegisterSave')->name('register.mahasiswa.save');
+    // Route::post('/register/user', 'userRegisterSave')->name('register.user.save');
+    // Route::post('/register/mahasiswa', 'mahasiswaRegisterSave')->name('register.mahasiswa.save');
+    Route::post('/register', 'registerUser')->name('register.save');
     Route::post('/login', 'userloginAction')->name('user.login');
     // 
     // Route::get('/auth/google', 'redirectToGoogle')->name('auth.google.redirect');
