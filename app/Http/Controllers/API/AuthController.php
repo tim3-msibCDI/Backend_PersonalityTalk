@@ -34,12 +34,12 @@ class AuthController extends BaseController
         // Cek apakah email ada di database
         $user = User::where('email', $request->email)->first();
         if (!$user) {
-            return $this->sendError('Email tidak terdaftar.', ['error' => 'Email tidak ditemukan'], 404);
+            return $this->sendError('Email anda tidak terdaftar.', [], 404);
         }
     
         // Cek apakah password benar
         if (!Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-            return $this->sendError('Password salah.', ['error' => 'Password tidak sesuai'], 401);
+            return $this->sendError('Password anda salah.', [], 401);
         }
     
         // Jika email dan password benar, lakukan login
