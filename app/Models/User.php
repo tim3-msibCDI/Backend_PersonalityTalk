@@ -27,7 +27,9 @@ class User extends Authenticatable
         'photo_profile',
         'social_id',
         'social_type',
-        'role'
+        'role',
+        'reset_token',
+        'reset_token_expires_at',
     ];
 
     /**

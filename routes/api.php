@@ -11,6 +11,7 @@ use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\PsikologController;
 use App\Http\Controllers\API\ConsultationController;
 use App\Http\Controllers\API\PsikologPriceController;
+use App\Http\Controllers\API\ForgotPasswordController;
 use App\Http\Controllers\API\ArticleCategoryController;
 use App\Http\Controllers\API\PsikologCategoryController;
 use App\Http\Controllers\API\PsikologScheduleController;
@@ -24,9 +25,15 @@ Route::controller(AuthController::class)->group(function () {
     // Route::post('/register/mahasiswa', 'mahasiswaRegisterSave')->name('register.mahasiswa.save');
     Route::post('/register', 'registerUser')->name('register.save');
     Route::post('/login', 'userloginAction')->name('user.login');
-    // 
+    
     // Route::get('/auth/google', 'redirectToGoogle')->name('auth.google.redirect');
     // Route::get('/auth/google/callback', 'handleGoogleCallback')->name('auth.google.callback');
+});
+
+Route::controller(ForgotPasswordController::class)->group(function () {
+    Route::post('/password/reset/request', 'requestReset');
+    Route::get('/password/reset/confirm', 'confirmReset');
+    Route::post('/password/reset', 'resetAndChangePassword');
 });
 
 Route::controller(PsikologCategoryController::class)->group(function () {

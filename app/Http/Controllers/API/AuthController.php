@@ -98,14 +98,11 @@ class AuthController extends BaseController
                     'jurusan' => $request->jurusan,
                 ]);
             }
-
             DB::commit();
-
             $success = [
                 'name' => $user->name,
                 'role' => $user->role,
             ];
-
             return $this->sendResponse($success, 'Anda berhasil terdaftar.');
 
         } catch (\Exception $e) {
@@ -113,8 +110,6 @@ class AuthController extends BaseController
             return $this->sendError('Register Error', 'Terjadi kesalahan saat mendaftarkan pengguna: ' . $e->getMessage(), 500);
         }
     }
-
-
 
     // Redirect ke Google
     public function redirectToGoogle()
