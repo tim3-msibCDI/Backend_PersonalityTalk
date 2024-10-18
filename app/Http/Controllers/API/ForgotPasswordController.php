@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Mail\ResetPasswordMail;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
@@ -17,14 +16,14 @@ class ForgotPasswordController extends BaseController
     {
         $validatedData = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
-        ],[
+        ], [
             'email.required' => 'Email wajib diisi.',
             'email.email' => 'Format email tidak valid.',
             'email.exists' => 'Email tidak terdaftar dalam sistem kami.'
         ]);
 
         if ($validatedData->fails()) {
-            return response()->json(['errors' => $validatedData->errors()], 422);
+            return $this->sendError('Validasi gagal.', $validatedData->errors(), 422);
         }
 
         $user = User::where('email', $validatedData->validated()['email'])->first();
@@ -33,13 +32,13 @@ class ForgotPasswordController extends BaseController
         $token = Str::random(60); 
         $user->update([
             'reset_token' => $token, 
-            'reset_token_expires_at' => now()->addMinutes(30)] // Save token and expiration
-        ); 
+            'reset_token_expires_at' => now()->addMinutes(30)
+        ]); 
 
-        // Send email with reset link 
+        // Send email with reset link
         Mail::to($user->email)->send(new ResetPasswordMail($token));
 
-        return response()->json(['message' => 'Tautan untuk reset kata sandi telah dikirim ke email Anda.']);
+        return $this->sendResponse(['message' => 'Tautan untuk reset kata sandi telah dikirim ke email Anda.'], 'Email terkirim.');
     }
 
     public function confirmReset(Request $request)
@@ -53,10 +52,10 @@ class ForgotPasswordController extends BaseController
                     ->first();
 
         if (!$user) {
-            return response()->json(['message' => 'Token tidak valid atau telah kadaluwarsa.'], 404);
+            return $this->sendError('Token tidak valid atau telah kadaluwarsa.', [], 404);
         }
 
-        return response()->json(['message' => 'Silahkan buat kata sandi baru.']);
+        return $this->sendResponse(['message' => 'Silahkan buat kata sandi baru.'], 'Token valid.');
     }
 
     public function resetAndChangePassword(Request $request)
@@ -75,7 +74,7 @@ class ForgotPasswordController extends BaseController
 
         // Cek jika validasi gagal
         if ($validatedData->fails()) {
-            return response()->json(['errors' => $validatedData->errors()], 422);
+            return $this->sendError('Validasi gagal.', $validatedData->errors(), 422);
         }
 
         $user = User::where('reset_token', $request->token)
@@ -83,7 +82,7 @@ class ForgotPasswordController extends BaseController
                     ->first();
 
         if (!$user) {
-            return response()->json(['message' => 'Token tidak valid atau telah kadaluwarsa.'], 404);
+            return $this->sendError('Token tidak valid atau telah kadaluwarsa.', [], 404);
         }
 
         // Update password
@@ -92,10 +91,6 @@ class ForgotPasswordController extends BaseController
         $user->reset_token_expires_at = null; // Hapus tanggal kedaluwarsa
         $user->save();
 
-        return response()->json(['message' => 'Kata sandi berhasil diperbarui.']);
+        return $this->sendResponse(['message' => 'Kata sandi berhasil diperbarui.']);
     }
-
-
-
 }
-
