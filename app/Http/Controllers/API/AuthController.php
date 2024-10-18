@@ -30,22 +30,29 @@ class AuthController extends BaseController
             'email.required' => 'Email wajib diisi',
             'password.required' => 'Password wajib diisi',
         ])->validate();
-
-        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-            $user = Auth::user();
-            $token = $user->createToken('auth_token')->plainTextToken;
-
-            $success = [
-                'token' => $token,
-                'name' => $user->name,
-                'role' => $user->role
-            ];
-
-            return $this->sendResponse($success, 'Anda berhasil login.');
-        } else {
-            return $this->sendError('Unauthorised', ['error' => 'Unauthorised'], 401);
+    
+        // Cek apakah email ada di database
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            return $this->sendError('Email tidak terdaftar.', ['error' => 'Email tidak ditemukan'], 404);
         }
+    
+        // Cek apakah password benar
+        if (!Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+            return $this->sendError('Password salah.', ['error' => 'Password tidak sesuai'], 401);
+        }
+    
+        // Jika email dan password benar, lakukan login
+        $token = $user->createToken('auth_token')->plainTextToken;
+        $success = [
+            'token' => $token,
+            'name' => $user->name,
+            'role' => $user->role
+        ];
+    
+        return $this->sendResponse($success, 'Anda berhasil login.');
     }
+    
 
     public function registerUser(Request $request)
     {
