@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use Carbon\Carbon;
+use App\Models\MainSchedule;
 use Illuminate\Http\Request;
 use App\Models\PsikologSchedule;
 use Illuminate\Support\Facades\DB;
@@ -10,6 +11,35 @@ use App\Http\Controllers\Controller;
 
 class PsikologScheduleController extends BaseController
 {   
+    /**
+     * Get all main schedule data
+     */
+    public function getMainSchedules()
+    {
+        // Fetch all main schedules ordered by day of the week and time
+        $mainSchedules = MainSchedule::select('id', 'day', 'start_hour', 'end_hour')
+            ->orderByRaw("FIELD(day, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')")
+            ->orderBy('start_hour')
+            ->get();
+
+        // Group schedules by day of the week, keeping the day as the key
+        $groupedSchedules = $mainSchedules->groupBy('day')->map(function($schedules) {
+            return $schedules->map(function ($schedule) {
+                return [
+                    'id' => $schedule->id,
+                    'time_slot' => Carbon::parse($schedule->start_hour)->format('H:i') 
+                               . ' - ' . 
+                               Carbon::parse($schedule->end_hour)->format('H:i')
+                ];
+            });
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $groupedSchedules
+        ]);
+    }
+
     /**
      * Generate psikolog schedule 
      */
@@ -24,8 +54,8 @@ class PsikologScheduleController extends BaseController
             'month' => 'required|integer|between:1,12',
             'year' => 'required|integer|min:2024|max:2100',
         ],[
-            // 'psikolog_id.required' => 'Psikolog wajib dipilih.',
-            // 'psikolog_id.exists' => 'Psikolog tidak ditemukan di sistem.',        
+            'psikolog_id.required' => 'Psikolog wajib dipilih.',
+            'psikolog_id.exists' => 'Psikolog tidak ditemukan di sistem.',        
             'month.required' => 'Bulan wajib dipilih.',
             'year.required' => 'Tahun wajib dipilih.',
         ]);

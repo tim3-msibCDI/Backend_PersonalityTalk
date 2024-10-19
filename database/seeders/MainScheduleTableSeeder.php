@@ -3,8 +3,10 @@
 namespace Database\Seeders;
 
 use Carbon\Carbon;
+use App\Models\MainSchedule;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class MainScheduleTableSeeder extends Seeder
@@ -14,6 +16,11 @@ class MainScheduleTableSeeder extends Seeder
      */
     public function run(): void
     {
+
+        Schema::disableForeignKeyConstraints();
+        MainSchedule::truncate();
+        Schema::enableForeignKeyConstraints();
+
         // Define time range for each day (6:00 AM to 10:00 PM)
         $startHour = 6;
         $endHour = 22;
