@@ -82,7 +82,7 @@ class AuthController extends BaseController
         if ($validator->fails()) {
             return $this->sendError('Validation Error', $validator->errors(), 422);
         }
-
+       
         try {
             DB::beginTransaction();
 

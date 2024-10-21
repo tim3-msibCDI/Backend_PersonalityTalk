@@ -32,7 +32,7 @@ class ForgotPasswordController extends BaseController
         $token = Str::random(60); 
         $user->update([
             'reset_token' => $token, 
-            'reset_token_expires_at' => now()->addMinutes(30)
+            'reset_token_expires_at' => now()->addMinutes(5)
         ]); 
 
         // Send email with reset link
