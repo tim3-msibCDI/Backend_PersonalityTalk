@@ -60,7 +60,7 @@
             reset kata sandi.</p>
         <a href="{{ url('api/password/reset/confirm?token=' . $token) }}" class="btn">Reset Kata Sandi</a>
         <p class="notice">Harap diperhatikan, tautan ini hanya berlaku selama 5 menit.</p>
-        <p>Jika Anda tidak meminta reset kata sandi, harap abaikan email ini.</p>
+        <p>Jika Anda tidak meminta reset kata sandi, harap abaikan email ini. </p>
     </div>
 </body>
 
