@@ -17,28 +17,21 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
-        // $middleware->register('auth', \App\Http\Middleware\Authenticate::class);
-
+        
         $middleware->alias([
             'auth' => Authenticate::class,
             'role' => CheckRole::class,
             'admin' => AdminAuth::class,
-            // 'ensurejsonauthenticated' => EnsureJsonAuthenticated::class,
 
         ]);
 
-        // $middleware->api(prepend: [
-        //    'ensurejsonauthenticated' => EnsureJsonAuthenticated::class,
-        // ]);
-
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        $exceptions->render(function (AuthenticationException $e, Request $request) {
-            if ($request->is('api/*')) {
-                return response()->json([
-                    'message' => $e->getMessage(),
-                ], 401);
-            }
-        });
+        // $exceptions->render(function (AuthenticationException $e, Request $request) {
+        //     if ($request->is('api/*')) {
+        //         return response()->json([
+        //             'message' => $e->getMessage(),
+        //         ], 401);
+        //     }
+        // });
     })->create();

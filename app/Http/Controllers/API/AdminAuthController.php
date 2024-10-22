@@ -33,13 +33,26 @@ class AdminAuthController extends BaseController
         }
 
         // Jika kredensial valid, buat token
-        $token = $admin->createToken('PersonalityTalk', ['admin'])->plainTextToken;
+        $token = $admin->createToken('admin_auth_token', ['admin'])->plainTextToken;
         $success = [
             'token' => $token,
             'name' => $admin->name,
         ];
         return $this->sendResponse($success, 'Anda berhasil login.');
     }
+
+    public function logoutAdmin(Request $request)
+    {
+        // Pastikan admin yang sedang login tokennya dihapus
+        $admin = $request->user('sanctum'); 
+
+        // Hapus token akses admin yang sedang digunakan
+        if ($admin) {
+            $admin->currentAccessToken()->delete();
+        }
+        return $this->sendResponse('Anda berhasil logout sebagai admin.');
+    }
+
 
 
 }

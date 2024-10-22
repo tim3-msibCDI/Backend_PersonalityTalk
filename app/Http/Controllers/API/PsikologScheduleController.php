@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\PsikologSchedule;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
 
 class PsikologScheduleController extends BaseController
 {   
@@ -45,7 +46,7 @@ class PsikologScheduleController extends BaseController
      */
     public function generatePsikologSchedule(Request $request)
     {
-        $request->validate([
+        $validatedData = Validator::make($request->all(),[
             'psikolog_id' => 'required|exists:psikolog,id',
             'schedules' => 'required|array', // Array of days with specific main_schedule_ids
             'schedules.*.day' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
@@ -59,6 +60,10 @@ class PsikologScheduleController extends BaseController
             'month.required' => 'Bulan wajib dipilih.',
             'year.required' => 'Tahun wajib dipilih.',
         ]);
+
+        if ($validatedData->fails()) {
+            return response()->json(['errors' => $validatedData->errors()], 422);
+        }
 
         $psikologId = $request->psikolog_id;
         $schedules = $request->schedules;

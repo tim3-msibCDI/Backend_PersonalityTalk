@@ -43,7 +43,7 @@ class AuthController extends BaseController
         }
     
         // Jika email dan password benar, lakukan login
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $token = $user->createToken('auth_user_token')->plainTextToken;
         $success = [
             'token' => $token,
             'name' => $user->name,
@@ -106,9 +106,12 @@ class AuthController extends BaseController
                 ]);
             }
             DB::commit();
+
+            $token = $user->createToken('auth_user_token')->plainTextToken;
             $success = [
                 'name' => $user->name,
                 'role' => $user->role,
+                'token' => $token,
             ];
             return $this->sendResponse($success, 'Anda berhasil terdaftar.');
 
@@ -117,6 +120,13 @@ class AuthController extends BaseController
             return $this->sendError('Register Error', 'Terjadi kesalahan saat mendaftarkan pengguna: ' . $e->getMessage(), 500);
         }
     }
+
+    public function logoutAction(Request $request){
+        // Hapus token pengguna saat ini
+        $request->user()->currentAccessToken()->delete();
+        return $this->sendResponse('Anda berhasil logout.');
+    }
+
 
     // Redirect ke Google
     public function redirectToGoogle()
@@ -143,7 +153,7 @@ class AuthController extends BaseController
                 ]);
                 Auth::login($user);
             }
-            $token = $user->createToken('auth_token')->plainTextToken;
+            $token = $user->createToken('auth_user_token')->plainTextToken;
 
             return redirect()->to('http://localhost:3000/auth/callback?token=' . $token);
         } catch (\Exception $e) {

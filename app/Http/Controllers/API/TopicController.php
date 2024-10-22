@@ -72,6 +72,11 @@ class TopicController extends BaseController
             return $this->sendError('Topik tidak ditemukan', [], 404);
         }
 
+        // Cek apakah topik sedang digunakan oleh PsikologTopic
+        if ($topic->psikolog_topic()->exists()) {
+            return $this->sendError("Topik '{$topic->topic_name}' sedang digunakan oleh psikolog dan tidak dapat dihapus.", [], 400);
+        }
+
         $topicName = $topic->topic_name;
         $topic->delete();
 
