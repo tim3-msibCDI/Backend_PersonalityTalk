@@ -14,4 +14,9 @@ class Topic extends Model
         'topic_name', 
     ];
 
+    public function psikolog_topic()
+    {
+        return $this->hasMany(PsikologTopic::class, 'topic_id');
+    }
+
 }

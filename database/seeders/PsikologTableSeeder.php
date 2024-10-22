@@ -111,6 +111,7 @@ class PsikologTableSeeder extends Seeder
         Schema::disableForeignKeyConstraints();
         User::truncate();
         Psikolog::truncate();
+        PsikologTopic::truncate();
         Schema::enableForeignKeyConstraints();
 
         foreach ($psikologs as $data) {
