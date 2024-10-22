@@ -10,6 +10,7 @@ use App\Http\Controllers\API\ArticleController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\PsikologController;
 use App\Http\Controllers\API\AdminAuthController;
+use App\Http\Controllers\API\UserProfileController;
 use App\Http\Controllers\API\ConsultationController;
 use App\Http\Controllers\API\PsikologPriceController;
 use App\Http\Controllers\API\ForgotPasswordController;
@@ -47,6 +48,13 @@ Route::middleware(['auth:sanctum', 'role:M,U,P'])->group(function () {
  */
 Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
     Route::post('/user/logout', [AuthController::class, 'logoutAction'])->name('user.logout');
+
+    Route::controller(UserProfileController::class)->group(function(){
+        Route::get('/user/info', 'getUserInfo');
+        Route::get('/user/profile/detail', 'getUserProfile');
+        Route::put('/user/profile/update', 'updateProfile');
+        Route::put('/user/profile/updateMahasiswa', 'updateToMahasiswa');
+    });
 
     Route::controller(ConsultationController::class)->group(function () {
         Route::get('/consultation/psikolog/topics', 'getPsikologTopics');
