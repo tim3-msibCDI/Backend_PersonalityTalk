@@ -46,6 +46,7 @@ Route::middleware(['auth:sanctum', 'role:M,U,P'])->group(function () {
         Route::get('/user/info', 'getUserInfo');
         Route::get('/user/profile/detail', 'getUserProfile');
         Route::put('/user/profile/update', 'updateProfile');
+        Route::put('/user/profile/updatePassword', 'updatePassword');
         Route::put('/user/profile/updateMahasiswa', 'updateToMahasiswa');
     });
 });

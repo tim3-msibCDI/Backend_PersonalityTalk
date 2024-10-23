@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController;
 
@@ -222,6 +223,38 @@ class UserProfileController extends BaseController
         }
 
     }
+
+    public function updatePassword(Request $request){
+
+        $user = Auth::user();
+
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required',
+            'new_password' => 'required|min:8|confirmed',
+        ], [
+            'current_password.required' => 'Password saat ini harus diisi.',
+            'new_password.required' => 'Password baru wajib diisi',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error', $validator->errors(), 422);
+        }
+
+        try {
+            // Periksa apakah password saat ini cocok
+            if (!Hash::check($request->current_password, $user->password)) {
+                return $this->sendError('Password saat ini tidak cocok.', 400);
+            }
+
+            $user->password = Hash::make($request->new_password);
+            $user->save();
+
+            return $this->sendResponse('Password berhasil diperbarui.', null);
+        } catch (\Exception $e) {
+            throw new \Exception('Error. Gagal update password ' . $e->getMessage());
+        }
+    }
+
 }  
 
     
