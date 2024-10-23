@@ -41,13 +41,6 @@ Route::controller(ForgotPasswordController::class)->group(function () {
 
 Route::middleware(['auth:sanctum', 'role:M,U,P'])->group(function () {
     Route::post('/user/logout', [AuthController::class, 'logoutAction'])->name('user.logout');
-});
-
-/**
- * Bisa diakses oleh Mahasiswa dan Umum
- */
-Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
-    Route::post('/user/logout', [AuthController::class, 'logoutAction'])->name('user.logout');
 
     Route::controller(UserProfileController::class)->group(function(){
         Route::get('/user/info', 'getUserInfo');
@@ -55,7 +48,12 @@ Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
         Route::put('/user/profile/update', 'updateProfile');
         Route::put('/user/profile/updateMahasiswa', 'updateToMahasiswa');
     });
+});
 
+/**
+ * Bisa diakses oleh Mahasiswa dan Umum
+ */
+Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
     Route::controller(ConsultationController::class)->group(function () {
         Route::get('/consultation/psikolog/topics', 'getPsikologTopics');
         Route::get('/consultation/psikolog/available', 'getAvailablePsikolog');

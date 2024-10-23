@@ -53,13 +53,31 @@ class UserProfileController extends BaseController
             'phone_number' => $user->phone_number
         ];
 
-        // Jika yang login adalah mahasiswa
+        // Detail jika user mahasiswa
         if ($user->role === 'M') {
             $mahasiswaDetails = $user->mahasiswa; 
             if ($mahasiswaDetails) {
                 $profileData['mahasiswa_details'] = [
                     'universitas' => $mahasiswaDetails->universitas,
                     'jurusan' => $mahasiswaDetails->jurusan,
+                ];
+            }
+        }
+
+         // Detail jika user psikolog
+         if ($user->role === 'P') {
+            $psikologDetails = $user->psikolog;
+            if ($psikologDetails) {
+                $profileData['psikolog_details'] = [
+                    'sipp' => $psikologDetails->sipp,
+                    'practice_start_date' => $psikologDetails->practice_start_date,
+                    'description' => $psikologDetails->description,
+                    'topics' => $psikologDetails->psikolog_topic->map(function($pt) {
+                        return [
+                            'id' => $pt->topic->id,
+                            'topic_name' => $pt->topic->topic_name,
+                        ]; 
+                    }),
                 ];
             }
         }
@@ -84,6 +102,13 @@ class UserProfileController extends BaseController
             // Validation for Mahasiswa
             'universitas' => 'required_if:role,M|string|max:255',
             'jurusan' => 'required_if:role,M|string|max:255',
+
+            // Validation for Psikolog
+            'sipp' => 'required_if:role,P|string|max:255',
+            'practice_start_date' => 'required_if:role,P|date',
+            'description' => 'nullable|string',
+            'topics' => 'required_if:role,P|array',
+            'topics.*' => 'exists:topics,id',
         ], [
             'name.required' => 'Nama wajib diisi.',
             'email.required' => 'Email wajib diisi.',
@@ -91,8 +116,12 @@ class UserProfileController extends BaseController
             'date_birth.required' => 'Tanggal lahir wajib diisi.',
             'gender.required' => 'Jenis kelamin wajib diisi.',
 
-            'universitas.required_if' => 'Universitas wajib diisi jika role adalah mahasiswa.',
-            'jurusan.required_if' => 'Jurusan wajib diisi jika role adalah mahasiswa.',
+            'universitas.required_if' => 'Universitas wajib diisi.',
+            'jurusan.required_if' => 'Jurusan wajib diisi.',
+
+            'sipp.required_if' => 'SIPP wajib diisi.',
+            'practice_start_date.required_if' => 'Tanggal mulai praktik wajib diisi.',
+            'topics.required_if' => 'Topik wajib dipilih.',
         ]);
 
         if ($validator->fails()) {
@@ -104,7 +133,7 @@ class UserProfileController extends BaseController
 
             $user->update($request->only('name', 'email', 'phone_number', 'date_birth', 'gender'));
 
-            // Jika user adalah mahasiswa maka update
+            // Update untuk mahasiswa
             if ($user->role === 'M') {
                 $user->mahasiswa()->update([
                     'universitas' => $request->universitas,
@@ -112,6 +141,32 @@ class UserProfileController extends BaseController
                 ]);
             }
 
+            // Update untuk psikolog
+            if ($user->role === 'P') {
+                $user->psikolog()->update([
+                    'sipp' => $request->sipp,
+                    'practice_start_date' => $request->practice_start_date,
+                    'description' => $request->description,
+                ]);
+
+                // Cek apakah ada perubahan dalam topik
+                $existingTopicIds = $user->psikolog->psikolog_topic->pluck('topic_id')->toArray();
+                $newTopicIds = $request->topics;
+
+                // Jika topik berubah, lakukan pembaruan
+                if (array_diff($existingTopicIds, $newTopicIds) || array_diff($newTopicIds, $existingTopicIds)) {
+                    // Hapus topik lama
+                    $user->psikolog->psikolog_topic()->delete();
+
+                    // Tambahkan topik baru
+                    $newTopics = collect($newTopicIds)->map(function ($topicId) {
+                        return ['topic_id' => $topicId];
+                    });
+                    $user->psikolog->psikolog_topic()->createMany($newTopics->toArray());
+                }
+            }
+            
+            $user->load('psikolog.psikolog_topic');
             DB::commit();
             return $this->sendResponse('Profil berhasil diperbarui.', $user);
             
