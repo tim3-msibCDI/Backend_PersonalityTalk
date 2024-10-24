@@ -18,7 +18,7 @@ class Disease extends Model
         'admin_id',
     ];
 
-    public function admin_writer()
+    public function writer()
     {
         return $this->belongsTo(Admin::class, 'admin_id', 'id');
     }

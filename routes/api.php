@@ -142,6 +142,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
  * Tidak perlu Login
  */
 Route::controller(ArticleController::class)->group(function () {
+    Route::get('/articles/categories', 'listCategoryArticle')->name('user.articles.categories'); 
     Route::get('/articles', 'listUserArticle')->name('user.articles.index'); 
     Route::get('/articles/{id}', 'showArticleWithRelated')->name('user.articles.show');
     Route::get('/writer/{id}/articles', 'getArticlesByAdmin');

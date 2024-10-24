@@ -5,15 +5,28 @@ namespace App\Http\Controllers\API;
 use App\Models\Admin;
 use App\Models\Article;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use App\Models\ArticleCategory;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ArticleResource;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController;
+use App\Http\Resources\DetailArticleResource;
 
 class ArticleController extends BaseController
-{
+{   
+    /**
+     * Get list category article for user
+     */
+    public function listCategoryArticle()
+    {
+        $categories = ArticleCategory::select('id as category_id', 'name')->get();
+        return $this->sendResponse('Berhasil mengambil daftar kategori artikel untuk Pengguna.', $categories);
+    }
+
     /**
      * Get list article for user
      */
@@ -23,10 +36,10 @@ class ArticleController extends BaseController
 
         $articles = Article::with(['admin_writer', 'article_category'])
             ->where('category_id', $categoryId)
-            ->select('id', 'article_img', 'article_title', 'publication_date')
+            ->select('id', 'article_img', 'article_title', 'publication_date', 'admin_id', 'category_id')
             ->paginate(12);
 
-        return response()->json($articles, 200);
+        return $this->sendResponse('Berhasil mengambil daftar artikel untuk Pengguna.', ArticleResource::collection($articles));
     }
 
     /**
@@ -37,19 +50,24 @@ class ArticleController extends BaseController
         $article = Article::with(['admin_writer', 'article_category'])->find($id);
 
         if (!$article) {
-            return response()->json(['message' => 'Artikel tidak ditemukan'], 404);
+            return $this->sendError('Artikel tidak ditemukan.', [], 404);
         }
 
         $relatedArticles = Article::where('category_id', $article->category_id)
             ->where('id', '!=', $id)
             ->select('id', 'article_img', 'article_title', 'publication_date')
+            ->inRandomOrder()
             ->limit(5)
             ->get();
+        
+        return $this->sendResponse(
+            'Berhasil mengambil detail artikel untuk Pengguna.', 
+            [
+                'article' => new DetailArticleResource($article), 
+                'related_articles' => ArticleResource::collection($relatedArticles), 
+            ]
+        );
 
-        return response()->json([
-            'article' => $article,  // Detail artikel
-            'related_articles' => $relatedArticles, // Daftar artikel terkait
-        ], 200);
     }
 
     /**
@@ -58,30 +76,31 @@ class ArticleController extends BaseController
     public function getArticlesByAdmin($id)
     {
         $admin = Admin::with('articles')->find($id);
-
         if (!$admin) {
-            return response()->json(['message' => 'Admin tidak ditemukan'], 404);
+            return $this->sendError('Artikel tidak ditemukan.', [], 404);
         }
 
-        // Dapatkan artikel-artikel yang ditulis oleh admin tersebut
-        $articles = Article::where('admin_id', $id)->paginate(10);
+        $articles = Article::where('admin_id', $id)->paginate(12);
+        $formattedArticles = ArticleResource::collection($articles);
 
-        return response()->json([
-            'admin' => [
-                'name' => $admin->name,
-            ],
-            'articles' => $articles,
-        ], 200);
+        return $this->sendResponse(
+            'Berhasil mengambil artikel berdasarkan Penulis.', 
+            [
+                'admin' => [
+                    'name' => $admin->name,
+                ],
+                'articles' => $formattedArticles, 
+                ]
+        );
     }
 
     /**
-     * Get list article for user
+     * Get list article for admin
      */
     public function listAdminArticle(Request $request)
     {
-        $article = Article::select('id', 'article_title', 'article_img')->get();
-
-        return $this->sendResponse($article, 'Artikel berhasil ditemukan.');
+        $articles = Article::select('id', 'article_title', 'article_img')->get();
+        return $this->sendResponse('Berhasil mengambil list artikel untuk Admin.', $articles);
     }
 
     /**
@@ -114,7 +133,7 @@ class ArticleController extends BaseController
         ]);
 
         if ($validatedData->fails()) {
-            return response()->json(['errors' => $validatedData->errors()], 422);
+            return $this->sendError('Validasi gagal', ['errors' => $validatedData->errors()], 422);
         }
 
         try {
@@ -124,9 +143,7 @@ class ArticleController extends BaseController
                 $imagePath = Storage::disk('public')->put('article_photos', $request->file('article_img'));
     
                 if (!$imagePath) {
-                    return response()->json([
-                        'message' => 'Gagal menyimpan gambar.'
-                    ], 500);
+                    return $this->sendError('Gagal menyimpan gambar.', [], 500);
                 }
             }
 
@@ -141,18 +158,11 @@ class ArticleController extends BaseController
             ]);
 
             DB::commit();
-    
-            return response()->json([
-                'message' => 'Artikel berhasil dibuat',
-                'data' => $article
-            ], 201);
+            return $this->sendResponse('Artikel baru berhasil dibuat.', $article);
             
         } catch (Exception $e) {
             DB::rollback();
-            return response()->json([
-                'message' => 'Terjadi kesalahan saat membuat artikel.',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->sendError('Terjadi kesalahan saat membuat konten artikel.', [], 500);
         }
     }
 
@@ -162,12 +172,11 @@ class ArticleController extends BaseController
     public function show($id)
     {
         $article = Article::with('admin_writer')->find($id);
-
         if (!$article) {
-            return response()->json(['message' => 'Artikel tidak ditemukan'], 404);
+            return $this->sendError('Artikel tidak ditemukan.', [], 404);
         }
 
-        return $this->sendResponse($article, 'Artikel berhasil ditemukan.');
+        return $this->sendResponse('Detail artikel berhasil ditemukan.', new DetailArticleResource($article));
     }
 
     /**
@@ -176,10 +185,8 @@ class ArticleController extends BaseController
     public function update(Request $request, $id)
     {
         $article = Article::find($id);
-        // dd($article);
-
         if (!$article) {
-            return response()->json(['message' => 'Artikel tidak ditemukan'], 404);
+            return $this->sendError('Artikel tidak ditemukan.', [], 404);
         }
 
         $validatedData = Validator::make($request->all(), [
@@ -206,7 +213,7 @@ class ArticleController extends BaseController
         ]);
 
         if ($validatedData->fails()) {
-            return response()->json(['errors' => $validatedData->errors()], 422);
+            return $this->sendError('Validasi gagal', ['errors' => $validatedData->errors()], 422);
         }
 
         try {
@@ -216,10 +223,9 @@ class ArticleController extends BaseController
 
             // Jika ada file gambar baru, simpan dan hapus gambar lama
             if ($request->hasFile('article_img')) {
-                // Simpan gambar baru
                 $imagePath = Storage::disk('public')->put('article_photos', $request->file('article_img'));
                 if (!$imagePath) {
-                    return response()->json(['message' => 'Gagal menyimpan gambar.'], 500);
+                    return $this->sendError('Gagal menyimpan gambar.', [], 500);
                 }
 
                 // Hapus gambar lama jika ada
@@ -233,20 +239,12 @@ class ArticleController extends BaseController
 
             // Update artikel 
             $article->update($dataToUpdate);
-
             DB::commit();
+            return $this->sendResponse('Artikel berhasil diperbarui.', $article);
 
-            return response()->json([
-                'message' => 'Artikel berhasil diperbarui',
-                'data' => $article
-            ], 200);
-            
         } catch (Exception $e) {
             DB::rollback();
-            return response()->json([
-                'message' => 'Terjadi kesalahan saat memperbarui artikel.',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->sendError('Terjadi kesalahan saat memperbarui artikel.', [], 500);
         }
     }
 
@@ -257,29 +255,23 @@ class ArticleController extends BaseController
     {
         $article = Article::find($id);
         if (!$article) {
-            return response()->json(['message' => 'Artikel tidak ditemukan'], 404);
+            return $this->sendError('Artikel tidak ditemukan.', [], 404);
         }
 
         try {
             DB::beginTransaction();
 
-            // Hapus gambar terkait jika ada
             if ($article->article_img) {
                 Storage::disk('public')->delete($article->article_img);
             }
             $article->delete();
 
             DB::commit();
+            return $this->sendResponse('Artikel berhasil dihapus.', null);
 
-            return response()->json(['message' => 'Artikel berhasil dihapus'], 200);
         } catch (Exception $e) {
             DB::rollback();
-            return response()->json([
-                'message' => 'Terjadi kesalahan saat menghapus artikel.',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->sendError('Terjadi kesalahan saat menghapus artikel.', [], 500);
         }
     }
-
-
 }

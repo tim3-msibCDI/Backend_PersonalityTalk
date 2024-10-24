@@ -4,9 +4,15 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class BaseController extends Controller
-{
+{   
+    public function __construct()
+    {
+        Carbon::setLocale('id');
+    }
+
     /**
      * success response method.
      *

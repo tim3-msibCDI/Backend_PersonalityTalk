@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 
 class PsikologController extends BaseController
 {
@@ -18,6 +19,7 @@ class PsikologController extends BaseController
     // PsikologService constructor
     public function __construct(PsikologService $psikologService)
     {
+        parent::__construct();
         $this->psikologService = $psikologService;
     }
 

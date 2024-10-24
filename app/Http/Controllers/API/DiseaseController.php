@@ -17,15 +17,29 @@ class DiseaseController extends BaseController
      */
     public function listUserDisease(Request $request)
     {
-       
+        $diseases = Disease::select('id', 'disease_name')
+            ->orderBy('disease_name', 'asc')
+            ->get();
+
+        return $this->sendResponse('List informasi kesehatan mental baru berhasil diambil.', $diseases);
     }
 
     /**
      * Get list diseases for user
      */
-    public function showDiseaseDetail(Request $request)
+    public function showDiseaseDetail(Request $request, $id)
     {
-       
+        $disease = DB::table('diseases as d')
+            ->join('admins as wr', 'd.admin_id', '=', 'wr.id')
+            ->where('d.id', $id)
+            ->select('d.id', 'd.disease_name', 'd.disease_img', 'd.content', 'wr.id as writer_id', 'wr.name as writer_name')
+            ->first();
+    
+        if (!$disease) {
+            return $this->sendError('Detail informasi kesehatan mental tidak ditemukan.', [], 404);
+        }
+
+        return $this->sendResponse('Berhasil mengambil detail artikel untuk Pengguna.', $disease);
     }
 
     /**
@@ -33,7 +47,8 @@ class DiseaseController extends BaseController
      */
     public function listAdminDisease(Request $request)
     {
-       
+        $diseases = Disease::select('id', 'disease_name')->get();
+        return $this->sendResponse('Berhasil mengambil list kesehatan untuk Admin.', $diseases);
     }
 
     /**
@@ -93,24 +108,24 @@ class DiseaseController extends BaseController
      */
     public function show($id)
     {
-        $disease = Disease::with('admin_writer')->find($id);
+        $penyakitMental = Disease::with('admin_writer')->find($id);
 
-        if (!$disease) {
-            return $this->sendError('Penyakit mental tidak ditemukan.', [], 500);
+        if (!$penyakitMental) {
+            return $this->sendError('Penyakit mental tidak ditemukan.', [], 404);
         }
 
-        return $this->sendResponse('Penyakit mental berhasil ditemukan.', $disease);
+        return $this->sendResponse('Penyakit mental berhasil ditemukan.', $penyakitMental);
     }
 
     /**
      * Update penyakit mental from admin
      */
-    public function update(Request $request)
+    public function update(Request $request, $id)
     {
-        $disease = Disease::find($id);
+        $penyakitMental = Disease::find($id);
 
-        if (!$disease) {
-            return $this->sendError('Artikel tidak ditemukan.', [], 404);
+        if (!$penyakitMental) {
+            return $this->sendError('Penyakit mental tidak ditemukan.', [], 404);
         }
 
         $validatedData = Validator::make($request->all(), [
@@ -147,21 +162,48 @@ class DiseaseController extends BaseController
                 }
 
                 // Hapus gambar lama jika ada
-                if ($disease->disease_img) {
-                    Storage::disk('public')->delete($disease->disease_img);
+                if ($penyakitMental->disease_img) {
+                    Storage::disk('public')->delete($penyakitMental->disease_img);
                 }
                 $dataToUpdate['disease_img'] = $imagePath;
             }
 
             // Update penyakit mental 
-            $disease->update($dataToUpdate);
+            $penyakitMental->update($dataToUpdate);
             DB::commit();
-
-            return $this->sendResponse('Informasi kesehatan mental baru berhasil dibuat.', $penyakitMental);
+            return $this->sendResponse('Informasi kesehatan mental berhasil dipebarui.', $penyakitMental);
 
         } catch (Exception $e) {
             DB::rollback();
-            return $this->sendError('Terjadi kesalahan saat membuat konten kesehatan mental.', [], 500);
+            return $this->sendError('Terjadi kesalahan saat memperbarui informasi kesehatan mental.', [], 500);
+        }
+    }
+
+    /**
+     * Menghapus infornasi kesehatan mental tertentu.
+     */
+    public function destroy($id)
+    {
+        $penyakitMental = Disease::find($id);
+        if (!$penyakitMental) {
+            return $this->sendError('Penyakit mental tidak ditemukan.', [], 404);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Hapus gambar terkait jika ada
+            if ($penyakitMental->disease_img) {
+                Storage::disk('public')->delete($penyakitMental->disease_img);
+            }
+            $penyakitMental->delete();
+
+            DB::commit();
+            return $this->sendResponse('Informasi kesehatan mental berhasil dihapus.', null);
+
+        } catch (Exception $e) {
+            DB::rollback();
+            return $this->sendError('Terjadi kesalahan saat menghapus informasi kesehatan mental.', [], 500);
         }
     }
 }

@@ -25,4 +25,9 @@ class Admin extends Authenticatable
         return $this->hasMany(Article::class, 'admin_id');
     }
 
+    public function diseases()
+    {
+        return $this->hasMany(Diseases::class, 'admin_id');
+    }
+
 }

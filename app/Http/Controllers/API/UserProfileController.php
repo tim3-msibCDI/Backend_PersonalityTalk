@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController;
-use Carbon\Carbon;
 
 class UserProfileController extends BaseController
 {
@@ -44,7 +43,6 @@ class UserProfileController extends BaseController
         if (!$user) {
             return $this->sendError('Pengguna tidak ditemukan', [], 404);
         }
-        Carbon::setLocale('id');
 
         $profileData = [
             'name' => $user->name,

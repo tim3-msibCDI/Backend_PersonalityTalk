@@ -21,7 +21,6 @@ class Article extends Model
         'category_id',
     ];
 
-
     public function article_category()
     {
         return $this->belongsTo(ArticleCategory::class, 'category_id', 'id');
