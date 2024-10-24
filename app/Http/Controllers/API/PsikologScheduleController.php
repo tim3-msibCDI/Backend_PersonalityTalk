@@ -35,10 +35,7 @@ class PsikologScheduleController extends BaseController
             });
         });
 
-        return response()->json([
-            'success' => true,
-            'data' => $groupedSchedules
-        ]);
+        return $this->sendResponse('Berhasil mengambil data jadwal master', $groupedSchedules);        
     }
 
     /**
@@ -62,7 +59,7 @@ class PsikologScheduleController extends BaseController
         ]);
 
         if ($validatedData->fails()) {
-            return response()->json(['errors' => $validatedData->errors()], 422);
+            return $this->sendError('Validasi gagal', ['errors' => $validatedData->errors()], 422);
         }
 
         $psikologId = $request->psikolog_id;
@@ -136,15 +133,11 @@ class PsikologScheduleController extends BaseController
             }
 
             DB::commit();
+            return $this->sendResponse('Jadwal psikolog berhasil dibuat untuk bulan ' . $month . ' ' . $year, null);
 
-            return response()->json([
-                'message' => 'Jadwal psikolog berhasil diperbarui untuk bulan ' . $month . ' ' . $year,
-            ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'error' => 'Terjadi kesalahan saat memperbarui jadwal: ' . $e->getMessage(),
-            ], 500);
+            return $this->sendError('Terjadi kesalahan saat memperbarui jadwal.', [$e->getMessage()], 500);
         }
     }
 

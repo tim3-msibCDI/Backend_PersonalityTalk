@@ -15,7 +15,7 @@ class PsikologPriceController extends BaseController
     public function index()
     {
         $prices = PsikologPrice::all();
-        return $this->sendResponse($prices, 'Data seluruh harga psikolog berhasil diambil.');
+        return $this->sendResponse('Data seluruh harga psikolog berhasil diambil.', $prices);
     }
 
     /**
@@ -29,7 +29,7 @@ class PsikologPriceController extends BaseController
             return $this->sendError('Harga tidak ditemukan', [], 404);
         }
 
-        return $this->sendResponse($price, 'Harga berhasil ditemukan.');
+        return $this->sendResponse('Harga berhasil ditemukan.', $price);
     }
 
     /**
@@ -49,7 +49,7 @@ class PsikologPriceController extends BaseController
             'price' => $request->price,
         ]);
 
-        return $this->sendResponse($price, 'Harga baru berhasil ditambahkan.');
+        return $this->sendResponse('Harga baru berhasil ditambahkan.', $price);
     }
 
     /**
@@ -75,7 +75,7 @@ class PsikologPriceController extends BaseController
             'price' => $request->price,
         ]);
 
-        return $this->sendResponse($price, 'Harga berhasil diperbarui.');
+        return $this->sendResponse('Harga berhasil diperbarui.', $price);
     }
 
     /**
@@ -92,6 +92,6 @@ class PsikologPriceController extends BaseController
         $priceValue = $price->price;
         $price->delete();
 
-        return $this->sendResponse(null, "Harga sebesar {$priceValue} berhasil dihapus.");
+        return $this->sendResponse("Harga sebesar {$priceValue} berhasil dihapus.", null);
     }
 }

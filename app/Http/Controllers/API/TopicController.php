@@ -12,7 +12,7 @@ class TopicController extends BaseController
     public function index()
     {
         $topics = Topic::all();
-        return $this->sendResponse($topics, 'Data seluruh topik berhasil diambil.');
+        return $this->sendResponse('Data seluruh topik berhasil diambil.', $topics);
     }
 
     public function show($id)
@@ -23,7 +23,7 @@ class TopicController extends BaseController
             return $this->sendError('Topik yang dicari tidak ditemukan', [], 404);
         }
 
-        return $this->sendResponse($topic, 'Topik berhasil ditemukan.');
+        return $this->sendResponse('Topik berhasil ditemukan.', $topic);
     }
 
     public function store(Request $request)
@@ -38,7 +38,7 @@ class TopicController extends BaseController
             'topic_name' => $request->topic_name, 
         ]);
 
-        return $this->sendResponse($topic, 'Topik baru berhasil ditambahkan');
+        return $this->sendResponse('Topik baru berhasil ditambahkan', $topic);
     }
 
     public function update(Request $request, $id)
@@ -61,7 +61,7 @@ class TopicController extends BaseController
             'topic_name' => $request->topic_name, 
         ]);
 
-        return $this->sendResponse($topic, 'Topik berhasil diperbarui.');
+        return $this->sendResponse('Topik berhasil diperbarui.', $topic);
     }
 
     public function destroy($id)
@@ -80,7 +80,7 @@ class TopicController extends BaseController
         $topicName = $topic->topic_name;
         $topic->delete();
 
-        return $this->sendResponse(null, "Topik '{$topicName}' berhasil dihapus."); 
+        return $this->sendResponse("Topik '{$topicName}' berhasil dihapus.", null); 
     }
 
 }   

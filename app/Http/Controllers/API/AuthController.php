@@ -50,7 +50,7 @@ class AuthController extends BaseController
             'role' => $user->role
         ];
     
-        return $this->sendResponse($success, 'Anda berhasil login.');
+        return $this->sendResponse('Anda berhasil login.', $success);
     }
     
 
@@ -113,7 +113,7 @@ class AuthController extends BaseController
                 'role' => $user->role,
                 'token' => $token,
             ];
-            return $this->sendResponse($success, 'Anda berhasil terdaftar.');
+            return $this->sendResponse('Pendaftaran anda berhasil dilakukan.', $success);
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -124,7 +124,7 @@ class AuthController extends BaseController
     public function logoutAction(Request $request){
         // Hapus token pengguna saat ini
         $request->user()->currentAccessToken()->delete();
-        return $this->sendResponse('Anda berhasil logout.');
+        return $this->sendResponse('Anda berhasil logout sebagai User.');
     }
 
 

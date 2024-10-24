@@ -38,7 +38,7 @@ class ForgotPasswordController extends BaseController
         // Send email with reset link
         Mail::to($user->email)->send(new ResetPasswordMail($token));
 
-        return $this->sendResponse(['message' => 'Tautan untuk reset kata sandi telah dikirim ke email Anda.']);
+        return $this->sendResponse('Tautan untuk reset kata sandi telah dikirim ke email Anda.', null);
     }
 
     public function confirmReset(Request $request)
@@ -55,7 +55,7 @@ class ForgotPasswordController extends BaseController
             return $this->sendError('Token tidak valid atau telah kadaluwarsa.', [], 404);
         }
 
-        return $this->sendResponse(['message' => 'Konfirmasi berhasil. Silahkan buat kata sandi baru.']);
+        return $this->sendResponse('Konfirmasi berhasil. Silahkan buat kata sandi baru.', null);
     }
 
     public function resetAndChangePassword(Request $request)
@@ -91,6 +91,6 @@ class ForgotPasswordController extends BaseController
         $user->reset_token_expires_at = null; // Hapus tanggal kedaluwarsa
         $user->save();
 
-        return $this->sendResponse(['message' => 'Kata sandi berhasil diperbarui.']);
+        return $this->sendResponse('Kata sandi berhasil diperbarui.', null);
     }
 }

@@ -12,7 +12,7 @@ class PsikologCategoryController extends BaseController
     public function index()
     {
         $categories = PsikologCategory::select('id','category_name')->get();
-        return $this->sendResponse($categories, 'Data seluruh kategori berhasil diambil.');
+        return $this->sendResponse('Data seluruh kategori berhasil diambil.', $categories);
     }
 
     public function show($id)
@@ -23,7 +23,7 @@ class PsikologCategoryController extends BaseController
             return $this->sendError('Kategori tidak ditemukan', [], 404);
         }
 
-        return $this->sendResponse($category, 'Kategori berhasil ditemukan.');
+        return $this->sendResponse('Kategori berhasil ditemukan.', $category);
     }
 
     public function store(Request $request)
@@ -38,7 +38,7 @@ class PsikologCategoryController extends BaseController
             'category_name' => $request->category_name, 
         ]);
 
-        return $this->sendResponse($category, 'Kategori baru berhasil ditambahkan');
+        return $this->sendResponse('Kategori baru berhasil ditambahkan', $category);
     }
 
     public function update(Request $request, $id)
@@ -59,7 +59,7 @@ class PsikologCategoryController extends BaseController
             'category_name' => $request->category_name, 
         ]);
 
-        return $this->sendResponse($category, 'Kategori berhasil diperbarui.');
+        return $this->sendResponse('Kategori berhasil diperbarui.', $category);
     }
 
     public function destroy($id)
@@ -73,6 +73,6 @@ class PsikologCategoryController extends BaseController
         $categoryName = $category->category_name; 
         $category->delete();
 
-        return $this->sendResponse(null, "Kategori '{$categoryName}' berhasil dihapus."); 
+        return $this->sendResponse("Kategori '{$categoryName}' berhasil dihapus.", null); 
     }
 }

@@ -38,12 +38,11 @@ class AdminAuthController extends BaseController
             'token' => $token,
             'name' => $admin->name,
         ];
-        return $this->sendResponse($success, 'Anda berhasil login.');
+        return $this->sendResponse('Anda berhasil login.', $success);
     }
 
     public function logoutAdmin(Request $request)
     {
-        // Pastikan admin yang sedang login tokennya dihapus
         $admin = $request->user('sanctum'); 
 
         // Hapus token akses admin yang sedang digunakan

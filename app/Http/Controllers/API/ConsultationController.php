@@ -22,16 +22,9 @@ class ConsultationController extends Controller
     {
         try {
             $categories = Topic::select('id', 'topic_name')->get();
-
-            return response()->json([
-                'success' => true,
-                'data' => $categories
-            ], 200);
+            return $this->sendResponse('Berhasil mengambil data topik psikolog.', $categories);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal mengambil data kategori: ' . $e->getMessage(),
-            ], 500);
+            return $this->sendError('Gagal mengambil data topik psikolog', [$e->getMessage()], 500);
         }
     }
 
@@ -89,13 +82,11 @@ class ConsultationController extends Controller
             ];
         });
 
-        return response()->json([
-            'list_psikolog' => $response,
-        ]);
+        return $this->sendResponse('Berhasil mengambil jadwal psikolog yang tersedia.', $response);
     }
 
     /**
-     * 
+     * Get psikolog detail and availabe schedule
      */
     public function getPsikologDetailsAndSchedules(Request $request, $id)
     {
@@ -107,8 +98,6 @@ class ConsultationController extends Controller
             ->where('id', $id)
             ->firstOrFail();
 
-        // dd($psikolog);
-
         $selectedDate = Carbon::parse($request->selected_date)->format('Y-m-d');
 
         $availableSchedules = PsikologSchedule::where('psikolog_id', $id)
@@ -117,30 +106,31 @@ class ConsultationController extends Controller
             ->with('mainSchedule')
             ->get();
 
-        return response()->json([
-            'psikolog' => [
-                'id' => $psikolog->id,
-                'name' => $psikolog->user->name,
-                'photo_profile' => $psikolog->user->photo_profile,
-                'category_name' => $psikolog->psikolog_category->category_name,
-                'years_of_experience' => $psikolog->getYearsOfExperience(),
-                'price' => $psikolog->psikolog_price->price,
-                'description' => $psikolog->description,
-                'sipp' => $psikolog->sipp,
-                'topics' => $psikolog->psikolog_topic->map(function($pt) {
-                    return $pt->topic->topic_name; 
-                }),
-            ],
-            'available_schedules' => $availableSchedules->map(function($schedule) {
-                return [
-                    'psch_id' => $schedule->id,
-                    'time_slot' => Carbon::parse($schedule->mainSchedule->start_hour)->format('H:i') 
-                               . ' - ' . 
-                               Carbon::parse($schedule->mainSchedule->end_hour)->format('H:i')
-                ];
-            })
-        ]);
+        return $this->sendResponse(
+            'Berhasil mengambil detail dan jadwal Psikolog', 
+            [
+                'psikolog' => [
+                    'id' => $psikolog->id,
+                    'name' => $psikolog->user->name,
+                    'photo_profile' => $psikolog->user->photo_profile,
+                    'category_name' => $psikolog->psikolog_category->category_name,
+                    'years_of_experience' => $psikolog->getYearsOfExperience(),
+                    'price' => $psikolog->psikolog_price->price,
+                    'description' => $psikolog->description,
+                    'sipp' => $psikolog->sipp,
+                    'topics' => $psikolog->psikolog_topic->map(function($pt) {
+                        return $pt->topic->topic_name; 
+                    }),
+                ],
+                'available_schedules' => $availableSchedules->map(function($schedule) {
+                    return [
+                        'psch_id' => $schedule->id,
+                        'time_slot' => Carbon::parse($schedule->mainSchedule->start_hour)->format('H:i') 
+                                   . ' - ' . 
+                                   Carbon::parse($schedule->mainSchedule->end_hour)->format('H:i')
+                    ];
+                })
+            ]
+        );
     }
-
-
 }

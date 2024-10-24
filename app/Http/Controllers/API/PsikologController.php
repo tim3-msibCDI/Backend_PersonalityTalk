@@ -62,20 +62,16 @@ class PsikologController extends BaseController
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return $this->sendError('Validasi gagal.', [$validator->errors()], 422);
         }
 
         try {
             // Menggunakan function yang terdapat pada PsikologService
             $psikolog = $this->psikologService->registerPsikolog($request->all());
-
-            return response()->json([
-                'message' => 'Psikolog berhasil didaftarkan.',
-                'psikolog' => $psikolog,
-            ], 201);
-
+            return $this->sendResponse('Pendaftaran psikolog berhasil dilakukan', $psikolog);
+            
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Terjadi kesalahan saat registrasi psikolog. ' . $e->getMessage()], 500);
+            return $this->sendError('Terjadi kesalahan saat registrasi psikolog.', [$e->getMessage()], 500);
         }
     }
 

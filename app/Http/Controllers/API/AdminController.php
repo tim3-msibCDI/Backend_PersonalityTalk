@@ -24,7 +24,7 @@ class AdminController extends BaseController
     {
         $psikolog = Psikolog::with('user')->find($id);
         if (!$psikolog) {
-            return response()->json(['message' => 'Psikolog tidak ditemukan'], 404);
+            return $this->sendError('Psikolog tidak ditemukan.', [], 404);
         }
 
         $psikolog->status = 'approved'; //Ubah status menjadi approved
@@ -36,7 +36,7 @@ class AdminController extends BaseController
         $message = 'Selamat! Pendaftaran Anda sebagai mitra psikolog telah disetujui.';
         $this->notificationService->sendWhatsAppMessage($target, $message);
 
-        return response()->json(['message' => 'Pendaftaran psikolog disetujui']);
+        return $this->sendResponse('Pendaftaran psikolog disetujui.', null);        
     }
 
     /**
@@ -45,14 +45,13 @@ class AdminController extends BaseController
     public function rejectPsikolog($id)
     {
         $psikolog = Psikolog::with('user')->find($id);
-        // dd($psikolog);
         if (!$psikolog) {
-            return response()->json(['message' => 'Psikolog tidak ditemukan'], 404);
+            return $this->sendError('Psikolog tidak ditemukan.', [], 404);
         }
 
         // Jika psikolog sudah disetujui, tidak boleh diubah statusnya ke rejected
         if ($psikolog->status === 'approved') {
-            return response()->json(['message' => 'Psikolog yang sudah disetujui tidak dapat ditolak'], 403);
+            return $this->sendError('Psikolog yang sudah disetujui tidak dapat ditolak.', [], 403);
         }
 
         $psikolog->status = 'rejected'; // Ubah status menjadi rejected
@@ -64,6 +63,6 @@ class AdminController extends BaseController
          $message = 'Pendaftaran ditolak'; 
          $this->notificationService->sendWhatsAppMessage($target, $message);
 
-        return response()->json(['message' => 'Pendaftaran psikolog ditolak']);
+        return $this->sendResponse('Pendaftaran psikolog ditolak.', null);
     }
 }
