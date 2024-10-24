@@ -17,7 +17,7 @@ class ArticleController extends BaseController
     /**
      * Get list article for user
      */
-    public function indexUser(Request $request)
+    public function listUserArticle(Request $request)
     {
         $categoryId = $request->get('category_id', 1);
 
@@ -77,7 +77,7 @@ class ArticleController extends BaseController
     /**
      * Get list article for user
      */
-    public function indexAdmin(Request $request)
+    public function listAdminArticle(Request $request)
     {
         $article = Article::select('id', 'article_title', 'article_img')->get();
 

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController;
+use Carbon\Carbon;
 
 class UserProfileController extends BaseController
 {
@@ -43,6 +44,7 @@ class UserProfileController extends BaseController
         if (!$user) {
             return $this->sendError('Pengguna tidak ditemukan', [], 404);
         }
+        Carbon::setLocale('id');
 
         $profileData = [
             'name' => $user->name,
@@ -51,7 +53,8 @@ class UserProfileController extends BaseController
             'photo_profile' => $user->photo_profile ?? null,
             'gender' => $user->gender,
             'date_birth' => $user->date_birth,
-            'phone_number' => $user->phone_number
+            'phone_number' => $user->phone_number,
+            'joined_since' =>$user->created_at->translatedFormat('d F Y'),
         ];
 
         // Detail jika user mahasiswa

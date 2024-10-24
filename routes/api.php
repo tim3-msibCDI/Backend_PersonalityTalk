@@ -7,6 +7,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\AdminController;
 use App\Http\Controllers\API\TopicController;
 use App\Http\Controllers\API\ArticleController;
+use App\Http\Controllers\API\DiseaseController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\PsikologController;
 use App\Http\Controllers\API\AdminAuthController;
@@ -105,11 +106,18 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::delete('/article/categories/{id}','destroy')->name('article.categories.destroy'); 
     });
     Route::controller(ArticleController::class)->group(function () {
-        Route::get('/admin/articles', 'indexAdmin')->name('articles.index'); 
+        Route::get('/admin/articles', 'listAdminArticle')->name('articles.index'); 
         Route::get('/admin/articles/{id}', 'show')->name('articles.show'); 
         Route::post('/admin/articles', 'store')->name('articles.store'); 
         Route::post('/admin/articles/{id}', 'update')->name('articles.update'); 
         Route::delete('/admin/articles/{id}','destroy')->name('articles.destroy'); 
+    });
+    Route::controller(DiseaseController::class)->group(function () {
+        Route::get('/admin/diseases', 'listAdminDisease')->name('diseases.index'); 
+        Route::get('/admin/diseases/{id}', 'show')->name('diseases.show'); 
+        Route::post('/admin/diseases', 'store')->name('diseases.store'); 
+        Route::post('/admin/diseases/{id}', 'update')->name('diseases.update'); 
+        Route::delete('/admin/diseases/{id}','destroy')->name('diseases.destroy'); 
     });
 
     // Masukkan langsung ke atribut / Nggak perlu tabel
@@ -134,9 +142,14 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
  * Tidak perlu Login
  */
 Route::controller(ArticleController::class)->group(function () {
-    Route::get('/articles', 'indexUser')->name('user.articles.index'); 
+    Route::get('/articles', 'listUserArticle')->name('user.articles.index'); 
     Route::get('/articles/{id}', 'showArticleWithRelated')->name('user.articles.show');
     Route::get('/writer/{id}/articles', 'getArticlesByAdmin');
+});
+
+Route::controller(DiseaseController::class)->group(function () {
+    Route::get('/diseases', 'listUserDisease')->name('user.articles.index'); 
+    Route::get('/diseases/{id}', 'showDiseaseDetail')->name('user.articles.show');
 });
 
 

@@ -2,29 +2,25 @@
 
 namespace Database\Seeders;
 
-use App\Models\Article;
+use App\Models\Disease;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Schema;
-use App\Http\Controllers\API\ArticleController;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Http\Request;
 
-
-class ArticleTableSeeder extends Seeder
+class DiseasesTableSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
-    public function run()
+    public function run(): void
     {
-
         Schema::disableForeignKeyConstraints();
-        Article::truncate();
+        Disease::truncate();
         Schema::enableForeignKeyConstraints();
 
-        $articles = [
+        $diseases = [
             [
-                'article_title' => 'Kekuatan Berpikir Positif',
+                'disease_name' => 'Depresi ',
                 'content' => "<p>Berpikir positif merupakan salah satu strategi psikologis yang dapat membantu seseorang 
                           menghadapi berbagai tantangan hidup dengan cara yang lebih optimis. Ketika seseorang 
                           mampu berpikir positif, ia cenderung melihat peluang di balik setiap kesulitan dan berfokus 
@@ -53,15 +49,12 @@ class ArticleTableSeeder extends Seeder
                           tetapi juga dapat meningkatkan kualitas hidup secara keseluruhan. Melalui latihan dan 
                           kesadaran, berpikir positif bisa menjadi alat yang ampuh dalam mencapai kesejahteraan mental 
                           dan emosional yang lebih baik.</p>",
-                'publication_date' => '2024-10-15',
-                'publisher_name' => 'Dr. Psikologi Indonesia',
                 'admin_id' => 1, 
-                'category_id' => 1,
-                'article_img' => 'article_photos/kecemasan_digital.jpg',
+                'disease_img' => 'diseases_photos/kesehatan_mental.jpg',
                 // 'article_img' => new \Illuminate\Http\UploadedFile(storage_path('app/public/article_photos/kecemasan_digital.jpg'), 'kecemasan_digital.jpg'),
             ],
             [
-                'article_title' => 'Pentingnya Keseimbangan Emosi dalam Kehidupan Sehari-hari',
+                'disease_name' => 'Bipolar',
                 'content' => "<p>Keseimbangan emosi adalah kunci untuk menjalani kehidupan yang harmonis dan bahagia. 
                             Dalam dunia yang penuh dengan tekanan dan tuntutan, kemampuan untuk mengelola emosi dengan 
                             baik sangat penting agar seseorang dapat menghadapi tantangan tanpa terjebak dalam stres 
@@ -85,16 +78,12 @@ class ArticleTableSeeder extends Seeder
                             mereka lebih mampu menghadapi stres dan tantangan hidup dengan lebih baik. Oleh karena itu, 
                             menjaga hubungan baik dengan orang-orang di sekitar kita juga merupakan bagian penting 
                             dari keseimbangan emosi.</p>",
-                            
-                'publication_date' => '2024-09-20',
-                'publisher_name' => 'Dr. Emosi Sehat',
                 'admin_id' => 1,
-                'category_id' => 1,
-                'article_img' => 'article_photos/keseimbangan_emosi.jpg',
+                'disease_img' => 'diseases_photos/kesehatan_mental.jpg',
                 // 'article_img' => new \Illuminate\Http\UploadedFile(storage_path('app/public/article_photos/keseimbangan_emosi.jpg'), 'keseimbangan_emosi.jpg'),
             ],
             [
-                'article_title' => 'Mengatasi Kecemasan di Era Digital',
+                'disease_name' => 'Skizofrenia',
                 'content' => "<p>Kecemasan adalah salah satu masalah kesehatan mental yang paling umum di era digital ini. 
                             Kehidupan yang serba cepat, tuntutan pekerjaan yang tinggi, dan tekanan sosial dari media 
                             sosial sering kali menjadi pemicu kecemasan bagi banyak orang. Tidak jarang, kecemasan 
@@ -117,21 +106,16 @@ class ArticleTableSeeder extends Seeder
                             efektif dalam membantu individu mengatasi kecemasan. Dengan dukungan yang tepat, seseorang 
                             dapat belajar untuk mengelola kecemasan mereka dan menjalani kehidupan yang lebih tenang 
                             dan seimbang.</p>",
-                            
-                'publication_date' => '2024-08-10',
-                'publisher_name' => 'Dr. Mental Sehat',
                 'admin_id' => 1, 
-                'category_id' => 2,
-                'article_img' => 'article_photos/kecemasan_digital.jpg',
+                'disease_img' => 'diseases_photos/kesehatan_mental.jpg',
                 // 'article_img' => new \Illuminate\Http\UploadedFile(storage_path('app/public/article_photos/kecemasan_digital.jpg'), 'kecemasan_digital.jpg'),
             ],
         ];
 
         for ($i=0; $i < 10; $i++) { 
-            foreach ($articles as $article) {
-                Article::create($article);
+            foreach ($diseases as $disease) {
+                Disease::create($disease);
             }
         }
-        
     }
 }
