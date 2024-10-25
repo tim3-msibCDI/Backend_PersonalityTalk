@@ -44,7 +44,7 @@ class PsikologTableSeeder extends Seeder
                 'description' => 'Ahli dalam psikologi klinis dan anak-anak.',
                 'sipp' => 'SIPP00002',
                 'practice_start_date' => '2016-06-10',
-                'topics' => [2, 4],
+                'topics' => [1, 2, 4, 5, 6],
             ],
             [
                 'name' => 'Budi Santoso, S.Psi., M.Psi.',
@@ -74,7 +74,7 @@ class PsikologTableSeeder extends Seeder
                 'description' => 'Ahli dalam konseling pendidikan dan remaja.',
                 'sipp' => 'SIPP00004',
                 'practice_start_date' => '2018-09-07',
-                'topics' => [4, 5],
+                'topics' => [1, 2, 3, 4, 5, 7, 9, 10],
             ],
             [
                 'name' => 'Agus Riyadi, S.Psi.',
@@ -89,7 +89,7 @@ class PsikologTableSeeder extends Seeder
                 'description' => 'Spesialis terapi kecanduan dan manajemen stres.',
                 'sipp' => 'SIPP00005',
                 'practice_start_date' => '2013-11-11',
-                'topics' => [3, 6],
+                'topics' => [1,2, 3, 6, 7, 8],
             ],
             [
                 'name' => 'Laila Hasan, S.Psi., M.Psi.',
@@ -104,7 +104,7 @@ class PsikologTableSeeder extends Seeder
                 'description' => 'Konsultan karir dan hubungan interpersonal.',
                 'sipp' => 'SIPP00006',
                 'practice_start_date' => '2017-07-21',
-                'topics' => [1, 2, 5],
+                'topics' => [1, 2, 5, 9, 10, 11],
             ],
         ];
 

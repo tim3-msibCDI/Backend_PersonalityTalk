@@ -36,6 +36,17 @@ class AuthController extends BaseController
         if (!$user) {
             return $this->sendError('Email anda tidak terdaftar.', [], 404);
         }
+
+         // Cek apakah user adalah psikolog dan belum di-approve atau tidak aktif
+        if ($user->role === 'P') {
+            $psikolog = $user->psikolog; 
+            if (!$psikolog) {
+                return $this->sendError('Akun psikolog tidak ditemukan.', [], 404);
+            }
+            if (!$psikolog->is_active || $psikolog->status !== 'approved') {
+                return $this->sendError('Status akun Anda belum di-approve atau tidak aktif.', [], 403);
+            }
+        }
     
         // Cek apakah password benar
         if (!Auth::attempt(['email' => $request->email, 'password' => $request->password])) {

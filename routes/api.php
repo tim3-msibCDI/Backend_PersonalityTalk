@@ -58,8 +58,9 @@ Route::middleware(['auth:sanctum', 'role:M,U,P'])->group(function () {
 Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
     Route::controller(ConsultationController::class)->group(function () {
         Route::get('/consultation/psikolog/topics', 'getPsikologTopics');
-        Route::get('/consultation/psikolog/available', 'getAvailablePsikolog');
-        Route::get('/consultation/psikolog/{id}/details-and-schedules', 'getPsikologDetailsAndSchedules');
+        Route::get('/consultation/psikolog/available', 'getAvailablePsikologV2');
+        Route::get('/consultation/psikolog/{id}/details-and-schedules', 'getPsikologDetailsAndSchedulesV2');
+        
     });
 });
 
