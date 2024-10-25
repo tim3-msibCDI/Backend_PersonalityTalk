@@ -10,8 +10,9 @@ use App\Models\PsikologCategory;
 use App\Models\PsikologSchedule;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\API\BaseController;
 
-class ConsultationController extends Controller
+class ConsultationController extends BaseController
 {
     /**
      * Get all psychologist categories

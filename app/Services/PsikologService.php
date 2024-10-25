@@ -65,7 +65,7 @@ class PsikologService
 
         } catch (\Exception $e) {
             DB::rollBack();
-            throw new \Exception('Error registering psikolog: ' . $e->getMessage());
+            return $this->sendError('Terjadi kesalahan saat registrasi psikolog.', [$e->getMessage()], 500);
         }
     }
 }

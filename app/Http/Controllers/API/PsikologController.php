@@ -62,14 +62,14 @@ class PsikologController extends BaseController
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validasi gagal.', [$validator->errors()], 422);
+            return $this->sendError('Validasi gagal.', $validator->errors(), 422);
         }
 
         try {
             // Menggunakan function yang terdapat pada PsikologService
             $psikolog = $this->psikologService->registerPsikolog($request->all());
             return $this->sendResponse('Pendaftaran psikolog berhasil dilakukan', $psikolog);
-            
+
         } catch (\Exception $e) {
             return $this->sendError('Terjadi kesalahan saat registrasi psikolog.', [$e->getMessage()], 500);
         }

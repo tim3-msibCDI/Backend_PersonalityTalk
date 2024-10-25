@@ -174,7 +174,7 @@ class UserProfileController extends BaseController
             
         } catch (\Exception $e) {
             DB::rollBack();
-            throw new \Exception('Error. Gagal memperbarui profil: ' . $e->getMessage());
+            return $this->sendError('Gagal Memperbarui profil.', [$e->getMessage()], 500);
         }
     }
 
@@ -220,7 +220,7 @@ class UserProfileController extends BaseController
             return $this->sendResponse('Berhasil diperbarui menjadi Mahasiswa.', null);            
         } catch (\Exception $e) {
             DB::rollBack();
-            throw new \Exception('Error. Gagal upgrade ke mahasiswa: ' . $e->getMessage());
+            return $this->sendError('Error, Gagal upgrade ke mahasiswa.', [$e->getMessage()], 500);
         }
 
     }
@@ -252,7 +252,7 @@ class UserProfileController extends BaseController
 
             return $this->sendResponse('Password berhasil diperbarui.', null);
         } catch (\Exception $e) {
-            throw new \Exception('Error. Gagal update password ' . $e->getMessage());
+            return $this->sendError('Terjadi kesalahan saat memperbarui password.', [$e->getMessage()], 500);
         }
     }
 

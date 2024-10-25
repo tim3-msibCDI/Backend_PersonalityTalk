@@ -80,7 +80,7 @@ class AuthController extends BaseController
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validation Error', $validator->errors(), 422);
+            return $this->sendError('Validasi gagal', $validator->errors(), 422);
         }
        
         try {
@@ -117,7 +117,7 @@ class AuthController extends BaseController
 
         } catch (\Exception $e) {
             DB::rollback();
-            return $this->sendError('Register Error', 'Terjadi kesalahan saat mendaftarkan pengguna: ' . $e->getMessage(), 500);
+            return $this->sendError('Terjadi kesalahan saat mendaftarkan pengguna: ', [$e->getMessage()], 500);
         }
     }
 

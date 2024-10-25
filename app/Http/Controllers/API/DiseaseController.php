@@ -73,7 +73,7 @@ class DiseaseController extends BaseController
         ]);
 
         if ($validatedData->fails()) {
-            return $this->sendError('Validasi gagal', ['errors' => $validatedData->errors()], 422);
+            return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
         }
 
         try {
@@ -99,7 +99,7 @@ class DiseaseController extends BaseController
 
         } catch (Exception $e) {
             DB::rollback();
-            return $this->sendError('Terjadi kesalahan saat membuat konten kesehatan mental.', [], 500);
+            return $this->sendError('Terjadi kesalahan saat membuat konten kesehatan mental.', [$e->getMessage()], 500);
         }
     }
 
@@ -145,7 +145,7 @@ class DiseaseController extends BaseController
         ]);
 
         if ($validatedData->fails()) {
-            return $this->sendError('Validasi gagal', ['errors' => $validatedData->errors()], 422);
+            return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
         }
 
         try {
@@ -175,7 +175,7 @@ class DiseaseController extends BaseController
 
         } catch (Exception $e) {
             DB::rollback();
-            return $this->sendError('Terjadi kesalahan saat memperbarui informasi kesehatan mental.', [], 500);
+            return $this->sendError('Terjadi kesalahan saat memperbarui informasi kesehatan mental.', [$e->getMessage()], 500);
         }
     }
 
@@ -203,7 +203,7 @@ class DiseaseController extends BaseController
 
         } catch (Exception $e) {
             DB::rollback();
-            return $this->sendError('Terjadi kesalahan saat menghapus informasi kesehatan mental.', [], 500);
+            return $this->sendError('Terjadi kesalahan saat menghapus informasi kesehatan mental.', [$e->getMessage()], 500);
         }
     }
 }

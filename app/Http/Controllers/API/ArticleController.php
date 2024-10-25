@@ -90,7 +90,7 @@ class ArticleController extends BaseController
                     'name' => $admin->name,
                 ],
                 'articles' => $formattedArticles, 
-                ]
+            ]
         );
     }
 
@@ -133,7 +133,7 @@ class ArticleController extends BaseController
         ]);
 
         if ($validatedData->fails()) {
-            return $this->sendError('Validasi gagal', ['errors' => $validatedData->errors()], 422);
+            return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
         }
 
         try {
@@ -162,7 +162,7 @@ class ArticleController extends BaseController
             
         } catch (Exception $e) {
             DB::rollback();
-            return $this->sendError('Terjadi kesalahan saat membuat konten artikel.', [], 500);
+            return $this->sendError('Terjadi kesalahan saat membuat konten artikel.', [$e->getMessage()], 500);
         }
     }
 
@@ -213,7 +213,7 @@ class ArticleController extends BaseController
         ]);
 
         if ($validatedData->fails()) {
-            return $this->sendError('Validasi gagal', ['errors' => $validatedData->errors()], 422);
+            return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
         }
 
         try {
@@ -244,7 +244,7 @@ class ArticleController extends BaseController
 
         } catch (Exception $e) {
             DB::rollback();
-            return $this->sendError('Terjadi kesalahan saat memperbarui artikel.', [], 500);
+            return $this->sendError('Terjadi kesalahan saat memperbarui artikel.', [$e->getMessage()], 500);
         }
     }
 
@@ -271,7 +271,7 @@ class ArticleController extends BaseController
 
         } catch (Exception $e) {
             DB::rollback();
-            return $this->sendError('Terjadi kesalahan saat menghapus artikel.', [], 500);
+            return $this->sendError('Terjadi kesalahan saat menghapus artikel.', [$e->getMessage()], 500);
         }
     }
 }

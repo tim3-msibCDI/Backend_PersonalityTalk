@@ -59,7 +59,7 @@ class PsikologScheduleController extends BaseController
         ]);
 
         if ($validatedData->fails()) {
-            return $this->sendError('Validasi gagal', ['errors' => $validatedData->errors()], 422);
+            return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
         }
 
         $psikologId = $request->psikolog_id;
