@@ -51,7 +51,6 @@ class DiseasesTableSeeder extends Seeder
                           dan emosional yang lebih baik.</p>",
                 'admin_id' => 1, 
                 'disease_img' => 'diseases_photos/kesehatan_mental.jpg',
-                // 'article_img' => new \Illuminate\Http\UploadedFile(storage_path('app/public/article_photos/kecemasan_digital.jpg'), 'kecemasan_digital.jpg'),
             ],
             [
                 'disease_name' => 'Bipolar',
@@ -80,7 +79,6 @@ class DiseasesTableSeeder extends Seeder
                             dari keseimbangan emosi.</p>",
                 'admin_id' => 1,
                 'disease_img' => 'diseases_photos/kesehatan_mental.jpg',
-                // 'article_img' => new \Illuminate\Http\UploadedFile(storage_path('app/public/article_photos/keseimbangan_emosi.jpg'), 'keseimbangan_emosi.jpg'),
             ],
             [
                 'disease_name' => 'Skizofrenia',
@@ -108,7 +106,6 @@ class DiseasesTableSeeder extends Seeder
                             dan seimbang.</p>",
                 'admin_id' => 1, 
                 'disease_img' => 'diseases_photos/kesehatan_mental.jpg',
-                // 'article_img' => new \Illuminate\Http\UploadedFile(storage_path('app/public/article_photos/kecemasan_digital.jpg'), 'kecemasan_digital.jpg'),
             ],
         ];
 

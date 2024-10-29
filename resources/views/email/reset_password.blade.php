@@ -58,7 +58,7 @@
         <h1>Reset Password</h1>
         <p>Anda telah meminta untuk mereset kata sandi Anda. Silakan klik tombol di bawah ini untuk melanjutkan proses
             reset kata sandi.</p>
-        <a href="{{ url('api/password/reset/confirm?token=' . $token) }}" class="btn">Reset Kata Sandi</a>
+        <a href="{{ url('api/password/reset/confirm?reset_token=' . $reset_token) }}" class="btn">Reset Kata Sandi</a>
         <p class="notice">Harap diperhatikan, tautan ini hanya berlaku selama 5 menit.</p>
         <p>Jika Anda tidak meminta reset kata sandi, harap abaikan email ini. </p>
     </div>

@@ -10,6 +10,7 @@ use App\Models\PsikologCategory;
 use App\Models\PsikologSchedule;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController;
 
 class ConsultationController extends BaseController
@@ -34,11 +35,21 @@ class ConsultationController extends BaseController
      */
     public function getAvailablePsikologV1(Request $request)
     {
-        $request->validate([
+        $validatedData = Validator::make($request->all(), [
             'topic_id' => 'required|exists:topics,id', // Topik yang dipilih pengguna
             'category_id' => 'required|in:1,2', // 1 psikolog, 2 konselor
             'date' => 'nullable|date', // tanggal yang dipilih pada slider
+        ], [
+            'topic_id.required' => 'Topik harus dipilih.',
+            'topic_id.exists' => 'Topik yang dipilih tidak valid.',
+            'category_id.required' => 'Kategori harus dipilih.',
+            'category_id.in' => 'Kategori yang dipilih tidak valid. Pilih antara Psikolog atau Konselor.',
+            'date.date' => 'Format tanggal tidak valid.',
         ]);
+
+        if ($validatedData->fails()) {
+            return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
+        }
 
         $topicId = $request->topic_id;
         $categoryId = $request->category_id;
@@ -89,18 +100,22 @@ class ConsultationController extends BaseController
     /**
      * Get psikolog detail and availabe schedule
      */
-    public function getPsikologDetailsAndSchedules(Request $request, $id)
+    public function getPsikologDetailsAndSchedulesV1(Request $request, $id)
     {
-        $request->validate([
+        $validatedData = Validator::make($request->all(),[
             'selected_date' => 'required|date', 
+        ], [
+            'selected_date.date' => 'Format tanggal tidak valid.',
         ]);
+        if ($validatedData->fails()) {
+            return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
+        }
 
         $psikolog = Psikolog::with(['user', 'psikolog_category', 'psikolog_price', 'psikolog_topic.topic'])
             ->where('id', $id)
             ->firstOrFail();
 
         $selectedDate = Carbon::parse($request->selected_date)->format('Y-m-d');
-
         $availableSchedules = PsikologSchedule::where('psikolog_id', $id)
             ->where('date', $selectedDate)
             ->where('is_available', true)
@@ -140,10 +155,15 @@ class ConsultationController extends BaseController
      */
     public function getAvailablePsikologV2(Request $request)
     {
-        $request->validate([
+        $validatedData = Validator::make($request->all(),[
             'topic_id' => 'required|exists:topics,id', // Topik yang dipilih pengguna
-            // Tidak perlu category_id di sini, kita akan mengambil kedua kategori
+        ],[
+            'topic_id.required' => 'Topik harus dipilih.',
+            'topic_id.exists' => 'Topik yang dipilih tidak valid.',
         ]);
+        if ($validatedData->fails()) {
+            return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
+        }
 
         $topicId = $request->topic_id;
 
@@ -174,22 +194,22 @@ class ConsultationController extends BaseController
             ->get();
 
         // Grupkan hasil berdasarkan tanggal dan kategori
+        $startDate = Carbon::today();
         $response = [];
+
+        // Inisialisasi array dengan setiap tanggal dalam satu minggu ke depan
+        for ($day = 0; $day <= 6; $day++) {
+            $date = $startDate->copy()->addDays($day)->translatedFormat('l j M');
+            $response[$date] = [
+                'Psikolog' => [],
+                'Konselor' => [],
+            ];
+        }
 
         foreach ($list_psikolog as $psikolog) {
             // Hitung tahun pengalaman kerja
             $yearsOfExperience = floor(Carbon::parse($psikolog->practice_start_date)->diffInYears(Carbon::now()));
-
-            // Ambil tanggal jadwal
-            $date = Carbon::parse($psikolog->date)->format('d-m-Y');
-
-            // Buat grup untuk setiap tanggal
-            if (!isset($response[$date])) {
-                $response[$date] = [
-                    'Psikolog' => [],
-                    'Konselor' => [],
-                ];
-            }
+            $date = Carbon::parse($psikolog->date)->translatedFormat('l j M');
 
             // Kelompokkan berdasarkan kategori (Psikolog atau Konselor)
             if ($psikolog->category_name === 'Psikolog') {
@@ -232,13 +252,13 @@ class ConsultationController extends BaseController
             ->with('mainSchedule')
             ->get()
             ->groupBy(function ($schedule) {
-                return Carbon::parse($schedule->date)->format('d-m-Y');
+                return Carbon::parse($schedule->date)->translatedFormat('l j M');;
             });
 
         // Struktur response untuk setiap hari selama 1 minggu
         $weeklySchedule = [];
         for ($day = 0; $day <= 6; $day++) {
-            $date = $startDate->copy()->addDays($day)->format('d-m-Y');
+            $date = $startDate->copy()->addDays($day)->translatedFormat('l j M');
             $dailySchedules = $availableSchedules->get($date, collect())->map(function($schedule) {
                 return [
                     'psch_id' => $schedule->id,
@@ -274,4 +294,58 @@ class ConsultationController extends BaseController
             ]
         );
     }
+
+    // Get data 
+    public function getPreviewConsultation(Request $request){
+
+        $validatedData = Validator::make($request->all(),[
+            'psch_id' => 'required|exists:psikolog_schedules,id', 
+            'psi_id' => 'required|exists:psikolog,id', 
+            'topic_id' => 'required|exists:topics,id', 
+        ],[
+            'psch_id.required' => 'Jadwal konsultasi harus dipilih.',
+            'psch_id.exists' => 'Jadwal konsultasi yang dipilih tidak valid.',
+            'psi_id.required' => 'Psikolog harus dipilih.',
+            'psi_id.exists' => 'Psikolog yang dipilih tidak valid.',
+            'topic_id.required' => 'Topik konsultasi harus dipilih.',
+            'topic_id.exists' => 'Topik konsultasi yang dipilih tidak valid.',
+        ]);
+
+        if ($validatedData->fails()) {
+            return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
+        }
+
+        $psikolog = Psikolog::with(['user', 'psikolog_category', 'psikolog_price', 'psikolog_topic.topic'])
+            ->where('id', $request->psi_id)
+            ->firstOrFail();
+        $selectedSchedule = PsikologSchedule::with('mainSchedule')
+            ->where('id', $request->psch_id)
+            ->first();
+        $selectedTopic = Topic::select('id', 'topic_name')->where('id', $request->topic_id)->first();
+        // dd($selectedTopic);
+            
+
+        return $this->sendResponse(
+            'Berhasil mengambil preview detail konsultasi', 
+            [
+                'name' => $psikolog->user->name,
+                'photo_profile' => $psikolog->user->photo_profile,
+                'category_name' => $psikolog->psikolog_category->category_name,
+                'years_of_experience' => $psikolog->getYearsOfExperience(),
+                'price' => $psikolog->psikolog_price->price,
+                'sipp' => $psikolog->sipp,
+                'topic' => $selectedTopic->topic_name,
+                'consultation_date' => Carbon::parse($selectedSchedule->date)->translatedFormat('l, j F'),
+                'consultation_time' => Carbon::parse($selectedSchedule->mainSchedule->start_hour)->format('H:i') . ' - ' . 
+                    Carbon::parse($selectedSchedule->mainSchedule->end_hour)->format('H:i')
+
+            ]
+        );
+
+    }
+
+    // Buat konsultasi dulu
+    public function createConsultationAndTransaction(Request $request){
+        
+    }   
 }

@@ -37,7 +37,7 @@ Route::controller(AdminAuthController::class)->group(function () {
 Route::controller(ForgotPasswordController::class)->group(function () {
     Route::post('/password/reset/request', 'requestReset');
     Route::get('/password/reset/confirm', 'confirmReset');
-    Route::post('/password/reset', 'resetAndChangePassword');
+    Route::post('/password/reset/change', 'resetAndChangePassword');
 });
 
 Route::middleware(['auth:sanctum', 'role:M,U,P'])->group(function () {
@@ -60,7 +60,8 @@ Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
         Route::get('/consultation/psikolog/topics', 'getPsikologTopics');
         Route::get('/consultation/psikolog/available', 'getAvailablePsikologV2');
         Route::get('/consultation/psikolog/{id}/details-and-schedules', 'getPsikologDetailsAndSchedulesV2');
-        
+        Route::get('/consultation/preview-before-payment', 'getPreviewConsultation');
+
     });
 });
 

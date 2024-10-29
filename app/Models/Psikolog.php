@@ -52,4 +52,14 @@ class Psikolog extends Model
         return $this->hasMany(PsikologTopic::class, 'psikolog_id');
     }
 
+    public function psikologSchedule()
+    {
+        return $this->hasMany(PsikologSchedule::class, 'psikolog_id');
+    }
+
+    public function consultation()
+    {
+        return $this->hasMany(Consultation::class, 'user_id', 'id');
+    }
+
 }

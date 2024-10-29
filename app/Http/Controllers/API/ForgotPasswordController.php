@@ -29,14 +29,14 @@ class ForgotPasswordController extends BaseController
         $user = User::where('email', $validatedData->validated()['email'])->first();
     
         // Generate random token
-        $token = Str::random(60); 
+        $reset_token = Str::random(60); 
         $user->update([
-            'reset_token' => $token, 
+            'reset_token' => $reset_token, 
             'reset_token_expires_at' => now()->addMinutes(5)
         ]); 
 
         // Send email with reset link
-        Mail::to($user->email)->send(new ResetPasswordMail($token));
+        Mail::to($user->email)->send(new ResetPasswordMail($reset_token));
 
         return $this->sendResponse('Tautan untuk reset kata sandi telah dikirim ke email Anda.', null);
     }
@@ -44,10 +44,10 @@ class ForgotPasswordController extends BaseController
     public function confirmReset(Request $request)
     {
         $request->validate([
-            'token' => 'required|string',
+            'reset_token' => 'required|string',
         ]);
 
-        $user = User::where('reset_token', $request->token)
+        $user = User::where('reset_token', $request->reset_token)
                     ->where('reset_token_expires_at', '>', now())
                     ->first();
 
@@ -61,7 +61,7 @@ class ForgotPasswordController extends BaseController
     public function resetAndChangePassword(Request $request)
     {
         $validatedData = Validator::make($request->all(), [
-            'token' => 'required|string',
+            'reset_token' => 'required|string',
             'password' => 'required|string|min:8|confirmed',
         ], [
             'token.required' => 'Token reset diperlukan.',
@@ -77,7 +77,7 @@ class ForgotPasswordController extends BaseController
             return $this->sendError('Validasi gagal.', $validatedData->errors(), 422);
         }
 
-        $user = User::where('reset_token', $request->token)
+        $user = User::where('reset_token', $request->reset_token)
                     ->where('reset_token_expires_at', '>', now())
                     ->first();
 

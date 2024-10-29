@@ -18,7 +18,7 @@ class PsikologTableSeeder extends Seeder
         $psikologs = [
             [
                 'name' => 'Faris Fanani, S.Psi.',
-                'email' => 'farisfanani@gmail.com',
+                'email' => 'tes123@gmail.com',
                 'password' => 'farisfanani',
                 'phone_number' => '082146130950',
                 'date_birth' => '1980-01-01',
@@ -33,7 +33,7 @@ class PsikologTableSeeder extends Seeder
             ],
             [
                 'name' => 'Dewi Lestari, S.Psi., M.Psi.',
-                'email' => 'dewi.lestari@gmail.com',
+                'email' => 'fajaryumnaadani@gmail.com',
                 'password' => 'dewilestari',
                 'phone_number' => '082146130950',
                 'date_birth' => '1985-02-15',
@@ -48,7 +48,7 @@ class PsikologTableSeeder extends Seeder
             ],
             [
                 'name' => 'Budi Santoso, S.Psi., M.Psi.',
-                'email' => 'budi.santoso@gmail.com',
+                'email' => 'pulopuloharjo123@gmail.com',
                 'password' => 'budisantoso',
                 'phone_number' => '082146130950',
                 'date_birth' => '1978-12-25',
@@ -63,7 +63,7 @@ class PsikologTableSeeder extends Seeder
             ],
             [
                 'name' => 'Nina Anwar, S.Psi.',
-                'email' => 'nina.anwar@gmail.com',
+                'email' => 'pulopuloharjo123@gmail.com',
                 'password' => 'ninaanwar',
                 'phone_number' => '082146130950',
                 'date_birth' => '1990-07-12',
@@ -78,7 +78,7 @@ class PsikologTableSeeder extends Seeder
             ],
             [
                 'name' => 'Agus Riyadi, S.Psi.',
-                'email' => 'agus.riyadi@gmail.com',
+                'email' => 'pulopuloharjo123@gmail.com',
                 'password' => 'agusriyadi',
                 'phone_number' => '082146130950',
                 'date_birth' => '1982-05-05',
@@ -93,7 +93,7 @@ class PsikologTableSeeder extends Seeder
             ],
             [
                 'name' => 'Laila Hasan, S.Psi., M.Psi.',
-                'email' => 'laila.hasan@gmail.com',
+                'email' => 'pulopuloharjo123@gmail.com',
                 'password' => 'lailahasan',
                 'phone_number' => '082146130950',
                 'date_birth' => '1987-03-09',

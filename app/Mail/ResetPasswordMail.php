@@ -12,12 +12,12 @@ class ResetPasswordMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $token;
+    public $reset_token;
     public $subject;
 
-    public function __construct($token, $subject = 'Reset Password')
+    public function __construct($reset_token, $subject = 'Reset Password')
     {
-        $this->token = $token;
+        $this->reset_token = $reset_token;
         $this->subject = $subject;
     }
 
@@ -38,7 +38,7 @@ class ResetPasswordMail extends Mailable
     {
         return new Content(
             view: 'email.reset_password', // View used for the email content
-            with: ['token' => $this->token], // Pass the token to the view
+            with: ['reset_token' => $this->reset_token], // Pass the token to the view
         );
     }
 
