@@ -3,6 +3,7 @@
 use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\VoucherController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\AdminController;
 use App\Http\Controllers\API\TopicController;
@@ -61,8 +62,9 @@ Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
         Route::get('/consultation/psikolog/available', 'getAvailablePsikologV2');
         Route::get('/consultation/psikolog/{id}/details-and-schedules', 'getPsikologDetailsAndSchedulesV2');
         Route::get('/consultation/preview-before-payment', 'getPreviewConsultation');
-
     });
+
+    Route::get('/consultation/voucher-redeem', [VoucherController::class, 'redeemVoucher']);
 });
 
 /**
@@ -86,7 +88,7 @@ Route::middleware(['auth:sanctum', 'role:P'])->group(function () {
  * Bisa diakses oleh Admin 
  */
 Route::middleware('auth:sanctum', 'admin')->group(function () {
-    Route::post('/admin/logout', [AdminAuthController::class, 'logoutAdmin'])->name('admin.logout');
+    Route::post('/admin/logout', [AdminAuthController::class, 'logoutAdmin']);
 
     
     Route::controller(TopicController::class)->group(function () {
@@ -122,6 +124,14 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::delete('/admin/diseases/{id}','destroy')->name('diseases.destroy'); 
     });
 
+    Route::controller(VoucherController::class)->group(function () {
+        Route::get('/admin/vouchers', 'index'); 
+        Route::get('/admin/vouchers/{id}', 'show'); 
+        Route::post('/admin/vouchers', 'store'); 
+        Route::post('/admin/vouchers/{id}', 'update'); 
+        Route::delete('/admin/vouchers/{id}','destroy'); 
+    });
+
     // Masukkan langsung ke atribut / Nggak perlu tabel
     Route::controller(PsikologPriceController::class)->group(function () {
         Route::get('/psikolog-price', 'index')->name('psikolog.price.index'); 
@@ -151,8 +161,8 @@ Route::controller(ArticleController::class)->group(function () {
 });
 
 Route::controller(DiseaseController::class)->group(function () {
-    Route::get('/diseases', 'listUserDisease')->name('user.articles.index'); 
-    Route::get('/diseases/{id}', 'showDiseaseDetail')->name('user.articles.show');
+    Route::get('/diseases', 'listUserDisease')->name('user.diseases.index'); 
+    Route::get('/diseases/{id}', 'showDiseaseDetail')->name('user.diseases.show');
 });
 
 

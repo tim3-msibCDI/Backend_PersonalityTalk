@@ -22,12 +22,6 @@ class DatabaseSeeder extends Seeder
         $this->call(AdminTableSeeder::class);
         $this->call(ArticleTableSeeder::class);
         $this->call(DiseasesTableSeeder::class);
-
-
-
-
-
-
-
+        $this->call(VoucherTableSeeder::class);
     }
 }
