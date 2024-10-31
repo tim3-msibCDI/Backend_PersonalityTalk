@@ -11,16 +11,23 @@ use Illuminate\Support\Facades\Validator;
 class VoucherController extends BaseController
 {
     /**
-     * List all vouchers.
+     * Get List Voucher
+     *                                                                            
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function index()
     {
         $vouchers = Voucher::all(); //perlu diubah
         return $this->sendResponse('List voucher berhasil diambil.', $vouchers);
     }
-
+    
     /**
-     * Store a new voucher.
+     * Store Voucher
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function store(Request $request)
     {
@@ -55,7 +62,11 @@ class VoucherController extends BaseController
     }
 
     /**
-     * Show a specific voucher.
+     * Get Detail Voucher
+     *
+     * @param int  $id                                                                              
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function show($id)
     {
@@ -65,9 +76,14 @@ class VoucherController extends BaseController
         }
         return $this->sendResponse('Detail voucher berhasil ditemukan.', $voucher);
     }
-
+    
     /**
-     * Update a specific voucher.
+     * Update Voucher
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @param int  $id                                                                              
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function update(Request $request, $id)
     {
@@ -107,7 +123,11 @@ class VoucherController extends BaseController
     }
 
     /**
-     * Delete a specific voucher.
+     * Delete Voucher
+     *
+     * @param int  $id                                                                              
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function destroy($id)
     {
@@ -120,7 +140,13 @@ class VoucherController extends BaseController
         return $this->sendResponse('Voucher '. $code .' berhasil dihapus.', null);
     }
 
-
+    /**
+     * Redeem Voucher 
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */
     public function redeemVoucher(Request $request)
     {
         // Validasi request

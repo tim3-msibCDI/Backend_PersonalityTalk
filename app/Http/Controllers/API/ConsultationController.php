@@ -16,9 +16,10 @@ use App\Http\Controllers\API\BaseController;
 class ConsultationController extends BaseController
 {
     /**
-     * Get all psychologist categories
-     *
-     * @return \Illuminate\Http\JsonResponse
+     * Get Psikolog Topic
+     *                                                                             
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function getPsikologTopics()
     {
@@ -30,7 +31,7 @@ class ConsultationController extends BaseController
         }
     }
 
-    /**
+    /** v1
      * Get available psychologists and counselors based one category and date request
      */
     public function getAvailablePsikologV1(Request $request)
@@ -97,8 +98,8 @@ class ConsultationController extends BaseController
         return $this->sendResponse('Berhasil mengambil jadwal psikolog yang tersedia.', $response);
     }
 
-    /**
-     * Get psikolog detail and availabe schedule
+    /** v1
+     * Get psikolog detail and availabe schedule 
      */
     public function getPsikologDetailsAndSchedulesV1(Request $request, $id)
     {
@@ -150,8 +151,12 @@ class ConsultationController extends BaseController
         );
     }
 
-    /** V2
-     * Get available psychologists and counselors full one week
+    /**
+     * Get Available Psikolog and Konselor 
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function getAvailablePsikologV2(Request $request)
     {
@@ -234,8 +239,12 @@ class ConsultationController extends BaseController
         return $this->sendResponse('Berhasil mengambil jadwal psikolog dan konselor yang tersedia.', $response);
     }
 
-    /** V2
-     * Get psikolog detail and availabe schedule
+    /**
+     * Get Psikolog Detail and Available Schedule
+     *
+     * @param int  $id                                                                              
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function getPsikologDetailsAndSchedulesV2($id)
     {
@@ -295,7 +304,13 @@ class ConsultationController extends BaseController
         );
     }
 
-    // Get data 
+    /**
+     * Get Preview Consul Before Payment
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */
     public function getPreviewConsultation(Request $request){
 
         $validatedData = Validator::make($request->all(),[
@@ -344,8 +359,14 @@ class ConsultationController extends BaseController
 
     }
 
-    // Buat konsultasi dulu
-    public function createConsultationAndTransaction(Request $request){
+    /**
+     * Create Consultation and Transaction
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @param int  $id                                                                              
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */    public function createConsultationAndTransaction(Request $request){
         
     }   
 }

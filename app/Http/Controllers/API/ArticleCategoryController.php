@@ -8,13 +8,26 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\API\BaseController;
 
 class ArticleCategoryController extends BaseController
-{
+{   
+    /**
+     * Get List Article Category
+     *
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */
     public function index()
     {
         $categories = ArticleCategory::select('id', 'name')->get();
         return $this->sendResponse('Data seluruh kategori artikel berhasil diambil.', $categories);
     }
 
+    /**
+     * Get Detail Article Category
+     *
+     * @param int  $id                                       
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */
     public function show($id)
     {
         $category = ArticleCategory::find($id);
@@ -26,6 +39,13 @@ class ArticleCategoryController extends BaseController
         return $this->sendResponse('Kategori berhasil ditemukan.', $category);
     }
 
+    /**
+     * Store Article Category
+     *
+     * @param  \Illuminate\Http\Request $request                                       
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -41,6 +61,14 @@ class ArticleCategoryController extends BaseController
         return $this->sendResponse('Kategori baru berhasil ditambahkan', $category);
     }
 
+    /**
+     * Update Article Category
+     *
+     * @param  \Illuminate\Http\Request $request 
+     * @param int  $id                                                                             
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */
     public function update(Request $request, $id)
     {
         $category = ArticleCategory::find($id);
@@ -62,6 +90,13 @@ class ArticleCategoryController extends BaseController
         return $this->sendResponse('Kategori berhasil diperbarui.', $category);
     }
 
+    /**
+     * Delete Article Category
+     *
+     * @param int  $id                                       
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */
     public function destroy($id)
     {
         $category = ArticleCategory::find($id);

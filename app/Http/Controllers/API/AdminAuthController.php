@@ -10,7 +10,14 @@ use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController;
 
 class AdminAuthController extends BaseController
-{
+{   
+    /**
+     * Login Admin
+     *
+     * @param  \Illuminate\Http\Request $request                                       
+     * @return \Illuminate\Http\JsonResponse 
+     *       
+     */
     public function loginAdmin(Request $request)
     {
         $validatedData = Validator::make($request->all(), [
@@ -41,6 +48,13 @@ class AdminAuthController extends BaseController
         return $this->sendResponse('Anda berhasil login.', $success);
     }
 
+    /**
+     * Logout Admin
+     *
+     * @param  \Illuminate\Http\Request $request                                       
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */
     public function logoutAdmin(Request $request)
     {
         $admin = $request->user('sanctum'); 

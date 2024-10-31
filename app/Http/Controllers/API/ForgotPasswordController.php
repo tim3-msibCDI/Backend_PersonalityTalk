@@ -11,7 +11,14 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class ForgotPasswordController extends BaseController
-{
+{   
+    /**
+     * Request Reset Password
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */
     public function requestReset(Request $request)
     {
         $validatedData = Validator::make($request->all(), [
@@ -41,6 +48,13 @@ class ForgotPasswordController extends BaseController
         return $this->sendResponse('Tautan untuk reset kata sandi telah dikirim ke email Anda.', null);
     }
 
+    /**
+     * Confirm Reset Password
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */
     public function confirmReset(Request $request)
     {
         $request->validate([
@@ -58,6 +72,13 @@ class ForgotPasswordController extends BaseController
         return $this->sendResponse('Konfirmasi berhasil. Silahkan buat kata sandi baru.', null);
     }
 
+    /**
+     * Reset and Change Password
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */
     public function resetAndChangePassword(Request $request)
     {
         $validatedData = Validator::make($request->all(), [

@@ -7,14 +7,28 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\API\BaseController;
 
-class TopicController extends BaseController
-{
+class ConsulTopicController extends BaseController
+{   
+    /**
+     * Get List Topic
+     *                                                                            
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */
     public function index()
     {
         $topics = Topic::all();
         return $this->sendResponse('Data seluruh topik berhasil diambil.', $topics);
     }
 
+    
+    /**
+     * Get Detail Topic
+     *
+     * @param int  $id                                                                              
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */
     public function show($id)
     {
         $topic = Topic::find($id);
@@ -26,6 +40,14 @@ class TopicController extends BaseController
         return $this->sendResponse('Topik berhasil ditemukan.', $topic);
     }
 
+    
+    /**
+     * Store Topic
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -41,6 +63,15 @@ class TopicController extends BaseController
         return $this->sendResponse('Topik baru berhasil ditambahkan', $topic);
     }
 
+    
+    /**
+     * Update Topic
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @param int  $id                                                                              
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */
     public function update(Request $request, $id)
     {
         $topic = Topic::find($id);
@@ -64,6 +95,14 @@ class TopicController extends BaseController
         return $this->sendResponse('Topik berhasil diperbarui.', $topic);
     }
 
+    
+    /**
+     * Delete Topic
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */
     public function destroy($id)
     {
         $topic = Topic::find($id);

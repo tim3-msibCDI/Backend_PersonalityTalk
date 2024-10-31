@@ -14,7 +14,11 @@ use App\Http\Controllers\API\BaseController;
 class UserProfileController extends BaseController
 {
     /**
-     * User info for navbar
+     * Get User Info
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function getUserInfo(Request $request)
     {
@@ -34,7 +38,11 @@ class UserProfileController extends BaseController
     }
 
     /**
-     * User info for detail profile page
+     * Get Detail User Profile
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function getUserProfile(Request $request)
     {
@@ -86,9 +94,13 @@ class UserProfileController extends BaseController
 
         return $this->sendResponse( 'Profil pengguna berhasil diambil.', $profileData);
     }
-
+    
     /**
-     * Update user profile
+     * Update User Profile
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function updateProfile(Request $request)
     {
@@ -179,7 +191,11 @@ class UserProfileController extends BaseController
     }
 
     /**
-     * Update to mahasiswa
+     * Upgrade to Mahasiswa
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function updateToMahasiswa(Request $request)
     {
@@ -225,6 +241,13 @@ class UserProfileController extends BaseController
 
     }
 
+    /**
+     * Update Password
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */
     public function updatePassword(Request $request){
 
         $user = Auth::user();

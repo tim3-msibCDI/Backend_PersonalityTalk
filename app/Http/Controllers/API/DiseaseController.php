@@ -13,9 +13,12 @@ use App\Http\Controllers\API\BaseController;
 class DiseaseController extends BaseController
 {
     /**
-     * Get list diseases for user
+     * Get List Kesehatan Mental - User
+     *
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
-    public function listUserDisease(Request $request)
+    public function listUserDisease()
     {
         $diseases = Disease::select('id', 'disease_name')
             ->orderBy('disease_name', 'asc')
@@ -25,9 +28,13 @@ class DiseaseController extends BaseController
     }
 
     /**
-     * Get list diseases for user
+     * Get Detail Kesehatan Mental - User
+     *
+     * @param int  $id                                                                              
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
-    public function showDiseaseDetail(Request $request, $id)
+    public function showDiseaseDetail($id)
     {
         $disease = DB::table('diseases as d')
             ->join('admins as wr', 'd.admin_id', '=', 'wr.id')
@@ -43,16 +50,23 @@ class DiseaseController extends BaseController
     }
 
     /**
-     * Get list diseases for user
+     * Get List Kesehatan Mental - Admin
+     *                                                                             
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
-    public function listAdminDisease(Request $request)
+    public function listAdminDisease()
     {
         $diseases = Disease::select('id', 'disease_name')->get();
         return $this->sendResponse('Berhasil mengambil list kesehatan untuk Admin.', $diseases);
     }
 
     /**
-     * Save new article from admin
+     * Store Kesehatan Mental - Admin
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function store(Request $request)
     {
@@ -104,7 +118,11 @@ class DiseaseController extends BaseController
     }
 
     /**
-     * Menampilkan detail penyakit mental tertentu.
+     * Get Detail Kesehatan Mental - Admin
+     *
+     * @param int  $id                                                                              
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function show($id)
     {
@@ -118,7 +136,12 @@ class DiseaseController extends BaseController
     }
 
     /**
-     * Update penyakit mental from admin
+     * Update Kesehatan Mental - Admin
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @param int  $id                                                                              
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function update(Request $request, $id)
     {
@@ -180,7 +203,11 @@ class DiseaseController extends BaseController
     }
 
     /**
-     * Menghapus infornasi kesehatan mental tertentu.
+     * Delete Kesehatan Mental - Admin
+     *
+     * @param int  $id                                                                              
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function destroy($id)
     {

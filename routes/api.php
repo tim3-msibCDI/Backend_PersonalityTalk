@@ -3,15 +3,15 @@
 use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\VoucherController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\AdminController;
-use App\Http\Controllers\API\TopicController;
 use App\Http\Controllers\API\ArticleController;
 use App\Http\Controllers\API\DiseaseController;
+use App\Http\Controllers\API\VoucherController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\PsikologController;
 use App\Http\Controllers\API\AdminAuthController;
+use App\Http\Controllers\API\ConsulTopicController;
 use App\Http\Controllers\API\UserProfileController;
 use App\Http\Controllers\API\ConsultationController;
 use App\Http\Controllers\API\PsikologPriceController;
@@ -91,7 +91,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
     Route::post('/admin/logout', [AdminAuthController::class, 'logoutAdmin']);
 
     
-    Route::controller(TopicController::class)->group(function () {
+    Route::controller(ConsulTopicController::class)->group(function () {
         Route::get('/topics', 'index')->name('topics.index'); 
         Route::get('/topics/{id}', 'show')->name('topics.show'); 
         Route::post('/topics', 'store')->name('topics.store'); 

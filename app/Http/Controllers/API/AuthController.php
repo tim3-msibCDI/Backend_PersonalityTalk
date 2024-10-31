@@ -16,9 +16,11 @@ use App\Http\Controllers\API\BaseController;
 class AuthController extends BaseController
 {
     /**
-     * Login api
+     * Login User, Mahasiswa, Psikolog
      *
-     * @return \Illuminate\Http\Response
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function userloginAction(Request $request)
     {
@@ -64,7 +66,13 @@ class AuthController extends BaseController
         return $this->sendResponse('Anda berhasil login.', $success);
     }
     
-
+    /**
+     * Register User, Mahasiswa
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */
     public function registerUser(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -132,6 +140,13 @@ class AuthController extends BaseController
         }
     }
 
+    /**
+     * Logout User, Mahasiswa, Psikolog
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */
     public function logoutAction(Request $request){
         // Hapus token pengguna saat ini
         $request->user()->currentAccessToken()->delete();

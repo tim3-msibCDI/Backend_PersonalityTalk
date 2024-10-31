@@ -13,7 +13,8 @@ use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 
 class PsikologController extends BaseController
-{
+{   
+    
     protected $psikologService;
 
     // PsikologService constructor
@@ -24,7 +25,11 @@ class PsikologController extends BaseController
     }
 
     /**
-     * Handle the psikolog registration process
+     * Psikolog Registration
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function psikologRegister(Request $request)
     {

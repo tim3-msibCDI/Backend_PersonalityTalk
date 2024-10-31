@@ -12,8 +12,11 @@ use Illuminate\Support\Facades\Validator;
 
 class PsikologScheduleController extends BaseController
 {   
-    /**
-     * Get all main schedule data
+     /**
+     * Get all Main Schedule Data
+     *
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function getMainSchedules()
     {
@@ -39,7 +42,11 @@ class PsikologScheduleController extends BaseController
     }
 
     /**
-     * Generate psikolog schedule 
+     * Gemerate Psikolog Schedule
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function generatePsikologSchedule(Request $request)
     {

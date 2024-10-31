@@ -19,7 +19,10 @@ use App\Http\Resources\DetailArticleResource;
 class ArticleController extends BaseController
 {   
     /**
-     * Get list category article for user
+     * Get List Article Category - User
+     *
+     * @return \Illuminate\Http\JsonResponse 
+     *       
      */
     public function listCategoryArticle()
     {
@@ -28,7 +31,11 @@ class ArticleController extends BaseController
     }
 
     /**
-     * Get list article for user
+     * Get List Article - User
+     *
+     * @param  \Illuminate\Http\Request $request                                       
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function listUserArticle(Request $request)
     {
@@ -43,7 +50,11 @@ class ArticleController extends BaseController
     }
 
     /**
-     * Get detail article for user
+     * Get Detail and Related Articles - User
+     *
+     * @param int  $id                                       
+     * @return \Illuminate\Http\JsonResponse  
+     *      
      */
     public function showArticleWithRelated($id)
     {
@@ -71,7 +82,11 @@ class ArticleController extends BaseController
     }
 
     /**
-     * Get articles written by admin
+     * Get Articles Written by Admin - User
+     *
+     * @param int  $id                                       
+     * @return \Illuminate\Http\JsonResponse 
+     *       
      */
     public function getArticlesByAdmin($id)
     {
@@ -95,7 +110,11 @@ class ArticleController extends BaseController
     }
 
     /**
-     * Get list article for admin
+     * Get List Article - Admin
+     *
+     * @param  \Illuminate\Http\Request $request                                       
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function listAdminArticle(Request $request)
     {
@@ -104,7 +123,11 @@ class ArticleController extends BaseController
     }
 
     /**
-     * Save new article from admin
+     * Store Article - Admin
+     *
+     * @param  \Illuminate\Http\Request $request                                       
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function store(Request $request)
     {
@@ -167,7 +190,11 @@ class ArticleController extends BaseController
     }
 
     /**
-     * Menampilkan detail artikel tertentu.
+     * Get Detail Article - Admin
+     *
+     * @param int  $id                                       
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function show($id)
     {
@@ -180,8 +207,13 @@ class ArticleController extends BaseController
     }
 
     /**
-     * Memperbarui artikel tertentu oleh admin
-     */ 
+     * Update Article - Admin
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @param int  $id                                                                              
+     * @return \Illuminate\Http\JsonResponse   
+     *     
+     */
     public function update(Request $request, $id)
     {
         $article = Article::find($id);
@@ -249,7 +281,11 @@ class ArticleController extends BaseController
     }
 
     /**
-     * Menghapus artikel tertentu.
+     * Delete Article - Admin
+     *
+     * @param int  $id                                       
+     * @return \Illuminate\Http\JsonResponse   
+     *     
      */
     public function destroy($id)
     {

@@ -18,7 +18,11 @@ class AdminController extends BaseController
     }
 
     /**
-     *  Approve a psychologist registration request.
+     * Approve Psikolog Registration
+     *
+     * @param int  $id                                       
+     * @return \Illuminate\Http\JsonResponse  
+     *      
      */
     public function approvePsikolog($id)
     {
@@ -40,7 +44,11 @@ class AdminController extends BaseController
     }
 
     /**
-     *  Reject a psychologist registration request.
+     * Reject Psikolog Registration
+     *
+     * @param int  $id                                       
+     * @return \Illuminate\Http\JsonResponse
+     *        
      */
     public function rejectPsikolog($id)
     {
