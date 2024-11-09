@@ -14,7 +14,8 @@ class DiseaseController extends BaseController
 {
     /**
      * Get List Kesehatan Mental - User
-     *
+     * 
+     * @unauthenticated
      * @return \Illuminate\Http\JsonResponse   
      *     
      */
@@ -30,6 +31,7 @@ class DiseaseController extends BaseController
     /**
      * Get Detail Kesehatan Mental - User
      *
+     * @unauthenticated
      * @param int  $id                                                                              
      * @return \Illuminate\Http\JsonResponse   
      *     

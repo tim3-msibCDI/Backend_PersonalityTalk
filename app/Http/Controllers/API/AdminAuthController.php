@@ -13,7 +13,8 @@ class AdminAuthController extends BaseController
 {   
     /**
      * Login Admin
-     *
+     * 
+     * @unauthenticated
      * @param  \Illuminate\Http\Request $request                                       
      * @return \Illuminate\Http\JsonResponse 
      *       

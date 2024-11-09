@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\API\BaseController;
 
 class PsikologCategoryController extends BaseController
-{
+{   
     public function index()
     {
         $categories = PsikologCategory::select('id','category_name')->get();

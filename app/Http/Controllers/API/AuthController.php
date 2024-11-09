@@ -18,6 +18,7 @@ class AuthController extends BaseController
     /**
      * Login User, Mahasiswa, Psikolog
      *
+     * @unauthenticated
      * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse   
      *     
@@ -69,6 +70,7 @@ class AuthController extends BaseController
     /**
      * Register User, Mahasiswa
      *
+     * @unauthenticated
      * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse   
      *     

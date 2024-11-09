@@ -14,6 +14,7 @@ use App\Http\Controllers\API\AdminAuthController;
 use App\Http\Controllers\API\ConsulTopicController;
 use App\Http\Controllers\API\UserProfileController;
 use App\Http\Controllers\API\ConsultationController;
+use App\Http\Controllers\API\PaymentMethodController;
 use App\Http\Controllers\API\PsikologPriceController;
 use App\Http\Controllers\API\ForgotPasswordController;
 use App\Http\Controllers\API\ArticleCategoryController;
@@ -30,7 +31,7 @@ Route::controller(AuthController::class)->group(function () {
     // Route::get('/auth/google/callback', 'handleGoogleCallback')->name('auth.google.callback');
 });
 Route::controller(PsikologController::class)->group(function () {
-    Route::post('/psikolog/register', 'psikologRegister')->name('psikolog.register'); 
+    Route::post('/psikolog/register', 'psjkologRegister')->name('psikolog.register'); 
 });
 Route::controller(AdminAuthController::class)->group(function () {
     Route::post('/admin/login', 'loginAdmin')->name('admin.login');
@@ -61,6 +62,7 @@ Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
         Route::get('/consultation/psikolog/topics', 'getPsikologTopics');
         Route::get('/consultation/psikolog/available', 'getAvailablePsikologV2');
         Route::get('/consultation/psikolog/{id}/details-and-schedules', 'getPsikologDetailsAndSchedulesV2');
+        Route::get('/consultation/payment-list', 'listUserPaymentMethod');
         Route::get('/consultation/preview-before-payment', 'getPreviewConsultation');
     });
 
@@ -130,6 +132,14 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::post('/admin/vouchers', 'store'); 
         Route::post('/admin/vouchers/{id}', 'update'); 
         Route::delete('/admin/vouchers/{id}','destroy'); 
+    });
+
+    Route::controller(PaymentMethodController::class)->group(function () {
+        Route::get('/admin/payment-methods', 'index'); 
+        Route::get('/admin/payment-methods/{id}', 'show'); 
+        Route::post('/admin/payment-methods', 'store'); 
+        Route::post('/admin/payment-methods/{id}', 'update'); 
+        Route::delete('/admin/payment-methods/{id}','destroy');
     });
 
     // Masukkan langsung ke atribut / Nggak perlu tabel

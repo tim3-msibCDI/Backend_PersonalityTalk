@@ -22,7 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth' => Authenticate::class,
             'role' => CheckRole::class,
             'admin' => AdminAuth::class,
-
+            
         ]);
 
     })

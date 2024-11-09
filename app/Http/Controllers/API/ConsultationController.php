@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\Topic;
 use App\Models\Psikolog;
 use Illuminate\Http\Request;
+use App\Models\PaymentMethod;
 use App\Models\PsikologCategory;
 use App\Models\PsikologSchedule;
 use Illuminate\Support\Facades\DB;
@@ -360,13 +361,51 @@ class ConsultationController extends BaseController
     }
 
     /**
+     * Get Payment Method List
+     * 
+     * @return \Illuminate\Http\JsonResponse   
+     *   
+     */
+    public function listUserPaymentMethod()
+    {
+        $payments = PaymentMethod::select('id', 'logo','no_rek', 'name')->get();
+        return $this->sendResponse('List metode pembayaran berhasil diambil.', $payments);
+    }
+
+    /**
      * Create Consultation and Transaction
      *
      * @param  \Illuminate\Http\Request $request
      * @param int  $id                                                                              
      * @return \Illuminate\Http\JsonResponse   
      *     
-     */    public function createConsultationAndTransaction(Request $request){
-        
+     */    
+    public function createConsultationAndTransaction(Request $request)
+    {
+
+        $validatedData = Validator::make($request->all(),[
+            'psch_id' => 'required|exists:psikolog_schedules,id', 
+            'psi_id' => 'required|exists:psikolog,id', 
+            'topic_id' => 'required|exists:topics,id', 
+        ],[
+            'psch_id.required' => 'Jadwal konsultasi harus dipilih.',
+            'psch_id.exists' => 'Jadwal konsultasi yang dipilih tidak valid.',
+            'psi_id.required' => 'Psikolog harus dipilih.',
+            'psi_id.exists' => 'Psikolog yang dipilih tidak valid.',
+            'topic_id.required' => 'Topik konsultasi harus dipilih.',
+            'topic_id.exists' => 'Topik konsultasi yang dipilih tidak valid.',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            DB::commit();
+            return $this->sendResponse('Informasi kesehatan mental berhasil dipebarui.', $penyakitMental);
+
+        } catch (Exception $e) {
+            DB::rollback();
+            return $this->sendError('Terjadi kesalahan saat memperbarui informasi kesehatan mental.', [$e->getMessage()], 500);
+        }
+
     }   
 }

@@ -20,7 +20,7 @@ class ArticleController extends BaseController
 {   
     /**
      * Get List Article Category - User
-     *
+     * @unauthenticated
      * @return \Illuminate\Http\JsonResponse 
      *       
      */
@@ -32,7 +32,7 @@ class ArticleController extends BaseController
 
     /**
      * Get List Article - User
-     *
+     * @unauthenticated
      * @param  \Illuminate\Http\Request $request                                       
      * @return \Illuminate\Http\JsonResponse   
      *     
@@ -51,7 +51,7 @@ class ArticleController extends BaseController
 
     /**
      * Get Detail and Related Articles - User
-     *
+     * @unauthenticated
      * @param int  $id                                       
      * @return \Illuminate\Http\JsonResponse  
      *      
@@ -83,7 +83,7 @@ class ArticleController extends BaseController
 
     /**
      * Get Articles Written by Admin - User
-     *
+     * @unauthenticated
      * @param int  $id                                       
      * @return \Illuminate\Http\JsonResponse 
      *       

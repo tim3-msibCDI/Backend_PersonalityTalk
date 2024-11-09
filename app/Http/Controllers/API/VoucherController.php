@@ -88,6 +88,7 @@ class VoucherController extends BaseController
     public function update(Request $request, $id)
     {
         $voucher = Voucher::find($id);
+        
         if (!$voucher) {
             return $this->sendError('Voucher tidak ditemukan', [] , 404);
         }
@@ -100,7 +101,7 @@ class VoucherController extends BaseController
             'valid_from' => 'nullable|date',
             'valid_to' => 'nullable|date|after:valid_from',
             'quota' => 'required|nullable|integer|min:0',
-            'status' => 'required|boolean'
+            'is_active' => 'required|boolean'
         ],[
             'code.required' => 'Kode voucher wajib diisi.',
             'code.unique' => 'Kode voucher sudah digunakan, gunakan kode lain.',
@@ -132,10 +133,10 @@ class VoucherController extends BaseController
     public function destroy($id)
     {
         $voucher = Voucher::find($id);
-        $code = $voucher->code;
         if (!$voucher) {
             return $this->sendError('Voucher tidak ditemukan', [], 404);
         }
+        $code = $voucher->code; 
         $voucher->delete();
         return $this->sendResponse('Voucher '. $code .' berhasil dihapus.', null);
     }

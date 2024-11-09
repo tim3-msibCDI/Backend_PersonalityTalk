@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('payment_methods', function (Blueprint $table) {
             $table->id(); 
             $table->string('name', 100); 
-            $table->enum('type', ['QRIS', 'Bank Transfer']); 
+            $table->enum('type', ['Pembayaran Otomatis', 'Transfer Bank']); 
             $table->string('bank_code', 50)->nullable(); 
             $table->string('logo'); 
+            $table->string('no_rek')->nullable(); 
             $table->boolean('is_active')->default(1); 
             $table->timestamps(); 
         });
