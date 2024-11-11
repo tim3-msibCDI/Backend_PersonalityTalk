@@ -19,4 +19,9 @@ class Topic extends Model
         return $this->hasMany(PsikologTopic::class, 'topic_id');
     }
 
+    public function consultation()
+    {
+        return $this->hasMany(Consultation::class, 'topic_id');
+    }
+
 }

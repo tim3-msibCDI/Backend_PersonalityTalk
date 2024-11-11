@@ -11,6 +11,7 @@ class PsikologPrice extends Model
 
     protected $table = 'psikolog_prices';
     protected $fillable = [
+        'code',
         'price', 
     ];
 

@@ -10,16 +10,23 @@ use App\Http\Controllers\API\BaseController;
 class PsikologPriceController extends BaseController
 {
     /**
-     * Get all prices.
+     * Psikolog Price List - Admin
+     * 
+     * @return \Illuminate\Http\JsonResponse   
+     * 
      */
     public function index()
     {
-        $prices = PsikologPrice::all();
+        $prices = PsikologPrice::select('id', 'code', 'price')->get();
         return $this->sendResponse('Data seluruh harga psikolog berhasil diambil.', $prices);
     }
 
     /**
-     * Get a specific price by ID.
+     * Detail Psikolog Price
+     * 
+     * @param int  $id                                                                              
+     * @return \Illuminate\Http\JsonResponse   
+     * 
      */
     public function show($id)
     {
@@ -33,19 +40,26 @@ class PsikologPriceController extends BaseController
     }
 
     /**
-     * Store a new price.
+     * Store Psikolog Price
+     * 
+     * @param  \Illuminate\Http\Request $request                                                                            
+     * @return \Illuminate\Http\JsonResponse   
+     * 
      */
     public function store(Request $request)
     {
         $request->validate([
+            'code' => 'required',
             'price' => 'required|numeric|min:0',
         ], [
+            'code.required' => 'Kode psikolog wajib diisi',
             'price.required' => 'Harga wajib diisi.',
             'price.numeric' => 'Harga harus berupa angka.',
             'price.min' => 'Harga tidak boleh kurang dari 0.',
         ]);
 
         $price = PsikologPrice::create([
+            'code' => $request->code,
             'price' => $request->price,
         ]);
 
@@ -53,7 +67,12 @@ class PsikologPriceController extends BaseController
     }
 
     /**
-     * Update an existing price.
+     * Update Psikolog Price
+     * 
+     * @param  \Illuminate\Http\Request $request
+     * @param int  $id                                                                              
+     * @return \Illuminate\Http\JsonResponse   
+     * 
      */
     public function update(Request $request, $id)
     {
@@ -64,14 +83,17 @@ class PsikologPriceController extends BaseController
         }
 
         $request->validate([
+            'code' => 'required',
             'price' => 'required|numeric|min:0',
         ], [
+            'code.required' => 'Kode psikolog wajib disi',
             'price.required' => 'Harga wajib diisi.',
             'price.numeric' => 'Harga harus berupa angka.',
             'price.min' => 'Harga tidak boleh kurang dari 0.',
         ]);
 
         $price->update([
+            'code' => $request->code,
             'price' => $request->price,
         ]);
 
@@ -79,19 +101,25 @@ class PsikologPriceController extends BaseController
     }
 
     /**
-     * Delete a price by ID.
+     * Delete Psikolog Price
+     * 
+     * @param int  $id                                                                              
+     * @return \Illuminate\Http\JsonResponse   
+     * 
      */
     public function destroy($id)
     {
         $price = PsikologPrice::find($id);
-
         if (!$price) {
             return $this->sendError('Harga tidak ditemukan', [], 404);
+        }
+        if ($price->psikolog()->exists()) {
+            return $this->sendError('Harga masih digunakan dan tidak bisa dihapus', [], 400);
         }
 
         $priceValue = $price->price;
         $price->delete();
 
-        return $this->sendResponse("Harga sebesar {$priceValue} berhasil dihapus.", null);
+        return $this->sendResponse("Harga sebesar berhasil dihapus.", null);
     }
 }

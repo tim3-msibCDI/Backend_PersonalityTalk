@@ -112,8 +112,8 @@ class ConsulTopicController extends BaseController
         }
 
         // Cek apakah topik sedang digunakan oleh PsikologTopic
-        if ($topic->psikolog_topic()->exists()) {
-            return $this->sendError("Topik '{$topic->topic_name}' sedang digunakan oleh psikolog dan tidak dapat dihapus.", [], 400);
+        if ($topic->psikolog_topic()->exists() || $topic->consultations()->exists()) {
+            return $this->sendError("Topik '{$topic->topic_name}' sedang digunakan dan tidak dapat dihapus.", [], 400);
         }
 
         $topicName = $topic->topic_name;

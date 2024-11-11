@@ -15,9 +15,12 @@ class PsikologPriceTableSeeder extends Seeder
     public function run(): void
     {
         $prices = [
-            ['price' => 100000],
-            ['price' => 50000],
-            ['price' => 25000],
+            ['code' => '','price' => 50000],
+            ['code' => '01','price' => 100000],
+            ['code' => '02','price' => 200000],
+            ['code' => '03','price' => 300000],
+            ['code' => '04','price' => 400000],
+
         ];
 
         Schema::disableForeignKeyConstraints();

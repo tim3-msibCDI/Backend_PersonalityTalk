@@ -104,6 +104,9 @@ class ArticleCategoryController extends BaseController
         if (!$category) {
             return $this->sendError('Kategori tidak ditemukan', [], 404);
         }
+        if ($category->article()->exists()) {
+            return $this->sendError("Kategori tidak dapat dihapus karena digunakan oleh artikel tertentu", [], 400);
+        }
 
         $categoryName = $category->name; 
         $category->delete();
