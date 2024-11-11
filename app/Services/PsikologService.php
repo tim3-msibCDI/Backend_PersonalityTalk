@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\Psikolog;
+use App\Models\PsikologPrice;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -40,16 +41,31 @@ class PsikologService
                 'role' => 'P', // P = psikolog
             ]);
 
+            // Tentukan psikolog_price_id berdasarkan kode pada sipp
+            if (empty($data['sipp'])) {
+                $psikologPriceId = 1; // Default ID if SIPP is empty
+            } else {
+                $sippParts = explode('-', $data['sipp']);
+                $sippCode = $sippParts[2] ?? null;
+
+                if (!$sippCode) {
+                    throw new \Exception("Format SIPP tidak valid.");  
+                }
+
+                $psikologPrice = PsikologPrice::where('code', $sippCode)->first();
+                $psikologPriceId = $psikologPrice->id ?? 1;
+            }
+
             // Simpan data psikolog
             $psikolog = Psikolog::create([
                 'user_id' => $user->id,
                 'category_id' => $data['category_id'],
-                'psikolog_price_id' => $data['psikolog_price_id'],
+                'psikolog_price_id' => $psikologPriceId,
                 'description' => $data['description'],
                 'sipp' => $data['sipp'],
                 'practice_start_date' => $data['practice_start_date'],
-                'status' => 'pending', // Default status pending
-                'is_active' => false, // Default false
+                'status' => 'pending',
+                'is_active' => false,
             ]);
 
             // Simpan topik keahlian
@@ -65,7 +81,8 @@ class PsikologService
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->sendError('Terjadi kesalahan saat registrasi psikolog.', [$e->getMessage()], 500);
+            throw $e;
         }
     }
+
 }

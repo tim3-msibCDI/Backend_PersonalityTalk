@@ -46,7 +46,6 @@ class PsikologController extends BaseController
 
             // Validasi untuk tabel 'psikolog'
             'category_id' => 'required|exists:psikolog_categories,id',
-            'psikolog_price_id' => 'required|exists:psikolog_prices,id',
             'description' => 'required|string|max:255',
             'sipp' => 'required|string|max:255',
             'practice_start_date' => 'required|date',
@@ -62,7 +61,6 @@ class PsikologController extends BaseController
             'photo_profile.required' => 'Foto profil wajib diunggah.',
             'photo_profile.image' => 'Foto profil harus berupa gambar.',
             'category_id.required' => 'Kategori wajib dipilih.',
-            'psikolog_price_id.required' => 'Harga wajib dipilih.',
             'topics.required' => 'Pilih setidaknya satu topik keahlian.',
         ]);
 
@@ -74,8 +72,8 @@ class PsikologController extends BaseController
             // Menggunakan function yang terdapat pada PsikologService
             $psikolog = $this->psikologService->registerPsikolog($request->all());
             return $this->sendResponse('Pendaftaran psikolog berhasil dilakukan', $psikolog);
-
         } catch (\Exception $e) {
+            DB::rollBack();
             return $this->sendError('Terjadi kesalahan saat registrasi psikolog.', [$e->getMessage()], 500);
         }
     }

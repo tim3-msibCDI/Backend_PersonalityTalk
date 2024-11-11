@@ -31,7 +31,7 @@ Route::controller(AuthController::class)->group(function () {
     // Route::get('/auth/google/callback', 'handleGoogleCallback')->name('auth.google.callback');
 });
 Route::controller(PsikologController::class)->group(function () {
-    Route::post('/psikolog/register', 'psjkologRegister')->name('psikolog.register'); 
+    Route::post('/psikolog/register', 'psikologRegister')->name('psikolog.register'); 
 });
 Route::controller(AdminAuthController::class)->group(function () {
     Route::post('/admin/login', 'loginAdmin')->name('admin.login');
