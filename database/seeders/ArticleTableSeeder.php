@@ -57,7 +57,7 @@ class ArticleTableSeeder extends Seeder
                 'publisher_name' => 'Dr. Psikologi Indonesia',
                 'admin_id' => 1, 
                 'category_id' => 1,
-                'article_img' => 'article_photos/kecemasan_digital.jpg',
+                'article_img' => 'storage/article_photos/kecemasan_digital.jpg',
                 // 'article_img' => new \Illuminate\Http\UploadedFile(storage_path('app/public/article_photos/kecemasan_digital.jpg'), 'kecemasan_digital.jpg'),
             ],
             [
@@ -90,7 +90,7 @@ class ArticleTableSeeder extends Seeder
                 'publisher_name' => 'Dr. Emosi Sehat',
                 'admin_id' => 1,
                 'category_id' => 1,
-                'article_img' => 'article_photos/keseimbangan_emosi.jpg',
+                'article_img' => 'storage/article_photos/keseimbangan_emosi.jpg',
                 // 'article_img' => new \Illuminate\Http\UploadedFile(storage_path('app/public/article_photos/keseimbangan_emosi.jpg'), 'keseimbangan_emosi.jpg'),
             ],
             [
@@ -122,7 +122,7 @@ class ArticleTableSeeder extends Seeder
                 'publisher_name' => 'Dr. Mental Sehat',
                 'admin_id' => 1, 
                 'category_id' => 2,
-                'article_img' => 'article_photos/kecemasan_digital.jpg',
+                'article_img' => 'storage/article_photos/kecemasan_digital.jpg',
                 // 'article_img' => new \Illuminate\Http\UploadedFile(storage_path('app/public/article_photos/kecemasan_digital.jpg'), 'kecemasan_digital.jpg'),
             ],
         ];

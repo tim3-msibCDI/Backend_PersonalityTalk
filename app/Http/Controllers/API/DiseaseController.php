@@ -97,17 +97,16 @@ class DiseaseController extends BaseController
             
             if ($request->hasFile('disease_img')) {
                 $imagePath = Storage::disk('public')->put('diseases_photos', $request->file('disease_img'));
-    
                 if (!$imagePath) {
                     return $this->sendError('Gagal menyimpan gambar.', [], 500);
                 }
             }
-
+            $imageUrl = 'storage/' . $imagePath; 
             $penyakitMental = Disease::create([
                 'disease_name' => $validatedData->validated()['disease_name'],
                 'content' => $validatedData->validated()['content'],
                 'admin_id' => $validatedData->validated()['admin_id'],
-                'disease_img' => $imagePath, 
+                'disease_img' => $imageUrl, 
             ]);
             DB::commit();
 
@@ -190,7 +189,8 @@ class DiseaseController extends BaseController
                 if ($penyakitMental->disease_img) {
                     Storage::disk('public')->delete($penyakitMental->disease_img);
                 }
-                $dataToUpdate['disease_img'] = $imagePath;
+                $imageUrl = 'storage/' . $imagePath; 
+                $dataToUpdate['disease_img'] = $imageUrl;
             }
 
             // Update penyakit mental 

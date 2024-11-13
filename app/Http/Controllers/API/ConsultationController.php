@@ -4,13 +4,18 @@ namespace App\Http\Controllers\API;
 
 use Carbon\Carbon;
 use App\Models\Topic;
+use App\Models\Voucher;
 use App\Models\Psikolog;
+use Illuminate\Support\Str;
+use App\Models\Consultation;
 use Illuminate\Http\Request;
 use App\Models\PaymentMethod;
 use App\Models\PsikologCategory;
 use App\Models\PsikologSchedule;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Models\ConsultationTransaction;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController;
 
@@ -382,30 +387,170 @@ class ConsultationController extends BaseController
      */    
     public function createConsultationAndTransaction(Request $request)
     {
-
-        $validatedData = Validator::make($request->all(),[
-            'psch_id' => 'required|exists:psikolog_schedules,id', 
-            'psi_id' => 'required|exists:psikolog,id', 
-            'topic_id' => 'required|exists:topics,id', 
-        ],[
+        // Validasi input
+        $validatedData = Validator::make($request->all(), [
+            'psch_id' => 'required|exists:psikolog_schedules,id',
+            'psi_id' => 'required|exists:psikolog,id',
+            'topic_id' => 'required|exists:topics,id',
+            'voucher_code' => 'nullable|string|exists:vouchers,code', 
+            'payment_method_id' => 'required|exists:payment_methods,id',
+        ], [
             'psch_id.required' => 'Jadwal konsultasi harus dipilih.',
-            'psch_id.exists' => 'Jadwal konsultasi yang dipilih tidak valid.',
+            'psch_id.exists' => 'Jadwal konsultasi tidak valid.',
             'psi_id.required' => 'Psikolog harus dipilih.',
-            'psi_id.exists' => 'Psikolog yang dipilih tidak valid.',
+            'psi_id.exists' => 'Psikolog tidak valid.',
             'topic_id.required' => 'Topik konsultasi harus dipilih.',
-            'topic_id.exists' => 'Topik konsultasi yang dipilih tidak valid.',
+            'topic_id.exists' => 'Topik konsultasi tidak valid.',
+            'voucher_code.exists' => 'Kode voucher tidak valid.',
+            'payment_method_id.required' => 'Metode pembayaran harus dipilih.',
+            'payment_method_id.exists' => 'Metode pembayaran tidak valid.',
         ]);
+
+        if ($validatedData->fails()) {
+            return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
+        }
 
         try {
             DB::beginTransaction();
 
+            // Validasi jadwal psikolog (psch_id) apakah tersedia
+            $psikologSchedule = PsikologSchedule::where('id', $request->psch_id)->first();
+            if (!$psikologSchedule || !$psikologSchedule->is_available) {
+                return $this->sendError('Jadwal konsultasi sudah tidak tersedia atau tidak valid', [], 422);
+            }
+
+            // Ambil data psikolog
+            $psikolog = Psikolog::with('psikolog_price')->findOrFail($request->psi_id);
+            $consultationFee = $psikolog->psikolog_price->price;
+
+            // Menghitung diskon voucher
+            $discount = 0;
+            if ($request->voucher_code) {
+                $voucher = Voucher::where('code', $request->voucher_code)->first();
+                // Validasi status dan tanggal berlaku voucher
+                if (!$voucher->is_active || Carbon::now()->lt($voucher->valid_from) || Carbon::now()->gt($voucher->valid_to)) {
+                    return $this->sendError('Voucher tidak valid atau sudah kadaluwarsa', [], 422);
+                }
+                // Cek kuota penggunaan voucher
+                if ($voucher->quota && $voucher->used >= $voucher->quota) {
+                    return $this->sendError('Voucher sudah mencapai batas penggunaan', [], 422);
+                }
+                // Cek minimum transaksi
+                if ($consultationFee < $voucher->min_transaction_amount) {
+                    return $this->sendError('Jumlah transaksi belum memenuhi minimum transaksi voucher', [], 422);
+                }
+                // Hitung diskon
+                $discount = min($voucher->discount_value, $consultationFee);
+            }
+            // Hitung total biaya setelah diskon
+            $finalAmount = $consultationFee - $discount;
+
+            $consultation = Consultation::create([
+                'user_id' => auth()->id(),
+                'psi_id' => $request->psi_id,
+                'psch_id' => $request->psch_id,
+                'topic_id' => $request->topic_id,
+                'patient_complaint' => $request->patient_complaint ?? '',
+                'consul_status' => 'pending',
+            ]);
+
+            // Mengupdate is_available pada psikolog_schedule menjadi false
+            $psikologSchedule->is_available = false;
+            $psikologSchedule->save();
+
+            // Kode unik transaksi
+            $paymentNumber = 'CS' . '-' . now()->format('ymd') . Str::upper(Str::random(4)) . $consultation->id;
+
+            $transaction = ConsultationTransaction::create([
+                'payment_number' => $paymentNumber,
+                'user_id' => auth()->id(),
+                'consultation_id' => $consultation->id,
+                'voucher_id' => $voucher->id ?? null,
+                'payment_method_id' => $request->payment_method_id,
+                'total_amount' => $finalAmount,
+                'discount_amount' => $discount,
+                'status' => 'pending',
+            ]);
+
+            // Update penggunaan voucher jika digunakan
+            if (isset($voucher)) {
+                $voucher->increment('used');
+            }
+
             DB::commit();
-            return $this->sendResponse('Informasi kesehatan mental berhasil dipebarui.', $penyakitMental);
+            return $this->sendResponse('Konsultasi dan transaksi berhasil dibuat.', [
+                'consultation' => $consultation,
+                'transaction' => $transaction,
+                'final_amount' => $finalAmount,
+            ]);
 
         } catch (Exception $e) {
             DB::rollback();
-            return $this->sendError('Terjadi kesalahan saat memperbarui informasi kesehatan mental.', [$e->getMessage()], 500);
+            return $this->sendError('Terjadi kesalahan saat membuat konsultasi dan transaksi.', [$e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Upload payment proof photo
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse   
+     */
+    public function uploadPaymentProof(Request $request)
+    {
+        // Validasi input
+        $validatedData = Validator::make($request->all(), [
+            'consul_transaction_id' => 'required|exists:consul_transactions,id',
+            'payment_proof' => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048',
+        ], [
+            'consul_transaction_id.required' => 'ID transaksi wajib diisi.',
+            'consul_transaction_id.exists' => 'ID transaksi tidak valid.',
+            'payment_proof.required' => 'Bukti pembayaran wajib diunggah.',
+            'payment_proof.mimes' => 'Bukti pembayaran harus berupa file gambar (jpeg, png, jpg) atau PDF.',
+            'payment_proof.max' => 'Ukuran file maksimal adalah 2MB.',
+        ]);
+
+        if ($validatedData->fails()) {
+            return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
         }
 
-    }   
+        try {
+            DB::beginTransaction();
+
+            // Ambil transaksi berdasarkan ID
+            $transaction = ConsultationTransaction::find($request->consul_transaction_id);
+            if (!$transaction) {
+                return $this->sendError('Transaksi tidak ditemukan.', [], 404);
+            }
+
+            // Cek status transaksi (hanya transaksi dengan status 'pending' yang dapat mengunggah bukti pembayaran)
+            if ($transaction->status !== 'pending') {
+                return $this->sendError('Bukti pembayaran hanya bisa diunggah untuk transaksi dengan status pending.', [], 422);
+            }
+
+            // Upload dan update bukti pembayaraan
+            if ($request->hasFile('payment_proof')) {
+                $paymentProofPath = Storage::disk('public')->put('payment_proofs', $request->file('payment_proof'));
+    
+                if (!$paymentProofPath) {
+                    return $this->sendError('Gagal mengunggah bukti pembayaran.', [], 500);
+                }
+            }
+            $paymentProofUrl = 'storage/' . $paymentProofPath; 
+            $transaction->payment_proof = $paymentProofUrl;
+            $transaction->save();
+
+            DB::commit();
+            return $this->sendResponse('Bukti pembayaran berhasil diunggah.', [
+                'transaction_id' => $transaction->id,
+                'payment_proof_url' => asset($paymentProofUrl),
+            ]);
+
+        } catch (Exception $e) {
+            DB::rollback();
+            return $this->sendError('Terjadi kesalahan saat mengunggah bukti pembayaran.', [$e->getMessage()], 500);
+        }
+    }
+
+   
 }

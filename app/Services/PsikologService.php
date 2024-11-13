@@ -27,6 +27,7 @@ class PsikologService
             $photoProfilePath = null;
             if (isset($data['photo_profile'])) {
                 $photoProfilePath = Storage::disk('public')->put('profile_photos', $data['photo_profile']);
+                $photoProfilePath = 'storage/' . $photoProfilePath; 
             }
 
             // Simpan data pengguna

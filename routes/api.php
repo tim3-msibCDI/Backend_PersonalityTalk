@@ -64,6 +64,8 @@ Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
         Route::get('/consultation/psikolog/{id}/details-and-schedules', 'getPsikologDetailsAndSchedulesV2');
         Route::get('/consultation/payment-list', 'listUserPaymentMethod');
         Route::get('/consultation/preview-before-payment', 'getPreviewConsultation');
+        Route::post('/consultation/create-transaction', 'createConsultationAndTransaction');
+        Route::post('/consultation/upload-payment-proof', 'uploadPaymentProof');
     });
 
     Route::get('/consultation/voucher-redeem', [VoucherController::class, 'redeemVoucher']);

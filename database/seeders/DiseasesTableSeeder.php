@@ -50,8 +50,8 @@ class DiseasesTableSeeder extends Seeder
                           kesadaran, berpikir positif bisa menjadi alat yang ampuh dalam mencapai kesejahteraan mental 
                           dan emosional yang lebih baik.</p>",
                 'admin_id' => 1, 
-                'disease_img' => 'diseases_photos/kesehatan_mental.jpg',
-            ],
+                'disease_img' => 'storage/diseases_photos/kesehatan_mental.jpg',
+        ],
             [
                 'disease_name' => 'Bipolar',
                 'content' => "<p>Keseimbangan emosi adalah kunci untuk menjalani kehidupan yang harmonis dan bahagia. 
@@ -78,7 +78,7 @@ class DiseasesTableSeeder extends Seeder
                             menjaga hubungan baik dengan orang-orang di sekitar kita juga merupakan bagian penting 
                             dari keseimbangan emosi.</p>",
                 'admin_id' => 1,
-                'disease_img' => 'diseases_photos/kesehatan_mental.jpg',
+                'disease_img' => 'storage/diseases_photos/kesehatan_mental.jpg',
             ],
             [
                 'disease_name' => 'Skizofrenia',
@@ -105,7 +105,7 @@ class DiseasesTableSeeder extends Seeder
                             dapat belajar untuk mengelola kecemasan mereka dan menjalani kehidupan yang lebih tenang 
                             dan seimbang.</p>",
                 'admin_id' => 1, 
-                'disease_img' => 'diseases_photos/kesehatan_mental.jpg',
+                'disease_img' => 'storage/diseases_photos/kesehatan_mental.jpg',
             ],
         ];
 

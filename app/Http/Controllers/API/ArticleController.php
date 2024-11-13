@@ -164,18 +164,17 @@ class ArticleController extends BaseController
             
             if ($request->hasFile('article_img')) {
                 $imagePath = Storage::disk('public')->put('article_photos', $request->file('article_img'));
-    
                 if (!$imagePath) {
                     return $this->sendError('Gagal menyimpan gambar.', [], 500);
                 }
             }
-
+            $imageUrl = 'storage/' . $imagePath; 
             $article = Article::create([
                 'article_title' => $validatedData->validated()['article_title'],
                 'content' => $validatedData->validated()['content'],
                 'publication_date' => $validatedData->validated()['publication_date'],
                 'publisher_name' => $validatedData->validated()['publisher_name'],
-                'article_img' => $imagePath, 
+                'article_img' => $imageUrl, 
                 'admin_id' => $validatedData->validated()['admin_id'],
                 'category_id' => $validatedData->validated()['category_id'],
             ]);
@@ -264,9 +263,8 @@ class ArticleController extends BaseController
                 if ($article->article_img) {
                     Storage::disk('public')->delete($article->article_img);
                 }
-
-                // Update data gambar pada artikel
-                $dataToUpdate['article_img'] = $imagePath;
+                $imageUrl = 'storage/' . $imagePath; 
+                $dataToUpdate['article_img'] = $imageUrl;
             }
 
             // Update artikel 

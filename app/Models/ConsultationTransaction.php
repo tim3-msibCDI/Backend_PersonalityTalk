@@ -12,11 +12,14 @@ class ConsultationTransaction extends Model
     protected $table = 'consul_transactions';
 
     protected $fillable = [
+        'payment_number',
         'user_id',
         'consultation_id',
         'voucher_id',
         'payment_method_id',
         'total_amount',
+        'discount_amount',
+        'payment_proof',
         'status',
         'transaction_reference',
         'payment_gateway_response',
