@@ -142,21 +142,20 @@ class VoucherController extends BaseController
     }
 
     /**
-     * Redeem Voucher 
+     * Redeem Consultation Voucher 
      *
      * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse   
      *     
      */
-    public function redeemVoucher(Request $request)
+    public function redeemConsultationVoucher(Request $request)
     {
         // Validasi request
         $validatedData = Validator::make($request->all(), [
-            'code' => 'required|string|exists:vouchers,code', 
+            'code' => 'required|string', 
             'transaction_amount' => 'required|numeric|min:0',
         ], [
             'code.required' => 'Kode voucher wajib diisi.',
-            'code.exists' => 'Kode voucher tidak valid.',
             'transaction_amount.required' => 'Jumlah transaksi wajib diisi.',
             'transaction_amount.numeric' => 'Jumlah transaksi harus berupa angka.',
             'transaction_amount.min' => 'Jumlah transaksi harus lebih besar atau sama dengan 0.',
@@ -167,8 +166,15 @@ class VoucherController extends BaseController
         }
 
         $voucher = Voucher::where('code', $request->code)->first();
+        if (!$voucher) {
+            return $this->sendError('Kode voucher tidak ditemukan', [], 422);
+        }
         if (!$voucher->is_active) { //cek status aktif
             return $this->sendError('Voucher sudah tidak dapat digunakan', [], 422);
+        }
+
+        if ($voucher->voucher_type !== 'consultation') {
+            return $this->sendError('Voucher ini tidak bisa digunakan untuk konsultasi.', [], 400);
         }
 
         $now = Carbon::now(); // Cek tanggal berlaku
@@ -186,7 +192,7 @@ class VoucherController extends BaseController
 
         // Cek minimum transaksi
         if ($voucher->min_transaction_amount && $request->transaction_amount < $voucher->min_transaction_amount) {
-            return $this->sendError('Jumlah transaksi anda belum memenuhi jumlah minimum transaksi voucher', [], 422);
+            return $this->sendError('Jumlah minimum transkasi belum terpenuhi', [], 422);
         }
 
         // Hitung diskon, jika diskon melebihi jumlah transaksi maka ambil diskon berasal dari jumlah transaksi

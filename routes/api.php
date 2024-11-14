@@ -68,7 +68,12 @@ Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
         Route::post('/consultation/upload-payment-proof', 'uploadPaymentProof');
     });
 
-    Route::get('/consultation/voucher-redeem', [VoucherController::class, 'redeemVoucher']);
+    Route::controller(ConsultationController::class)->group(function () {
+        Route::post('/transactions/{transactionId}/approve-payment', 'approvePaymentProof');
+        Route::post('/transactions/{transactionId}/disapprove-payment', 'disapprovePaymentProof');    
+    });
+
+    Route::get('/consultation/voucher-redeem', [VoucherController::class, 'redeemConsultationVoucher']);
 });
 
 /**

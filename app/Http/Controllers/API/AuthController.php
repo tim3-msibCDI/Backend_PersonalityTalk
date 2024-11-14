@@ -25,14 +25,19 @@ class AuthController extends BaseController
      */
     public function userloginAction(Request $request)
     {
-        Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'email' => 'required|string|email',
             'password' => 'required|string'
         ], 
         [
             'email.required' => 'Email wajib diisi',
+            'email.email' => 'Format email salah',
             'password.required' => 'Password wajib diisi',
-        ])->validate();
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validasi gagal.', $validator->errors(), 422);
+        }
     
         // Cek apakah email ada di database
         $user = User::where('email', $request->email)->first();
@@ -93,6 +98,8 @@ class AuthController extends BaseController
             'email.required' => 'Email wajib diisi.',
             'email.unique' => 'Email sudah terdaftar.',
             'password.required' => 'Password wajib diisi.',
+            'password.min' => 'Password harus terdiri dari minimal 8 karakter.',
+            'phone_number.regex' => 'Format nomor telepon salah.',
             'date_birth.required' => 'Tanggal lahir wajib diisi.',
             'gender.required' => 'Jenis kelamin wajib diisi.',
             'role.required' => 'Role wajib dipilih.',

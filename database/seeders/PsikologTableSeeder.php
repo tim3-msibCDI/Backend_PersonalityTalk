@@ -32,7 +32,7 @@ class PsikologTableSeeder extends Seeder
             ],
             [
                 'name' => 'Dewi Lestari, S.Psi., M.Psi.',
-                'email' => 'fajaryumnaadani@gmail.com',
+                'email' => 'dewilesta@gmail.com',
                 'password' => 'dewilestari',
                 'phone_number' => '082146130950',
                 'date_birth' => '1985-02-15',
@@ -46,7 +46,7 @@ class PsikologTableSeeder extends Seeder
             ],
             [
                 'name' => 'Budi Santoso, S.Psi., M.Psi.',
-                'email' => 'pulopuloharjo123@gmail.com',
+                'email' => 'budibudibudi@gmail.com',
                 'password' => 'budisantoso',
                 'phone_number' => '082146130950',
                 'date_birth' => '1978-12-25',
@@ -60,7 +60,7 @@ class PsikologTableSeeder extends Seeder
             ],
             [
                 'name' => 'Nina Anwar, S.Psi.',
-                'email' => 'fajaryumna2772@gmail.com',
+                'email' => 'nianiania@gmail.com',
                 'password' => 'ninaanwar',
                 'phone_number' => '082146130950',
                 'date_birth' => '1990-07-12',
@@ -88,7 +88,7 @@ class PsikologTableSeeder extends Seeder
             ],
             [
                 'name' => 'Laila Hasan, S.Psi., M.Psi.',
-                'email' => 'fajaryumnaadani@students.undip.ac.id',
+                'email' => 'fajaryumnaadani@alumni.undip.ac.id',
                 'password' => 'lailahasan',
                 'phone_number' => '082146130950',
                 'date_birth' => '1987-03-09',

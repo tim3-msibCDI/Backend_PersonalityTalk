@@ -21,13 +21,20 @@ class AdminAuthController extends BaseController
      */
     public function loginAdmin(Request $request)
     {
-        $validatedData = Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'email' => 'required|string|email',
-            'password' => 'required|string',
-        ],[
+            'password' => 'required|string'
+        ], 
+        [
             'email.required' => 'Email wajib diisi',
+            'email.email' => 'Format email salah',
             'password.required' => 'Password wajib diisi',
-        ])->validate();
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validasi gagal.', $validator->errors(), 422);
+        }
+
 
         // Cek apakah admin dengan username yang diberikan ada di database
         $admin = Admin::where('email', $request->email)->first();

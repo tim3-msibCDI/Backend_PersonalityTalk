@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
+use App\Models\PsikologPrice;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -127,6 +128,7 @@ class UserProfileController extends BaseController
             'name.required' => 'Nama wajib diisi.',
             'email.required' => 'Email wajib diisi.',
             'email.unique' => 'Email sudah terdaftar.',
+            'phone_number.regex' => 'Format nomor telepon salah.',
             'date_birth.required' => 'Tanggal lahir wajib diisi.',
             'gender.required' => 'Jenis kelamin wajib diisi.',
 
@@ -139,7 +141,7 @@ class UserProfileController extends BaseController
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validation Error', $validator->errors(), 422);
+            return $this->sendError('Validasi gagal', $validator->errors(), 422);
         }
 
         try {
@@ -155,10 +157,26 @@ class UserProfileController extends BaseController
                 ]);
             }
 
+            // Update untuk SIPP dan juga harga psikolog
+            if (empty($validator->validated()['sipp'])) {
+                $psikologPriceId = 1; // Default ID if SIPP is empty
+            } else {
+                $sippParts = explode('-', $validator->validated()['sipp']);
+                $sippCode = $sippParts[2] ?? null;
+
+                if (!$sippCode) {
+                    throw new \Exception("Format SIPP tidak valid.");  
+                }
+
+                $psikologPrice = PsikologPrice::where('code', $sippCode)->first();
+                $psikologPriceId = $psikologPrice->id ?? 1;
+            }
+
             // Update untuk psikolog
             if ($user->role === 'P') {
                 $user->psikolog()->update([
                     'sipp' => $request->sipp,
+                    'psikolog_price_id' => $psikologPriceId,
                     'practice_start_date' => $request->practice_start_date,
                     'description' => $request->description,
                 ]);
@@ -186,7 +204,7 @@ class UserProfileController extends BaseController
             
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->sendError('Gagal Memperbarui profil.', [$e->getMessage()], 500);
+            return $this->sendError('Gagal Memperbarui profil.', $e->getMessage(), 500);
         }
     }
 
@@ -261,7 +279,7 @@ class UserProfileController extends BaseController
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validation Error', $validator->errors(), 422);
+            return $this->sendError('Validasi Gagal', $validator->errors(), 422);
         }
 
         try {
