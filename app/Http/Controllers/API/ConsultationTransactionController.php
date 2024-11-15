@@ -7,10 +7,24 @@ use App\Models\Consultation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\ConsultationTransaction;
+use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController;
+use App\Http\Resources\ConsultationTransactionResource;
 
 class ConsultationTransactionController extends BaseController
 {
+    /**
+     * List Transaction
+     * 
+     * @return \Illuminate\Http\JsonResponse 
+     *  
+     */
+    public function listConsulTransaction()
+    {
+        $transactions = ConsultationTransaction::with(['consultation' ,'user',])->get();
+        return $this->sendResponse('List transaksi berhasil diambil.', ConsultationTransactionResource::collection($transactions));
+    }
+
     /**
      * Approve Payment Proof
      * 
@@ -24,12 +38,14 @@ class ConsultationTransactionController extends BaseController
         try {
             DB::beginTransaction();
 
-            // Cari transaksi
-            $transaction = ConsultationTransaction::with('consultation')->findOrFail($transactionId);
+            $transaction = ConsultationTransaction::with('consultation')->find($transactionId);
+            if (!$transaction) {
+                return $this->sendError('Transaksi tidak ditemukan.', [], 404);
+            }
 
             // Validasi status sebelum approve
             if ($transaction->status !== 'pending') {
-                return $this->sendError('Transaksi tidak dapat di-approve karena sudah diproses sebelumnya.', [], 422);
+                return $this->sendError('Transaksi tidak dapat diterima karena sudah diproses sebelumnya.', [], 422);
             }
 
             // Update status transaksi dan konsultasi
@@ -42,10 +58,10 @@ class ConsultationTransactionController extends BaseController
             $consultation->save();
 
             DB::commit();
-            return $this->sendResponse('Bukti pembayaran berhasil di-approve.', $transaction);
+            return $this->sendResponse('Bukti pembayaran berhasil diterima.', $transaction);
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->sendError('Terjadi kesalahan saat approve pembayaran.', [$e->getMessage()], 500);
+            return $this->sendError('Terjadi kesalahan saat menerima bukti pembayaran.', [$e->getMessage()], 500);
         }
     }
 
@@ -57,17 +73,27 @@ class ConsultationTransactionController extends BaseController
      * @return \Illuminate\Http\JsonResponse 
      *  
      */
-    public function disapprovePaymentProof(Request $request, $transactionId)
+    public function rejectPaymentProof(Request $request, $transactionId)
     {
+        // Validasi input
+        $validatedData = Validator::make($request->all(), [
+            'reason' => 'required|string',
+        ], [
+            'reason.required' => 'Alasan wajib diisi.',
+        ]);
+
         try {
             DB::beginTransaction();
 
             // Cari transaksi
-            $transaction = ConsultationTransaction::with('consultation')->findOrFail($transactionId);
+            $transaction = ConsultationTransaction::with('consultation')->find($transactionId);
+            if (!$transaction) {
+                return $this->sendError('Transaksi tidak ditemukan.', [], 404);
+            }
 
             // Validasi status sebelum disapprove
             if ($transaction->status !== 'pending') {
-                return $this->sendError('Transaksi tidak dapat di-disapprove karena sudah diproses sebelumnya.', [], 422);
+                return $this->sendError('Transaksi tidak dapat ditolak karena sudah diproses sebelumnya.', [], 422);
             }
 
             // Update status transaksi dan konsultasi
@@ -81,10 +107,10 @@ class ConsultationTransactionController extends BaseController
             $consultation->save();
 
             DB::commit();
-            return $this->sendResponse('Bukti pembayaran berhasil di-disapprove.', $transaction);
+            return $this->sendResponse('Bukti pembayaran berhasil ditolak.', $transaction);
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->sendError('Terjadi kesalahan saat disapprove pembayaran.', [$e->getMessage()], 500);
+            return $this->sendError('Terjadi kesalahan saat menolak bukti pembayaran.', [$e->getMessage()], 500);
         }
     }
 }

@@ -21,6 +21,7 @@ use App\Http\Controllers\API\ManagePsikologController;
 use App\Http\Controllers\API\ArticleCategoryController;
 use App\Http\Controllers\API\PsikologCategoryController;
 use App\Http\Controllers\API\PsikologScheduleController;
+use App\Http\Controllers\API\ConsultationTransactionController;
 
 /**
  * Authentication
@@ -66,6 +67,7 @@ Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
         Route::get('/consultation/payment-list', 'listUserPaymentMethod');
         Route::get('/consultation/preview-before-payment', 'getPreviewConsultation');
         Route::post('/consultation/create-transaction', 'createConsultationAndTransaction');
+        Route::post('/consultation/submit-complaint', 'submitComplaint');
         Route::post('/consultation/upload-payment-proof', 'uploadPaymentProof');
     });
 
@@ -106,7 +108,6 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::put('/admin/profile/update', 'updateAdminProfile');
         Route::put('/admin/profile/updatePassword', 'updateAdminPassword');
     });
-    
     Route::controller(ConsulTopicController::class)->group(function () {
         Route::get('/topics', 'index')->name('topics.index'); 
         Route::get('/topics/{id}', 'show')->name('topics.show'); 
@@ -117,6 +118,11 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
     Route::controller(ManagePsikologController::class)->group(function () {
         Route::post('/approve-psikolog/{id}', 'approvePsikolog')->name('approve.psikolog'); 
         Route::post('/reject-psikolog/{id}', 'rejectPsikolog')->name('reject.psikolog'); 
+    });
+    Route::controller(ConsultationTransactionController::class)->group(function () {
+        Route::get('consultation/transactions', 'listConsulTransaction'); 
+        Route::post('consultation/transactions/approve/{transactionId}', 'approvePaymentProof'); 
+        Route::post('consultation/transactions/reject/{transactionId}', 'rejectPaymentProof');
     });
     Route::controller(ArticleCategoryController::class)->group(function () {
         Route::get('/article/categories', 'index')->name('article.categories.index'); 

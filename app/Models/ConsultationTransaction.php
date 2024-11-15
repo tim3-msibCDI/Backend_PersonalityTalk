@@ -17,7 +17,7 @@ class ConsultationTransaction extends Model
         'consultation_id',
         'voucher_id',
         'payment_method_id',
-        'total_amount',
+        'consul_fee',
         'discount_amount',
         'payment_proof',
         'status',

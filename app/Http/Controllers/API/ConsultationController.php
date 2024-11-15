@@ -402,7 +402,6 @@ class ConsultationController extends BaseController
                 'consultation_date' => Carbon::parse($selectedSchedule->date)->translatedFormat('l, j F'),
                 'consultation_time' => Carbon::parse($selectedSchedule->mainSchedule->start_hour)->format('H:i') . ' - ' . 
                     Carbon::parse($selectedSchedule->mainSchedule->end_hour)->format('H:i')
-
             ]
         );
 
@@ -510,7 +509,7 @@ class ConsultationController extends BaseController
                 'consultation_id' => $consultation->id,
                 'voucher_id' => $voucher->id ?? null,
                 'payment_method_id' => $request->payment_method_id,
-                'total_amount' => $finalAmount,
+                'consul_fee' => $consultationFee,
                 'discount_amount' => $discount,
                 'status' => 'pending',
             ]);
@@ -531,6 +530,37 @@ class ConsultationController extends BaseController
             DB::rollback();
             return $this->sendError('Terjadi kesalahan saat membuat konsultasi dan transaksi.', [$e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Upload submit complaint
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse 
+     *   
+     */
+    public function submitComplaint(Request $request)
+    {    
+        $validatedData = Validator::make($request->all(), [
+            'consul_transaction_id' => 'required',
+            'patient_complaint' => 'required|string',
+        ], 
+        [   
+            'consul_transaction_id.required' => 'ID transaksi wajib diisi.',
+            'patient_complaint.required' => 'Keluhan wajib diisi.',
+        ]);
+
+        if ($validatedData->fails()) {
+            return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
+        }
+
+        $consultation = Consultation::find($request->consul_transaction_id);
+        if (!$consultation) {
+            return $this->sendError('Konsultasi tidak ditemukan.', [], 404);
+        }
+        $consultation->patient_complaint = $request->patient_complaint;
+        $consultation->save();   
+        return $this->sendResponse('Keluhan berhasil dikirim.', $consultation);
     }
 
     /**
@@ -580,7 +610,8 @@ class ConsultationController extends BaseController
                 }
             }
             $paymentProofUrl = 'storage/' . $paymentProofPath; 
-            $transaction->payment_proof = $paymentProofUrl;
+            $transaction->payment_proof = $paymentProofUrl; 
+            $transaction->payment_completed_at = now();
             $transaction->save();
 
             DB::commit();
