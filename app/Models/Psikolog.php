@@ -59,7 +59,11 @@ class Psikolog extends Model
 
     public function consultation()
     {
-        return $this->hasMany(Consultation::class, 'user_id', 'id');
+        return $this->hasMany(Consultation::class, 'psi_id');
     }
 
+    public function rating()
+    {
+        return $this->hasMany(PsikologReview::class, 'psi_id');
+    }
 }

@@ -18,6 +18,7 @@ use App\Http\Controllers\API\PaymentMethodController;
 use App\Http\Controllers\API\PsikologPriceController;
 use App\Http\Controllers\API\ForgotPasswordController;
 use App\Http\Controllers\API\ManagePsikologController;
+use App\Http\Controllers\API\PsikologReviewController;
 use App\Http\Controllers\API\ArticleCategoryController;
 use App\Http\Controllers\API\PsikologCategoryController;
 use App\Http\Controllers\API\PsikologScheduleController;
@@ -69,6 +70,11 @@ Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
         Route::post('/consultation/create-transaction', 'createConsultationAndTransaction');
         Route::post('/consultation/submit-complaint', 'submitComplaint');
         Route::post('/consultation/upload-payment-proof', 'uploadPaymentProof');
+    });
+
+    Route::controller(PsikologReviewController::class)->group(function () {
+        Route::get('/consultation/detail-psikolog-before-review', 'detailPsikologBeforeReview');
+        Route::post('/consultation/submit-review', 'submitReview');
     });
 
     Route::controller(ConsultationController::class)->group(function () {

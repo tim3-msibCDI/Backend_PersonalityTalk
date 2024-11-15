@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
         $this->call(VoucherTableSeeder::class);
         $this->call(PaymentMethodTableSeeder::class);
 
+        $this->call(PsikologReviewTableSeeder::class);
         
     }
 }

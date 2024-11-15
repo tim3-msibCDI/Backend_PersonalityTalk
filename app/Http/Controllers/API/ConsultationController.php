@@ -261,6 +261,12 @@ class ConsultationController extends BaseController
                 $finalTopics[] = "{$remainingCount}+";
             }
 
+            //Ambil rating psikolog
+            $rating = DB::table('psikolog_reviews')
+                ->where('psi_id', $psikolog->psikolog_id)
+                ->avg('rating') ?? 0;
+            $rating = number_format($rating, 1); 
+
             // Kelompokkan berdasarkan kategori (Psikolog atau Konselor)
             if ($psikolog->category_name === 'Psikolog') {
                 $response[$date]['Psikolog'][] = [
@@ -269,6 +275,7 @@ class ConsultationController extends BaseController
                     'photo_profile' => $psikolog->photo_profile,
                     'years_of_experience' => $yearsOfExperience,
                     'available_schedule_count' => $psikolog->available_schedule_count,
+                    'rating' => $rating ?? null,
                     'category' => 'Psikolog',
                     'topics' => $finalTopics, 
                 ];
@@ -279,6 +286,7 @@ class ConsultationController extends BaseController
                     'photo_profile' => $psikolog->photo_profile,
                     'years_of_experience' => $yearsOfExperience,
                     'available_schedule_count' => $psikolog->available_schedule_count,
+                    'rating' => $rating ?? null,
                     'category' => 'Konselor',
                     'topics' => $finalTopics, 
                 ];
@@ -300,6 +308,12 @@ class ConsultationController extends BaseController
         $psikolog = Psikolog::with(['user', 'psikolog_category', 'psikolog_price', 'psikolog_topic.topic'])
             ->where('id', $id)
             ->firstOrFail();
+
+        // rating psikolog
+        $rating = DB::table('psikolog_reviews')
+            ->where('psi_id', $psikolog->id)
+            ->avg('rating') ?? 0;
+        $rating = number_format($rating, 1); 
 
         $startDate = Carbon::today()->startOfDay();
         $endDate = $startDate->copy()->addDays(6)->endOfDay(); // Satu minggu ke depan dari hari ini
@@ -340,6 +354,7 @@ class ConsultationController extends BaseController
                     'name' => $psikolog->user->name,
                     'photo_profile' => $psikolog->user->photo_profile,
                     'category_name' => $psikolog->psikolog_category->category_name,
+                    'rating' => $rating,
                     'years_of_experience' => $psikolog->getYearsOfExperience(),
                     'price' => $psikolog->psikolog_price->price,
                     'description' => $psikolog->description,
@@ -386,8 +401,19 @@ class ConsultationController extends BaseController
             ->where('id', $request->psch_id)
             ->first();
         $selectedTopic = Topic::select('id', 'topic_name')->where('id', $request->topic_id)->first();
-        // dd($selectedTopic);
-            
+        
+        // rating psikolog
+        $rating = DB::table('psikolog_reviews')
+            ->where('psi_id', $psikolog->id)
+            ->avg('rating') ?? 0;
+        $rating = number_format($rating, 1);
+
+        // Mengambil 5 review rating teratas
+        $topRatings = DB::table('psikolog_reviews')
+            ->where('psi_id', $psikolog->id)
+            ->orderByDesc('rating')
+            ->limit(5)
+            ->get(['rating', 'review']); // Ambil rating dan review
 
         return $this->sendResponse(
             'Berhasil mengambil preview detail konsultasi', 
@@ -395,13 +421,15 @@ class ConsultationController extends BaseController
                 'name' => $psikolog->user->name,
                 'photo_profile' => $psikolog->user->photo_profile,
                 'category_name' => $psikolog->psikolog_category->category_name,
+                'rating' => $rating,
                 'years_of_experience' => $psikolog->getYearsOfExperience(),
                 'price' => $psikolog->psikolog_price->price,
                 'sipp' => $psikolog->sipp,
                 'topic' => $selectedTopic->topic_name,
                 'consultation_date' => Carbon::parse($selectedSchedule->date)->translatedFormat('l, j F'),
                 'consultation_time' => Carbon::parse($selectedSchedule->mainSchedule->start_hour)->format('H:i') . ' - ' . 
-                    Carbon::parse($selectedSchedule->mainSchedule->end_hour)->format('H:i')
+                    Carbon::parse($selectedSchedule->mainSchedule->end_hour)->format('H:i'),
+                'top_ratings' => $topRatings,
             ]
         );
 
