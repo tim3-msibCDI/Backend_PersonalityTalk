@@ -221,6 +221,45 @@ class ConsultationController extends BaseController
             // Hitung tahun pengalaman kerja
             $yearsOfExperience = floor(Carbon::parse($psikolog->practice_start_date)->diffInYears(Carbon::now()));
             $date = Carbon::parse($psikolog->date)->translatedFormat('l j M');
+            $selectedTopicId = $request->topic_id;
+
+            // Ambil semua topik untuk psikolog saat ini
+            $topics = DB::table('psikolog_topics as pt')
+                ->join('topics as t', 'pt.topic_id', '=', 't.id')
+                ->where('pt.psikolog_id', $psikolog->psikolog_id)
+                ->pluck('t.topic_name', 't.id') // Mengambil nama topik dengan ID
+                ->toArray();
+
+            // Mengambil topik sesuai dengan topic_id yang dipilih
+            $selectedTopic = $topics[$selectedTopicId] ?? null;
+
+            // Menghapus topik yang sudah terpilih agar tidak terpilih secara random lagi
+            if ($selectedTopic) {
+                unset($topics[$selectedTopicId]);
+            }
+
+            // Ambil 1 topik random dari sisa topik
+            $randomTopics = [];
+            if (count($topics) > 0) {
+                $randomTopicName = array_rand($topics); // Mengambil ID topik secara random
+                $randomTopics[] = $topics[$randomTopicName];
+                unset($topics[$randomTopicName]); // Hapus topik random yang sudah terambil
+            }
+
+            // Gabungkan topik yang dipilih dengan topik random
+            $finalTopics = [];
+            if ($selectedTopic) {
+                $finalTopics[] = $selectedTopic;
+            }
+            if (!empty($randomTopics)) {
+                $finalTopics[] = $randomTopics[0];
+            }
+
+            // Tambahkan sisa topik sebagai "2+", "3+", dll
+            $remainingCount = count($topics);
+            if ($remainingCount > 0) {
+                $finalTopics[] = "{$remainingCount}+";
+            }
 
             // Kelompokkan berdasarkan kategori (Psikolog atau Konselor)
             if ($psikolog->category_name === 'Psikolog') {
@@ -229,7 +268,9 @@ class ConsultationController extends BaseController
                     'name' => $psikolog->name,
                     'photo_profile' => $psikolog->photo_profile,
                     'years_of_experience' => $yearsOfExperience,
-                    'available_schedule_count' => $psikolog->available_schedule_count, 
+                    'available_schedule_count' => $psikolog->available_schedule_count,
+                    'category' => 'Psikolog',
+                    'topics' => $finalTopics, 
                 ];
             } elseif ($psikolog->category_name === 'Konselor') {
                 $response[$date]['Konselor'][] = [
@@ -237,7 +278,9 @@ class ConsultationController extends BaseController
                     'name' => $psikolog->name,
                     'photo_profile' => $psikolog->photo_profile,
                     'years_of_experience' => $yearsOfExperience,
-                    'available_schedule_count' => $psikolog->available_schedule_count, 
+                    'available_schedule_count' => $psikolog->available_schedule_count,
+                    'category' => 'Konselor',
+                    'topics' => $finalTopics, 
                 ];
             }
         }
