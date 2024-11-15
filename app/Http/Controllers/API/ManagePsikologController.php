@@ -4,17 +4,16 @@ namespace App\Http\Controllers\API;
 
 use App\Models\Psikolog;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use App\Services\NotificationService;
 use App\Http\Controllers\API\BaseController;
 
-class AdminController extends BaseController
-{   
+class ManagePsikologController extends BaseController
+{
     protected $notificationService;
 
     public function __construct(NotificationService $notificationService)
     {
-        $this->notificationService = $notificationService;
+        $this->notificationService = $notificationSesrvice;
     }
 
     /**

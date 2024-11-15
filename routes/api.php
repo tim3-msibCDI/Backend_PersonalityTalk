@@ -4,7 +4,6 @@ use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
-use App\Http\Controllers\API\AdminController;
 use App\Http\Controllers\API\ArticleController;
 use App\Http\Controllers\API\DiseaseController;
 use App\Http\Controllers\API\VoucherController;
@@ -13,10 +12,12 @@ use App\Http\Controllers\API\PsikologController;
 use App\Http\Controllers\API\AdminAuthController;
 use App\Http\Controllers\API\ConsulTopicController;
 use App\Http\Controllers\API\UserProfileController;
+use App\Http\Controllers\API\AdminProfileController;
 use App\Http\Controllers\API\ConsultationController;
 use App\Http\Controllers\API\PaymentMethodController;
 use App\Http\Controllers\API\PsikologPriceController;
 use App\Http\Controllers\API\ForgotPasswordController;
+use App\Http\Controllers\API\ManagePsikologController;
 use App\Http\Controllers\API\ArticleCategoryController;
 use App\Http\Controllers\API\PsikologCategoryController;
 use App\Http\Controllers\API\PsikologScheduleController;
@@ -99,6 +100,12 @@ Route::middleware(['auth:sanctum', 'role:P'])->group(function () {
 Route::middleware('auth:sanctum', 'admin')->group(function () {
     Route::post('/admin/logout', [AdminAuthController::class, 'logoutAdmin']);
 
+    Route::controller(AdminProfileController::class)->group(function () {
+        Route::get('/admin/info', 'getAdminInfo');
+        Route::get('/admin/profile/detail', 'getAdminProfile');
+        Route::put('/admin/profile/update', 'updateAdminProfile');
+        Route::put('/admin/profile/updatePassword', 'updateAdminPassword');
+    });
     
     Route::controller(ConsulTopicController::class)->group(function () {
         Route::get('/topics', 'index')->name('topics.index'); 
@@ -107,7 +114,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::put('/topics/{id}', 'update')->name('topics.update'); 
         Route::delete('/topics/{id}','destroy')->name('topics.destroy'); 
     });
-    Route::controller(AdminController::class)->group(function () {
+    Route::controller(ManagePsikologController::class)->group(function () {
         Route::post('/approve-psikolog/{id}', 'approvePsikolog')->name('approve.psikolog'); 
         Route::post('/reject-psikolog/{id}', 'rejectPsikolog')->name('reject.psikolog'); 
     });

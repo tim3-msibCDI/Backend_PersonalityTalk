@@ -23,6 +23,8 @@ class AdminTableSeeder extends Seeder
             'name' => 'Admin',
             'email' => 'admin@gmail.com',
             'password' => Hash::make('password123'),
+            'phone_number' => '0812345678901',
+            'photo_profile' => 'storage/profile_photos/profile-img.jpg'
         ]);
     }
 }
