@@ -3,14 +3,20 @@
 namespace Database\Seeders;
 
 use Carbon\Carbon;
+use App\Models\Voucher;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class VoucherTableSeeder extends Seeder
 {
     public function run()
     {
+        Schema::disableForeignKeyConstraints();
+        Voucher::truncate();
+        Schema::enableForeignKeyConstraints();
+
         DB::table('vouchers')->insert([
             [
                 'code' => 'DISC100',
@@ -26,8 +32,8 @@ class VoucherTableSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'code' => 'CONS15K',
-                'voucher_type' => 'consultation',
+                'code' => 'COURSE15K',
+                'voucher_type' => 'course',
                 'discount_value' => 15000, 
                 'min_transaction_amount' => 100000,
                 'valid_from' => Carbon::now()->subDays(5),

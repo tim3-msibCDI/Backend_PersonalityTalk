@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use Carbon\Carbon;
 use App\Models\Voucher;
+use App\Models\Psikolog;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
@@ -153,31 +154,36 @@ class VoucherController extends BaseController
         // Validasi request
         $validatedData = Validator::make($request->all(), [
             'code' => 'required|string', 
-            'transaction_amount' => 'required|numeric|min:0',
+            'psi_id' => 'required|exists:psikolog,id',
         ], [
             'code.required' => 'Kode voucher wajib diisi.',
-            'transaction_amount.required' => 'Jumlah transaksi wajib diisi.',
-            'transaction_amount.numeric' => 'Jumlah transaksi harus berupa angka.',
-            'transaction_amount.min' => 'Jumlah transaksi harus lebih besar atau sama dengan 0.',
+            'psi_id.required' => 'Psikolog harus dipilih.',
+            'psi_id.exists' => 'Psikolog tidak valid.',
         ]);
 
         if ($validatedData->fails()) {
             return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
         }
 
+        // Cari psikolog price
+        $psikolog = Psikolog::with('psikolog_price')->findOrFail($request->psi_id);
+        $transaction_amount = $psikolog->psikolog_price->price;
+
+        // Cari voucher
         $voucher = Voucher::where('code', $request->code)->first();
         if (!$voucher) {
             return $this->sendError('Kode voucher tidak ditemukan', [], 422);
         }
-        if (!$voucher->is_active) { //cek status aktif
+        // Cek status aktif
+        if (!$voucher->is_active) { 
             return $this->sendError('Voucher sudah tidak dapat digunakan', [], 422);
         }
-
+        // cek hanya dapat dipakai di consultasi
         if ($voucher->voucher_type !== 'consultation') {
             return $this->sendError('Voucher ini tidak bisa digunakan untuk konsultasi.', [], 400);
         }
-
-        $now = Carbon::now(); // Cek tanggal berlaku
+        // Cek tanggal berlaku
+        $now = Carbon::now(); 
         if ($voucher->valid_from && $now->lt($voucher->valid_from)) {
             return $this->sendError('Voucher belum berlaku', [], 422);
         }
@@ -191,19 +197,19 @@ class VoucherController extends BaseController
         }
 
         // Cek minimum transaksi
-        if ($voucher->min_transaction_amount && $request->transaction_amount < $voucher->min_transaction_amount) {
+        if ($voucher->min_transaction_amount && $transaction_amount < $voucher->min_transaction_amount) {
             return $this->sendError('Jumlah minimum transkasi belum terpenuhi', [], 422);
         }
 
         // Hitung diskon, jika diskon melebihi jumlah transaksi maka ambil diskon berasal dari jumlah transaksi
-        $discount = min($voucher->discount_value, $request->transaction_amount);
+        $discount = min($voucher->discount_value, $transaction_amount);
 
         return $this->sendResponse(
             'Voucher berhasil diredeem.', 
             [
                 'voucher_code' => $voucher->code,
                 'discount_value' => $discount,
-                'final_amount' => $request->transaction_amount - $discount,
+                'final_amount' => $transaction_amount - $discount,
             ]
         );
 
