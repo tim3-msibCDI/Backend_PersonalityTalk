@@ -208,6 +208,7 @@ class VoucherController extends BaseController
             'Voucher berhasil diredeem.', 
             [
                 'voucher_code' => $voucher->code,
+                'consul_fee' => $transaction_amount,
                 'discount_value' => $discount,
                 'final_amount' => $transaction_amount - $discount,
             ]

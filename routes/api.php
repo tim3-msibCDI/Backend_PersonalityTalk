@@ -124,6 +124,14 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::delete('admin/users/{id}', 'destroyUserUmum');    
     });
 
+    Route::controller(ManageUserController::class)->group(function () {
+        Route::get('admin/mahasiswa', 'listUserMahasiswa');
+        Route::get('admin/mahasiswa/{id}', 'detailUserMahasiswa');
+        Route::post('admin/mahasiswa', 'storeUserMahasiswa');
+        Route::post('admin/mahasiswa/{id}', 'updateUserMahasiswa');
+        Route::delete('admin/mahasiswa/{id}', 'destroyUserMahasiswa');    
+    });
+
     Route::controller(ConsulTopicController::class)->group(function () {
         Route::get('/topics', 'index')->name('topics.index'); 
         Route::get('/topics/{id}', 'show')->name('topics.show'); 
