@@ -10,6 +10,7 @@ use App\Http\Controllers\API\VoucherController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\PsikologController;
 use App\Http\Controllers\API\AdminAuthController;
+use App\Http\Controllers\API\ManageUserController;
 use App\Http\Controllers\API\ConsulTopicController;
 use App\Http\Controllers\API\UserProfileController;
 use App\Http\Controllers\API\AdminProfileController;
@@ -114,6 +115,15 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::put('/admin/profile/update', 'updateAdminProfile');
         Route::put('/admin/profile/updatePassword', 'updateAdminPassword');
     });
+
+    Route::controller(ManageUserController::class)->group(function () {
+        Route::get('admin/users', 'listUserUmum');
+        Route::get('admin/users/{id}', 'detailUserUmum');
+        Route::post('admin/users', 'storeUserUmum');
+        Route::post('admin/users/{id}', 'updateUserUmum');
+        Route::delete('admin/users/{id}', 'destroyUserUmum');    
+    });
+
     Route::controller(ConsulTopicController::class)->group(function () {
         Route::get('/topics', 'index')->name('topics.index'); 
         Route::get('/topics/{id}', 'show')->name('topics.show'); 

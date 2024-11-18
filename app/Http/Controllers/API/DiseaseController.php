@@ -59,7 +59,7 @@ class DiseaseController extends BaseController
      */
     public function listAdminDisease()
     {
-        $diseases = Disease::select('id', 'disease_name')->get();
+        $diseases = Disease::select('id', 'disease_name')->paginate(10);
         return $this->sendResponse('Berhasil mengambil list kesehatan untuk Admin.', $diseases);
     }
 
