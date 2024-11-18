@@ -26,31 +26,24 @@ class PsikologReviewController extends BaseController
     {
         $validatedData = Validator::make($request->all(),[
             'psch_id' => 'required|exists:psikolog_schedules,id', 
-            'psi_id' => 'required|exists:psikolog,id', 
         ],[
             'psch_id.required' => 'Jadwal konsultasi harus dipilih.',
             'psch_id.exists' => 'Jadwal konsultasi yang dipilih tidak valid.',
-            'psi_id.required' => 'Psikolog harus dipilih.',
-            'psi_id.exists' => 'Psikolog yang dipilih tidak valid.',
         ]);
 
         if ($validatedData->fails()) {
             return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
         }
 
-        $psikolog = Psikolog::with('user')
-            ->where('id', $request->psi_id)
-            ->firstOrFail();
-
-        $selectedSchedule = PsikologSchedule::with('mainSchedule')
+        $selectedSchedule = PsikologSchedule::with(['mainSchedule', 'psikolog'])
             ->where('id', $request->psch_id)
             ->first();            
 
         return $this->sendResponse(
             'Berhasil mengambil detail psikolog sebelum submit rating', 
             [
-                'name' => $psikolog->user->name,
-                'photo_profile' => $psikolog->user->photo_profile,
+                'name' => $selectedSchedule->psikolog->user->name,
+                'photo_profile' => $selectedSchedule->psikolog->user->photo_profile,
                 'consultation_date' => Carbon::parse($selectedSchedule->date)->translatedFormat('d M Y'),
                 'consultation_time' => Carbon::parse($selectedSchedule->mainSchedule->start_hour)->format('H:i') . ' - ' . 
                     Carbon::parse($selectedSchedule->mainSchedule->end_hour)->format('H:i')
@@ -91,14 +84,19 @@ class PsikologReviewController extends BaseController
         if (!$psikolog) {
             return $this->sendError('Psikolog tidak ditemukan.', [], 404);
         }
+        
+        try {
+            $review = PsikologReview::create([
+                'user_id' => auth()->id(),
+                'psi_id' => $request->psi_id,
+                'rating' => $request->rating,
+                'review' => $request->review,
+            ]);
+            return $this->sendResponse('Review berhasil disimpan.', $review);
 
-        $review = PsikologReview::create([
-            'user_id' => auth()->id(),
-            'psi_id' => $request->psi_id,
-            'rating' => $request->rating,
-            'review' => $request->review,
-        ]);
-        return $this->sendResponse('Review berhasil disimpan.', $review);
+        } catch (\Exception $e) {
+            return $this->sendError('Terjadi kesalahan saat menilai psikolog.', [$e->getMessage()], 500);
+        }
     }      
 
 }
