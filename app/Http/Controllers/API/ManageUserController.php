@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\API;
 
+use Carbon\Carbon;
 use App\Models\User;
+use App\Models\Psikolog;
 use App\Models\Mahasiswa;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -21,6 +23,25 @@ class ManageUserController extends BaseController
     public function __construct(NotificationService $notificationService)
     {
         $this->notificationService = $notificationService;
+    }
+
+    /**
+     * Mengirim pesan WhatsApp untuk kredensial pengguna
+     *
+     * @param \App\Models\User $user
+     * @param string $randomPassword
+     * @return void
+     */
+    private function sendWhatsAppCredentials(User $user, string $randomPassword)
+    {
+        $target = $user->phone_number;
+        $message = "Selamat, pendaftaran akun Anda berhasil!\n\n" .
+                "Berikut adalah informasi login Anda:\n" .
+                "Email: " . $user->email . "\n" .
+                "Password: " . $randomPassword . "\n\n" .
+                "Harap jaga kerahasiaan informasi ini. Selamat menggunakan layanan kami!";
+
+        $this->notificationService->sendWhatsAppMessage($target, $message);
     }
 
     /**
@@ -92,15 +113,8 @@ class ManageUserController extends BaseController
             ]);
             DB::commit();
 
-            //Kirim kredensial pengguna melalui Pesan WhatsApp
-            $target = $user->phone_number;
-            $message = "Selamat, pendaftaran akun Anda berhasil!\n\n" .
-                    "Berikut adalah informasi login Anda:\n" .
-                    "Email: " . $user->email . "\n" .
-                    "Password: " . $randomPassword . "\n\n" .
-                    "Harap jaga kerahasiaan informasi ini. Selamat menggunakan layanan kami!";
-            $this->notificationService->sendWhatsAppMessage($target, $message);
-
+            //kirim kredensial ke wa
+            $this->sendWhatsAppCredentials($user, $randomPassword);
             return $this->sendResponse('Pengguna umum baru berhasil ditambahkan.', $user);
         }catch (\Exception $e) {
             DB::rollBack();
@@ -296,14 +310,7 @@ class ManageUserController extends BaseController
             DB::commit();
 
             //Kirim kredensial pengguna melalui Pesan WhatsApp
-            $target = $user->phone_number;
-            $message = "Selamat, pendaftaran akun Anda berhasil!\n\n" .
-                    "Berikut adalah informasi login Anda:\n" .
-                    "Email: " . $user->email . "\n" .
-                    "Password: " . $randomPassword . "\n\n" .
-                    "Harap jaga kerahasiaan informasi ini. Selamat menggunakan layanan kami!";
-            $this->notificationService->sendWhatsAppMessage($target, $message);
-
+            $this->sendWhatsAppCredentials($user, $randomPassword);
             return $this->sendResponse('Pengguna mahasiswa berhasil ditambahkan.', $user);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -393,10 +400,158 @@ class ManageUserController extends BaseController
             return $this->sendError('Terjadi kesalahan saat menghapus mahasiswa.', [$e->getMessage()], 500);
         }
     }
+    
+    /**
+     * Menampilkan daftar pengguna berdasarkan kategori Psikolog/Konselor
+     *
+     * @param string $category
+     * @return \Illuminate\Http\Response
+     */
+    private function listUserByCategory(string $category)
+    {
+        // Ambil data user dengan role 'P' dan muat relasi
+        $users = User::where('role', 'P')
+            ->whereHas('psikolog.psikolog_category', function ($query) use ($category) {
+                $query->where('category_name', $category);
+            })
+            ->whereHas('psikolog', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->with([
+                'psikolog.psikolog_topic.topic', 
+                'psikolog.psikolog_category'
+            ])
+            ->paginate(10);
 
+        // Format data dengan map
+        $formattedUsers = $users->getCollection()->map(function ($user) {
+            $psikologDetails = $user->psikolog;
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'sipp' => $psikologDetails->sipp,
+                'practice_start_date' => Carbon::parse($psikologDetails->practice_start_date)->translatedFormat('d F Y'),
+                'topics' => $psikologDetails->psikolog_topic->pluck('topic.topic_name')->toArray(),
+            ];
+        });
+
+        // Gantikan koleksi asli dengan koleksi yang diformat
+        $users->setCollection($formattedUsers);
+
+        return $this->sendResponse("List untuk pengguna $category berhasil diambil.", $users);
+    }
+
+    /**
+     * Menampilkan daftar Psikolog
+     * 
+     * @return \Illuminate\Http\Response
+     */
     public function listUserPsikolog()
     {
-        $users = User::where('role', 'P')->with('psikolog')->paginate(10);
-        return $this->sendResponse('List untuk pengguna psikolog berhasil diambil.', $users);
+        return $this->listUserByCategory('Psikolog');
+    }
+
+    /**
+     * Menampilkan daftar Konselor
+     * 
+     * @return \Illuminate\Http\Response
+     */
+    public function listUserKonselor()
+    {
+        return $this->listUserByCategory('Konselor');
+    }
+
+    /**
+     * Menampilkan detail user berdasarkan ID User dan kategori Psikolog/Konselor
+     * 
+     * @param int $id
+     * @param string $categoryName
+     * @return \Illuminate\Http\Response
+     */
+    private function detailUserByCategory($id, $categoryName)
+    {
+        // Ambil user dengan role Psikolog ('P') dan muat relasi
+        $user = User::where('id', $id)
+            ->where('role', 'P')
+            ->with(['psikolog.psikolog_topic.topic', 'psikolog.psikolog_category'])
+            ->whereHas('psikolog', function ($query) {
+                $query->where('is_active', true); // Hanya ambil psikolog yang aktif
+            })
+            ->whereHas('psikolog.psikolog_category', function ($query) use ($categoryName) {
+                $query->where('category_name', $categoryName); 
+            })
+            ->select('id', 'email', 'name', 'phone_number', 'photo_profile', 'date_birth', 'gender')
+            ->first();
+
+        // Periksa apakah data ditemukan
+        if (!$user) {
+            return $this->sendError("Pengguna dengan kategori {$categoryName} tidak ditemukan", [], 404);
+        }
+
+        // Format detail user
+        $psikologDetails = $user->psikolog;
+        $formattedUser = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone_number' => $user->phone_number,
+            'photo_profile' => $user->photo_profile,
+            'date_birth' => $user->date_birth,
+            'gender' => $user->gender,
+            'sipp' => $psikologDetails->sipp ?? null,
+            'practice_start_date' => Carbon::parse($psikologDetails->practice_start_date)->translatedFormat('Y-m-d'), 
+            'description' => $psikologDetails->description,
+            'selected_topics' => $psikologDetails->psikolog_topic->map(function ($topicRelation) {
+                return [
+                    'id' => $topicRelation->topic->id,
+                    'topic_name' => $topicRelation->topic->topic_name,
+                ];
+            })->toArray(),
+        ];
+
+        return $this->sendResponse("Detail pengguna dengan kategori {$categoryName} berhasil diambil.", $formattedUser);
+    }
+
+    /**
+     * Mendapatkan detail pengguna dengan kategori Psikolog berdasarkan ID.
+     * 
+     * @param int $id ID pengguna
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function detailUserPsikolog($id)
+    {
+        return $this->detailUserByCategory($id, 'Psikolog');
+    }
+
+    /**
+     * Mendapatkan detail pengguna dengan kategori Konselor berdasarkan ID.
+     * 
+     * @param int $id ID pengguna
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function detailUserKonselor($id)
+    {
+        return $this->detailUserByCategory($id, 'Konselor');
+    }
+
+
+    
+
+   
+
+
+    
+    /**
+     * Update user Psikolog berdasarkan ID User
+     * 
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function updateUserPsikolog(Request $request, $id){
+        $user = User::find($id);
+        if (!$user || $user->role !== 'P') {
+            return $this->sendError('Pengguna tidak ditemukan', [], 404);
+        }
     }
 }

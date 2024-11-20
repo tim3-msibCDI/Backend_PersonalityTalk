@@ -117,19 +117,34 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
     });
 
     Route::controller(ManageUserController::class)->group(function () {
-        Route::get('admin/users', 'listUserUmum');
-        Route::get('admin/users/{id}', 'detailUserUmum');
-        Route::post('admin/users', 'storeUserUmum');
-        Route::post('admin/users/{id}', 'updateUserUmum');
-        Route::delete('admin/users/{id}', 'destroyUserUmum');    
+        Route::get('/admin/users', 'listUserUmum');
+        Route::get('/admin/users/{id}', 'detailUserUmum');
+        Route::post('/admin/users', 'storeUserUmum');
+        Route::post('/admin/users/{id}', 'updateUserUmum');
+        Route::delete('/admin/users/{id}', 'destroyUserUmum');    
     });
 
     Route::controller(ManageUserController::class)->group(function () {
-        Route::get('admin/mahasiswa', 'listUserMahasiswa');
-        Route::get('admin/mahasiswa/{id}', 'detailUserMahasiswa');
-        Route::post('admin/mahasiswa', 'storeUserMahasiswa');
-        Route::post('admin/mahasiswa/{id}', 'updateUserMahasiswa');
-        Route::delete('admin/mahasiswa/{id}', 'destroyUserMahasiswa');    
+        Route::get('/admin/mahasiswa', 'listUserMahasiswa');
+        Route::get('/admin/mahasiswa/{id}', 'detailUserMahasiswa');
+        Route::post('/admin/mahasiswa', 'storeUserMahasiswa');
+        Route::post('/admin/mahasiswa/{id}', 'updateUserMahasiswa');
+        Route::delete('/admin/mahasiswa/{id}', 'destroyUserMahasiswa');    
+    });
+
+    Route::controller(ManageUserController::class)->group(function () {
+        Route::get('admin/psikolog', 'listUserPsikolog');
+        Route::get('admin/psikolog/{id}', 'detailUserPsikolog');
+        // Route::post('admin/psikolog', 'storeUserPsikolog');
+        Route::post('admin/psikolog/{id}', 'updateUserPsikolog');
+        Route::delete('admin/psikolog/{id}', 'destroyUserPsikolog');    
+    });
+
+    Route::controller(ManageUserController::class)->group(function () {
+        Route::get('admin/konselor', 'listUserKonselor');
+        Route::get('admin/konselor/{id}', 'detailUserKonselor');
+        Route::post('admin/konselor/{id}', 'updateUserKonselor');
+        Route::delete('admin/konselor/{id}', 'destroyUserKonselor');    
     });
 
     Route::controller(ConsulTopicController::class)->group(function () {
