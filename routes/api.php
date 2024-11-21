@@ -99,7 +99,11 @@ Route::middleware(['auth:sanctum', 'role:M'])->group(function () {
 Route::middleware(['auth:sanctum', 'role:P'])->group(function () {
     Route::controller(PsikologScheduleController::class)->group(function () {
         Route::get('/psikolog/schedule/main-schedules', 'getMainSchedules');
+        Route::get('/psikolog/schedule/selected-by-date', 'getSchedulesByDate');
         Route::post('/psikolog/schedule/generate', 'generatePsikologSchedule');
+        Route::get('/psikolog/schedule/update', 'bulkUpdatePsikologSchedule');
+
+
     });
 });
 

@@ -9,6 +9,7 @@ use App\Models\PsikologSchedule;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class PsikologScheduleController extends BaseController
 {   
@@ -168,4 +169,83 @@ class PsikologScheduleController extends BaseController
 
         return $dates;
     }
+
+    /**
+     * Get the psychologist's schedule for a specific date.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getSchedulesByDate(Request $request)
+    {
+        $user = Auth::user();
+        $psikologId = $user->psikolog->id;
+        $date = $request->date; // Expected input: "YYYY-MM-DD"
+
+        // Fetch schedules for the specific date
+        $schedules = PsikologSchedule::with('mainSchedule') 
+            ->where('psikolog_id', $psikologId)
+            ->where('date', $date)
+            ->get();
+
+        // Map the schedules into the required format
+        $formattedSchedules = $schedules->map(function ($schedule) {
+            return [
+                'id' => $schedule->id,
+                'is_available' => $schedule->is_available,
+                'time_slot' => Carbon::parse($schedule->mainSchedule->start_hour)->format('H:i')
+                    . ' - ' .
+                    Carbon::parse($schedule->mainSchedule->end_hour)->format('H:i'),
+            ];
+        });
+
+        return $this->sendResponse('Berhasil mengambil data jadwal psikolog.', $formattedSchedules);
+    }
+
+    /**
+     * Bulk update psychologist schedules for a specific day.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function bulkUpdatePsikologSchedule(Request $request)
+    {
+        $user = Auth::user();
+        $psikologId = $user->psikolog->id;
+
+        // Validate the input
+        $validated = $request->validate([
+            'schedules' => 'required|array',
+            'schedules.*.schedule_id' => 'required|exists:psikolog_schedules,id',
+            'schedules.*.is_available' => 'required|boolean',
+        ]);
+
+        $updatedSchedules = collect();
+
+        // Loop through the schedules and update their availability
+        foreach ($validated['schedules'] as $scheduleData) {
+            $schedule = PsikologSchedule::where('id', $scheduleData['schedule_id'])
+                ->where('psikolog_id', $psikologId)
+                ->first();
+
+            if ($schedule) {
+                $schedule->is_available = $scheduleData['is_available'];
+                $schedule->save();
+                $updatedSchedules->push([
+                    'id' => $schedule->id,
+                    'is_available' => $schedule->is_available,
+                    'time_slot' => Carbon::parse($schedule->mainSchedule->start_hour)->format('H:i')
+                        . ' - ' .
+                        Carbon::parse($schedule->mainSchedule->end_hour)->format('H:i'),
+                ]);
+            }
+        }
+
+        return $this->sendResponse(
+            'Jadwal berhasil diperbarui.',
+            $updatedSchedules
+        );
+    }
+
+
 }

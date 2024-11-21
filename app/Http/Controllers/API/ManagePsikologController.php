@@ -13,7 +13,7 @@ class ManagePsikologController extends BaseController
 
     public function __construct(NotificationService $notificationService)
     {
-        $this->notificationService = $notificationSesrvice;
+        $this->notificationService = $notificationService;
     }
 
     /**
