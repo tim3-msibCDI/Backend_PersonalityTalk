@@ -15,6 +15,7 @@ use App\Services\NotificationService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController;
+use App\Models\PsikologPrice;
 
 class ManageUserController extends BaseController
 {   
@@ -534,25 +535,125 @@ class ManageUserController extends BaseController
         return $this->detailUserByCategory($id, 'Konselor');
     }
 
-    
-
-    
-
-   
-
-
-    
     /**
-     * Update user Psikolog berdasarkan ID User
+     * Update user Psikolog/Konselor berdasarkan ID User
      * 
      * @param \Illuminate\Http\Request $request
      * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function updateUserPsikolog(Request $request, $id){
+    public function updateUserPsikolog(Request $request, $id)
+    {
         $user = User::find($id);
         if (!$user || $user->role !== 'P') {
             return $this->sendError('Pengguna tidak ditemukan', [], 404);
         }
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|max:255|unique:users,email,' . $id,
+            'phone_number' => 'sometimes|string|max:20',
+            'photo_profile' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
+            'date_birth' => 'sometimes|date',
+            'gender' => 'sometimes|in:F,M',
+            'sipp' => 'nullable|string|max:50',
+            'practice_start_date' => 'nullable|date',
+            'updated_topics' => 'nullable|array', 
+        ], [
+
+            
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validasi gagal', $validator->errors(), 422);
+        }
+        $validatedData = $validator->validated();
+
+        try {
+            DB::beginTransaction();
+
+            //update foto profile
+            if ($request->hasFile('photo_profile')) {
+                $imagePath = Storage::disk('public')->put('psikolog_photos', $request->file('photo_profile'));
+
+                if (!$imagePath) {
+                    return $this->sendError('Gagal memperbarui foto profil.', [], 500);
+                }
+            
+                // Hapus gambar lama jika ada
+                if ($user->photo_profile) {
+                    Storage::disk('public')->delete(str_replace('storage/', '', $user->photo_profile));
+                }
+            
+                $imageUrl = 'storage/' . $imagePath; 
+                $user->update(['photo_profile' => $imageUrl]);
+            }
+
+            // Update data user
+            $user->update([
+                'name' => $validatedData['name'] ?? $user->name,
+                'email' => $validatedData['email'] ?? $user->email,
+                'phone_number' => $validatedData['phone_number'] ?? $user->phone_number,
+                'date_birth' => $validatedData['date_birth'] ?? $user->date_birth,
+                'gender' => $validatedData['gender'] ?? $user->gender,
+                'practice_start_date' => $validatedData['practice_start_date'] ?? $user->practice_start_date,
+            ]);
+
+            // Update data psikolog
+            $psikolog = $user->psikolog;
+            if ($psikolog) {
+                // Perbarui SIPP dan PsikologPrice
+                if (isset($validatedData['sipp'])) {
+                    $sipp = $validatedData['sipp'];
+                    $sippParts = explode('-', $sipp);
+                    $sippCode = $sippParts[2] ?? null;
+
+                    if (!$sippCode) {
+                        return $this->sendError('Format SIPP tidak valid.', [], 400);
+                    }
+
+                    // Cari PsikologPrice berdasarkan kode SIPP
+                    $psikologPrice = PsikologPrice::where('code', $sippCode)->first();
+                    $psikologPriceId = $psikologPrice->id ?? 1; 
+
+                    // Perbarui SIPP dan PsikologPrice di tabel psikolog
+                    $psikolog->update([
+                        'sipp' => $sipp,
+                        'psikolog_price_id' => $psikologPriceId,
+                    ]);
+
+                    // Perbarui psikolog_category menjadi 'Psikolog'
+                    $psikolog->updateOrCreate(
+                        ['category_id' => 1],
+                    );
+                }
+
+               // Cek apakah ada perubahan dalam topik
+               $existingTopicIds = $user->psikolog->psikolog_topic->pluck('topic_id')->toArray();
+               $newTopicIds = $request->updated_topics;
+
+               // Jika topik berubah, lakukan pembaruan
+               if (array_diff($existingTopicIds, $newTopicIds) || array_diff($newTopicIds, $existingTopicIds)) {
+                   // Hapus topik lama
+                   $user->psikolog->psikolog_topic()->delete();
+
+                   // Tambahkan topik baru
+                   $newTopics = collect($newTopicIds)->map(function ($topicId) {
+                       return ['topic_id' => $topicId];
+                   });
+                   $user->psikolog->psikolog_topic()->createMany($newTopics->toArray());
+               }
+               $user->load('psikolog.psikolog_topic');
+            }
+
+            DB::commit();
+            return $this->sendResponse('Berhasil memperbarui psikolog.', $user);
+        }catch (\Exception $e) {   
+            DB::rollBack();
+            return $this->sendError('Terjadi kesalahan saat memperbarui psikolog.', [$e->getMessage()], 500);
+        }
     }
+
+
+
 }

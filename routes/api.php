@@ -139,7 +139,6 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
     Route::controller(ManageUserController::class)->group(function () {
         Route::get('admin/psikolog', 'listUserPsikolog');
         Route::get('admin/psikolog/{id}', 'detailUserPsikolog');
-        // Route::post('admin/psikolog', 'storeUserPsikolog');
         Route::post('admin/psikolog/{id}', 'updateUserPsikolog');
         Route::delete('admin/psikolog/{id}', 'destroyUserPsikolog');    
     });
@@ -147,7 +146,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
     Route::controller(ManageUserController::class)->group(function () {
         Route::get('admin/konselor', 'listUserKonselor');
         Route::get('admin/konselor/{id}', 'detailUserKonselor');
-        Route::post('admin/konselor/{id}', 'updateUserKonselor');
+        Route::post('admin/konselor/{id}', 'updateUserPsikolog');
         Route::delete('admin/konselor/{id}', 'destroyUserKonselor');    
     });
 
