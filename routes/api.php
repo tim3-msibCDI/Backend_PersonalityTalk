@@ -137,17 +137,17 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
     });
 
     Route::controller(ManageUserController::class)->group(function () {
-        Route::get('admin/psikolog', 'listUserPsikolog');
-        Route::get('admin/psikolog/{id}', 'detailUserPsikolog');
-        Route::post('admin/psikolog/{id}', 'updateUserPsikolog');
-        Route::delete('admin/psikolog/{id}', 'destroyUserPsikolog');    
+        Route::get('/admin/psikolog', 'listUserPsikolog');
+        Route::get('/admin/psikolog/{id}', 'detailUserPsikolog');
+        Route::post('/admin/psikolog/{id}', 'updateUserPsikolog');
+        Route::delete('/admin/psikolog/{id}', 'destroyUserPsikolog');    
     });
 
     Route::controller(ManageUserController::class)->group(function () {
-        Route::get('admin/konselor', 'listUserKonselor');
-        Route::get('admin/konselor/{id}', 'detailUserKonselor');
-        Route::post('admin/konselor/{id}', 'updateUserPsikolog');
-        Route::delete('admin/konselor/{id}', 'destroyUserKonselor');    
+        Route::get('/admin/konselor', 'listUserKonselor');
+        Route::get('/admin/konselor/{id}', 'detailUserKonselor');
+        Route::post('/admin/konselor/{id}', 'updateUserPsikolog');
+        Route::delete('/admin/konselor/{id}', 'destroyUserKonselor');    
     });
 
     Route::controller(ConsulTopicController::class)->group(function () {
@@ -157,10 +157,14 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::put('/topics/{id}', 'update')->name('topics.update'); 
         Route::delete('/topics/{id}','destroy')->name('topics.destroy'); 
     });
+
     Route::controller(ManagePsikologController::class)->group(function () {
-        Route::post('/approve-psikolog/{id}', 'approvePsikolog')->name('approve.psikolog'); 
-        Route::post('/reject-psikolog/{id}', 'rejectPsikolog')->name('reject.psikolog'); 
+        Route::get('/admin/psikolog-regis', 'listPsikologRegistrant');
+        Route::get('/admin/psikolog-regis/{id}', 'detailPsikolog');
+        Route::post('/admin/psikolog-regis/{id}/approve', 'approvePsikolog'); 
+        Route::post('/admin/psikolog-regis/{id}/reject', 'rejectPsikolog');
     });
+
     Route::controller(ConsultationTransactionController::class)->group(function () {
         Route::get('consultation/transactions', 'listConsulTransaction'); 
         Route::post('consultation/transactions/approve/{transactionId}', 'approvePaymentProof'); 
