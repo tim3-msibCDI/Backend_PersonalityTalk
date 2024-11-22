@@ -46,7 +46,24 @@ class ArticleController extends BaseController
             ->select('id', 'article_img', 'article_title', 'publication_date', 'admin_id', 'category_id')
             ->paginate(12);
 
-        return $this->sendResponse('Berhasil mengambil daftar artikel untuk Pengguna.', ArticleResource::collection($articles));
+        $articles->setCollection($articles->getCollection()->map(function ($article) {
+            return [
+                'id' => $article->id,
+                'article_img' => $article->article_img,
+                'article_title' => $article->article_title,
+                'publication_date' => Carbon::parse($article->publication_date)->translatedFormat('d F Y'), 
+                'admin_writer' => [
+                    'id' => $article->admin_writer->id,
+                    'name' => $article->admin_writer->name,
+                ],
+                'article_category' => [
+                    'id' => $article->article_category->id,
+                    'category_name' => $article->article_category->category_name,
+                ],
+            ];
+        }));
+
+        return $this->sendResponse('Berhasil mengambil daftar artikel untuk Pengguna.', $articles);
     }
 
     /**
@@ -118,7 +135,7 @@ class ArticleController extends BaseController
      */
     public function listAdminArticle(Request $request)
     {
-        $articles = Article::select('id', 'article_title', 'article_img')->get();
+        $articles = Article::select('id', 'article_title', 'article_img')->paginate(10);
         return $this->sendResponse('Berhasil mengambil list artikel untuk Admin.', $articles);
     }
 

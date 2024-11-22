@@ -19,7 +19,7 @@ class PaymentMethodController extends BaseController
      */
     public function index()
     {
-        $payments = PaymentMethod::select('id', 'name','no_rek', 'type')->get();
+        $payments = PaymentMethod::select('id', 'name','no_rek', 'type')->paginate(10);
         return $this->sendResponse('List metode pembayaran berhasil diambil.', $payments);
     }
 

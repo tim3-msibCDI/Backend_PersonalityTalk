@@ -19,7 +19,7 @@ class VoucherController extends BaseController
      */
     public function index()
     {
-        $vouchers = Voucher::all(); //perlu diubah
+        $vouchers = Voucher::select('id', 'code', 'voucher_type', 'discount_value', 'min_transaction_amount', 'valid_from', 'valid_to', 'is_active')->paginate(10); 
         return $this->sendResponse('List voucher berhasil diambil.', $vouchers);
     }
     

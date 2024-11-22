@@ -210,11 +210,11 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
 
     // Masukkan langsung ke atribut / Nggak perlu tabel
     Route::controller(PsikologPriceController::class)->group(function () {
-        Route::get('/psikolog-price', 'index')->name('psikolog.price.index'); 
-        Route::get('/psikolog-price/{id}', 'show')->name('psikolog.price.show'); 
-        Route::post('/psikolog-price', 'store')->name('psikolog.price.store'); 
-        Route::put('/psikolog-price/{id}', 'update')->name('psikolog.price.update'); 
-        Route::delete('/psikolog-price/{id}','destroy')->name('psikolog.price.destroy'); 
+        Route::get('admin/psikolog-price', 'index')->name('psikolog.price.index'); 
+        Route::get('admin/psikolog-price/{id}', 'show')->name('psikolog.price.show'); 
+        Route::post('admin/psikolog-price', 'store')->name('psikolog.price.store'); 
+        Route::put('admin/psikolog-price/{id}', 'update')->name('psikolog.price.update'); 
+        Route::delete('admin/psikolog-price/{id}','destroy')->name('psikolog.price.destroy'); 
     });
     Route::controller(PsikologCategoryController::class)->group(function () {
         Route::get('/piskolog/categories', 'index')->name('psikolog.categories.index'); 
@@ -230,9 +230,9 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
  * Tidak perlu Login
  */
 Route::controller(ArticleController::class)->group(function () {
-    Route::get('/articles/categories', 'listCategoryArticle')->name('user.articles.categories'); 
-    Route::get('/articles', 'listUserArticle')->name('user.articles.index'); 
-    Route::get('/articles/{id}', 'showArticleWithRelated')->name('user.articles.show');
+    Route::get('/articles/categories', 'listCategoryArticle'); 
+    Route::get('/articles', 'listUserArticle'); 
+    Route::get('/articles/{id}', 'showArticleWithRelated');
     Route::get('/writer/{id}/articles', 'getArticlesByAdmin');
 });
 

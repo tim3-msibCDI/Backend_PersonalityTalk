@@ -23,7 +23,7 @@ class DiseaseController extends BaseController
     {
         $diseases = Disease::select('id', 'disease_name')
             ->orderBy('disease_name', 'asc')
-            ->get();
+            ->paginate(45);
 
         return $this->sendResponse('List informasi kesehatan mental baru berhasil diambil.', $diseases);
     }
@@ -127,7 +127,7 @@ class DiseaseController extends BaseController
      */
     public function show($id)
     {
-        $penyakitMental = Disease::with('admin_writer')->find($id);
+        $penyakitMental = Disease::with('writer')->find($id);
 
         if (!$penyakitMental) {
             return $this->sendError('Penyakit mental tidak ditemukan.', [], 404);

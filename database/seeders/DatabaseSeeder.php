@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
         $this->call(TopicTableSeeder::class);
         $this->call(PsikologCategoryTableSeeder::class);
         $this->call(PsikologPriceTableSeeder::class);
-        $this->call(PsikologTableSeeder::class);
+        $this->call(UserTableSeeder::class);
         $this->call(MainScheduleTableSeeder::class);
         $this->call(ArticleCategoryTableSeeder::class);
         $this->call(AdminTableSeeder::class);
@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
         $this->call(VoucherTableSeeder::class);
         $this->call(PaymentMethodTableSeeder::class);
         $this->call(VoucherTableSeeder::class);
-        // $this->call(PsikologReviewTableSeeder::class);
+        $this->call(PsikologReviewTableSeeder::class);
 
         
     }

@@ -21,6 +21,6 @@ class PaymentMethod extends Model
 
     public function consulPaymentTransaction()
     {
-        return $this->hasMany(ConsultationTransaction::class, 'voucher_id');
+        return $this->hasMany(ConsultationTransaction::class, 'payment_method_id');
     }
 } 

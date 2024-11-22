@@ -17,7 +17,7 @@ class PsikologPriceController extends BaseController
      */
     public function index()
     {
-        $prices = PsikologPrice::select('id', 'code', 'price')->get();
+        $prices = PsikologPrice::select('id', 'code', 'price')->paginate(10);
         return $this->sendResponse('Data seluruh harga psikolog berhasil diambil.', $prices);
     }
 

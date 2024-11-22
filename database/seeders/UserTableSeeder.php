@@ -4,12 +4,14 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\Psikolog;
+use App\Models\Mahasiswa;
 use App\Models\PsikologTopic;
 use Illuminate\Database\Seeder;
 use App\Services\PsikologService;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Hash;
 
-class PsikologTableSeeder extends Seeder
+class UserTableSeeder extends Seeder
 {
     public function run()
     {    
@@ -105,11 +107,98 @@ class PsikologTableSeeder extends Seeder
         Schema::disableForeignKeyConstraints();
         User::truncate();
         Psikolog::truncate();
+        Mahasiswa::truncate();
         PsikologTopic::truncate();
         Schema::enableForeignKeyConstraints();
 
         foreach ($psikologs as $data) {
             $psikologService->registerPsikolog($data);
+        }
+
+        $users = [
+            [
+                'name' => 'Fajar',
+                'email' => 'fajarumum@gmail.com',
+                'password' => Hash::make('fajarumum'),
+                'phone_number' => '082146130950',
+                'date_birth' => '2000-07-15',
+                'gender' => 'M',
+                'role' => 'U',
+               
+            ],
+            [
+                'name' => 'Ella',
+                'email' => 'ellaumum@gmail.com',
+                'password' => Hash::make('rinamahasiswa'),
+                'phone_number' => '082146130950',
+                'date_birth' => '1998-12-05',
+                'gender' => 'F',
+                'role' => 'U',
+                
+            ],
+            [
+                'name' => 'Neli',
+                'email' => 'neliumum@gmail.com',
+                'password' => Hash::make('budiadmin'),
+                'phone_number' => '082146130950',
+                'date_birth' => '1995-03-21',
+                'gender' => 'M',
+                'role' => 'U',
+               
+            ],
+            [
+                'name' => 'Siti',
+                'email' => 'sitiumum@gmail.com',
+                'password' => Hash::make('sitipsikolog'),
+                'phone_number' => '082146130950',
+                'date_birth' => '1985-09-12',
+                'gender' => 'F',
+                'role' => 'U',
+                
+            ],
+            [
+                'name' => 'Andre',
+                'email' => 'andregeneral@gmail.com',
+                'password' => Hash::make('andregeneral'),
+                'phone_number' => '082146130950',
+                'date_birth' => '1990-11-30',
+                'gender' => 'M',
+                'role' => 'U',
+               
+            ],
+            [
+                'name' => 'Fajar Mahasiswa',
+                'email' => 'fajarmahasiswa@gmail.com',
+                'password' => Hash::make('fajarmahasiswa'),
+                'phone_number' => '082146130950',
+                'date_birth' => '1998-12-05',
+                'gender' => 'M',
+                'role' => 'M',
+                'mahasiswa_data' => [
+                    'universitas' => 'Universitas Indonesia',
+                    'jurusan' => 'Psikologi',
+                ],
+            ],
+        ];
+
+        foreach ($users as $userData) {
+            $user = User::create([
+                'name' => $userData['name'],
+                'email' => $userData['email'],
+                'password' => $userData['password'],
+                'phone_number' => $userData['phone_number'],
+                'date_birth' => $userData['date_birth'],
+                'gender' => $userData['gender'],
+                'role' => $userData['role'],
+            ]);
+
+            if ($userData['role'] === 'M' && isset($userData['mahasiswa_data'])) {
+                Mahasiswa::create([
+                    'user_id' => $user->id,
+                    'universitas' => $userData['mahasiswa_data']['universitas'],
+                    'jurusan' => $userData['mahasiswa_data']['jurusan'],
+                ]);
+            }
         }
     }
 }
