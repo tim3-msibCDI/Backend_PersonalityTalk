@@ -50,6 +50,7 @@ Route::controller(ForgotPasswordController::class)->group(function () {
 Route::middleware(['auth:sanctum', 'role:M,U,P'])->group(function () {
     Route::post('/user/logout', [AuthController::class, 'logoutAction'])->name('user.logout');
 
+    // User Profile 
     Route::controller(UserProfileController::class)->group(function(){
         Route::get('/user/info', 'getUserInfo');
         Route::get('/user/profile/detail', 'getUserProfile');
@@ -63,6 +64,8 @@ Route::middleware(['auth:sanctum', 'role:M,U,P'])->group(function () {
  * Bisa diakses oleh Mahasiswa dan Umum
  */
 Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
+
+    // User Consultation API
     Route::controller(ConsultationController::class)->group(function () {
         Route::get('/consultation/psikolog/topics', 'getPsikologTopics');
         Route::get('/consultation/psikolog/available', 'getAvailablePsikologV2');
@@ -74,21 +77,23 @@ Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
         Route::post('/consultation/upload-payment-proof', 'uploadPaymentProof');
     });
 
+    // Psikolog Review
     Route::controller(PsikologReviewController::class)->group(function () {
         Route::get('/consultation/detail-psikolog-before-review', 'detailPsikologBeforeReview');
         Route::post('/consultation/submit-review', 'submitReview');
     });
 
+    // Kelola Transaksi Konsultasi
     Route::controller(ConsultationController::class)->group(function () {
         Route::post('/transactions/{transactionId}/approve-payment', 'approvePaymentProof');
         Route::post('/transactions/{transactionId}/disapprove-payment', 'disapprovePaymentProof');    
     });
 
+    // Riwayat Konsultasi dan Transaksi Pengguna
     Route::controller(ActivityHistoryController::class)->group(function () {
         Route::get('/history/consultation', 'listConsultationHistory');
         Route::get('/history/consultation/transaction', 'listConsulTransactionHistory');
         Route::get('/history/consultation/transaction/{transactionId}', 'detailConsulTransaction');
-
     });
 
     Route::get('/consultation/voucher-redeem', [VoucherController::class, 'redeemConsultationVoucher']);
@@ -121,6 +126,7 @@ Route::middleware(['auth:sanctum', 'role:P'])->group(function () {
 Route::middleware('auth:sanctum', 'admin')->group(function () {
     Route::post('/admin/logout', [AdminAuthController::class, 'logoutAdmin']);
 
+    // Admin Profile
     Route::controller(AdminProfileController::class)->group(function () {
         Route::get('/admin/info', 'getAdminInfo');
         Route::get('/admin/profile/detail', 'getAdminProfile');
@@ -128,6 +134,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::put('/admin/profile/updatePassword', 'updateAdminPassword');
     });
 
+    // Manage User Umum
     Route::controller(ManageUserController::class)->group(function () {
         Route::get('/admin/users', 'listUserUmum');
         Route::get('/admin/users/{id}', 'detailUserUmum');
@@ -136,6 +143,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::delete('/admin/users/{id}', 'destroyUserUmum');    
     });
 
+    // Manage User Mahasiswa
     Route::controller(ManageUserController::class)->group(function () {
         Route::get('/admin/mahasiswa', 'listUserMahasiswa');
         Route::get('/admin/mahasiswa/{id}', 'detailUserMahasiswa');
@@ -144,6 +152,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::delete('/admin/mahasiswa/{id}', 'destroyUserMahasiswa');    
     });
 
+    // Manage User Psikolog
     Route::controller(ManageUserController::class)->group(function () {
         Route::get('/admin/psikolog', 'listUserPsikolog');
         Route::get('/admin/psikolog/{id}', 'detailUserPsikolog');
@@ -151,13 +160,23 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::delete('/admin/psikolog/{id}', 'destroyUserPsikolog');    
     });
 
+    // Manage User Konselor
     Route::controller(ManageUserController::class)->group(function () {
         Route::get('/admin/konselor', 'listUserKonselor');
         Route::get('/admin/konselor/{id}', 'detailUserKonselor');
         Route::post('/admin/konselor/{id}', 'updateUserPsikolog');
         Route::delete('/admin/konselor/{id}', 'destroyUserKonselor');    
+    }); 
+
+    // Manage Pendaftaran Psikolog
+    Route::controller(ManagePsikologController::class)->group(function () {
+        Route::get('/admin/psikolog-regis', 'listPsikologRegistrant');
+        Route::get('/admin/psikolog-regis/{id}', 'detailPsikolog');
+        Route::post('/admin/psikolog-regis/{id}/approve', 'approvePsikolog'); 
+        Route::post('/admin/psikolog-regis/{id}/reject', 'rejectPsikolog');
     });
 
+    // Kelola Topik Konsultasi
     Route::controller(ConsulTopicController::class)->group(function () {
         Route::get('/admin/topics', 'index')->name('topics.index'); 
         Route::get('/admin/topics/{id}', 'show')->name('topics.show'); 
@@ -166,24 +185,27 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::delete('/admin/topics/{id}','destroy')->name('topics.destroy'); 
     });
 
-    Route::controller(ManagePsikologController::class)->group(function () {
-        Route::get('/admin/psikolog-regis', 'listPsikologRegistrant');
-        Route::get('/admin/psikolog-regis/{id}', 'detailPsikolog');
-        Route::post('/admin/psikolog-regis/{id}/approve', 'approvePsikolog'); 
-        Route::post('/admin/psikolog-regis/{id}/reject', 'rejectPsikolog');
+    // Kelola Jadwal Konsultasi
+    Route::controller(PsikologScheduleController::class)->group(function () {
+        Route::get('/admin/consul-schedules/psikolog', 'listPsikolog');
+        Route::get('/admin/consul-schedules/psikolog/{id}', 'detailPsikologSchedule');
     });
 
+    // Kelola Transaksi Konsultasi
     Route::controller(ConsultationTransactionController::class)->group(function () {
         Route::get('/admin/consultation/transactions', 'listConsulTransaction'); 
         Route::post('/admin/consultation/transactions/approve/{transactionId}', 'approvePaymentProof'); 
         Route::post('/admin/consultation/transactions/reject/{transactionId}', 'rejectPaymentProof');
     });
 
+    // Kelola Kategori Artikel
     Route::controller(ArticleCategoryController::class)->group(function () {
         Route::get('/admin/article/categories', 'index'); 
         Route::post('/admin/article/categories', 'store'); 
         Route::delete('/admin/article/categories/{id}','destroy'); 
     });
+
+    // Kelola Artikel
     Route::controller(ArticleController::class)->group(function () {
         Route::get('/admin/articles', 'listAdminArticle')->name('articles.index'); 
         Route::get('/admin/articles/{id}', 'show')->name('articles.show'); 
@@ -191,14 +213,17 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::post('/admin/articles/{id}', 'update')->name('articles.update'); 
         Route::delete('/admin/articles/{id}','destroy')->name('articles.destroy'); 
     });
+
+    // Kelola Informasi Kesehatan Mental
     Route::controller(DiseaseController::class)->group(function () {
         Route::get('/admin/diseases', 'listAdminDisease')->name('diseases.index'); 
         Route::get('/admin/diseases/{id}', 'show')->name('diseases.show'); 
         Route::post('/admin/diseases', 'store')->name('diseases.store'); 
         Route::post('/admin/diseases/{id}', 'update')->name('diseases.update'); 
         Route::delete('/admin/diseases/{id}','destroy')->name('diseases.destroy'); 
-    });
+    }); 
 
+    // Kelola Voucher
     Route::controller(VoucherController::class)->group(function () {
         Route::get('/admin/vouchers', 'index'); 
         Route::get('/admin/vouchers/{id}', 'show'); 
@@ -207,6 +232,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::delete('/admin/vouchers/{id}','destroy'); 
     });
 
+    // Kelola Metode Pembayaran
     Route::controller(PaymentMethodController::class)->group(function () {
         Route::get('/admin/payment-methods', 'index'); 
         Route::get('/admin/payment-methods/{id}', 'show'); 
@@ -215,7 +241,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::delete('/admin/payment-methods/{id}','destroy');
     });
 
-    // Masukkan langsung ke atribut / Nggak perlu tabel
+    // Kelola Psikolog Price
     Route::controller(PsikologPriceController::class)->group(function () {
         Route::get('/admin/psikolog-price', 'index')->name('psikolog.price.index'); 
         Route::get('/admin/psikolog-price/{id}', 'show')->name('psikolog.price.show'); 

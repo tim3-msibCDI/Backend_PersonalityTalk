@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use Carbon\Carbon;
 use App\Models\MainSchedule;
+use App\Models\Psikolog;
 use Illuminate\Http\Request;
 use App\Models\PsikologSchedule;
 use Illuminate\Support\Facades\DB;
@@ -246,6 +247,39 @@ class PsikologScheduleController extends BaseController
             $updatedSchedules
         );
     }
+
+    /**
+     * Get all schedules for the current logged in psychologist.
+     * 
+     * Only schedules for the current psychologist are returned.
+     * 
+     * @return \Illuminate\Http\JsonResponse A response containing the list of schedules.
+     */
+    public function listPsikolog()
+    {
+       $psikolog = Psikolog::with('user:id,name')
+            ->select('id', 'sipp', 'is_active')
+            ->where('is_active', 1)
+            ->get();
+        
+        $list_psikolog = $psikolog->map(function ($psikolog) {
+            return [
+                'id' => $psikolog->id,
+                'name' => $psikolog->user->name,
+                'sipp' => $psikolog->sipp,
+                'is_active' => $psikolog->is_active,
+            ];
+        });
+
+        return $this->sendResponse('List psikolog pada jadwal konsultasi berhasil diambil.', $list_psikolog);
+    }
+
+    public function detailPsikologSchedule($psikologId)
+    {
+
+    }
+
+
 
 
 }
