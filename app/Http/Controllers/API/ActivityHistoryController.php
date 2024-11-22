@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\API\BaseController;
 use Illuminate\Http\Request;
+use App\Http\Resources\CreateConsultationResource;
+use App\Models\ConsultationTransaction;
+
 
 class ActivityHistoryController extends BaseController
 {
@@ -71,7 +74,7 @@ class ActivityHistoryController extends BaseController
     {   
 
         $user = Auth::user();
-        
+
         $listTransaction = DB::table('consul_transactions')
             ->join('consultations', 'consul_transactions.consultation_id', '=', 'consultations.id')
             ->join('users as patients', 'consultations.user_id', '=', 'patients.id')
@@ -108,7 +111,61 @@ class ActivityHistoryController extends BaseController
         });
 
         return $this->sendResponse('Berhasil mengambil riwayat transaksi konsultasi pengguna', $formattedTransaction);
+    }   
+    
+    /**
+     * Get Transaction Detail
+     *
+     * @param  int  $transactionId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function detailConsulTransaction($transactionId)
+    {
+        try {
+            // Ambil data transaksi berdasarkan ID
+            $transaction = ConsultationTransaction::with([
+                'consultation',
+                'consultation.psikolog.user',
+                'consultation.psikolog.psikolog_category',
+                'consultation.psikolog.psikolog_price',
+                'consultation.topic',
+                'consultation.psikologSchedule.mainSchedule',
+                'paymentMethod',
+            ])->findOrFail($transactionId);
 
+            // Validasi apakah transaksi dimiliki oleh pengguna yang sedang login
+            if ($transaction->user_id !== auth()->id()) {
+                return $this->sendError('Anda tidak memiliki akses ke transaksi ini.', [], 403);
+            }
 
-    }       
+            // Hitung rating psikolog
+            $rating = DB::table('psikolog_reviews')
+                ->where('psi_id', $transaction->consultation->psi_id)
+                ->avg('rating') ?? 0;
+            $rating = number_format($rating, 1);
+
+            // Data untuk Resource
+            $resourceData = new CreateConsultationResource((object)[
+                'psikolog' => $transaction->consultation->psikolog,
+                'selectedSchedule' => $transaction->consultation->psikologSchedule,
+                'selectedTopic' => $transaction->consultation->topic,
+                'rating' => $rating,
+                'transaction' => $transaction,
+                'finalAmount' => $transaction->consul_fee - $transaction->discount_amount,
+                'payment' => $transaction->paymentMethod,
+            ]);
+
+            // Ubah Resource ke array dengan toArray() sebelum mengirim respons
+            return $this->sendResponse(
+                'Detail transaksi berhasil diambil.',
+                $resourceData->toArray(request())
+            );
+
+        } catch (ModelNotFoundException $e) {
+            return $this->sendError('Transaksi tidak ditemukan.', [], 404);
+        } catch (Exception $e) {
+            return $this->sendError('Terjadi kesalahan saat mengambil detail transaksi.', [$e->getMessage()], 500);
+        }
+    }
+
 }

@@ -13,6 +13,7 @@ class CreateConsultationResource extends JsonResource
         $rating = number_format($this->rating ?? 0, 1);
 
         return [
+            'id_transaction' => $this->transaction->id,     
             'psikolog_name' => $this->psikolog->user->name,
             'photo_profile' => $this->psikolog->user->photo_profile,
             'category' => $this->psikolog->psikolog_category->category_name,
@@ -32,6 +33,8 @@ class CreateConsultationResource extends JsonResource
                 'total_harga' => $this->transaction->consul_fee ?? null,
                 'diskon' => $this->transaction->discount_amount ?? null,
                 'total_pembayaran' => $this->finalAmount ?? null,
+                'booking_date' => $this->transaction->created_at ? Carbon::parse($this->transaction->created_at)->translatedFormat('d-m-Y H:i') : null,
+                'payment_date' => $this->transaction->payment_completed_at ? Carbon::parse($this->transaction->payment_completed_at)->translatedFormat('d-m-Y H:i') : null,
             ],
         ];
     }

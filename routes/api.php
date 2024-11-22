@@ -86,7 +86,8 @@ Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
 
     Route::controller(ActivityHistoryController::class)->group(function () {
         Route::get('/history/consultation', 'listConsultationHistory');
-        Route::get('/history/consultation/transcation', 'listConsulTransactionHistory');
+        Route::get('/history/consultation/transaction', 'listConsulTransactionHistory');
+        Route::get('/history/consultation/transaction/{transactionId}', 'detailConsulTransaction');
 
     });
 
