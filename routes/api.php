@@ -24,6 +24,7 @@ use App\Http\Controllers\API\ArticleCategoryController;
 use App\Http\Controllers\API\PsikologCategoryController;
 use App\Http\Controllers\API\PsikologScheduleController;
 use App\Http\Controllers\API\ConsultationTransactionController;
+use App\Http\Controllers\API\ActivityHistoryController;
 
 /**
  * Authentication
@@ -81,6 +82,12 @@ Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
     Route::controller(ConsultationController::class)->group(function () {
         Route::post('/transactions/{transactionId}/approve-payment', 'approvePaymentProof');
         Route::post('/transactions/{transactionId}/disapprove-payment', 'disapprovePaymentProof');    
+    });
+
+    Route::controller(ActivityHistoryController::class)->group(function () {
+        Route::get('/history/consultation', 'listConsultationHistory');
+        Route::get('/history/consultation/transcation', 'listConsulTransactionHistory');
+
     });
 
     Route::get('/consultation/voucher-redeem', [VoucherController::class, 'redeemConsultationVoucher']);
@@ -151,11 +158,11 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
     });
 
     Route::controller(ConsulTopicController::class)->group(function () {
-        Route::get('/topics', 'index')->name('topics.index'); 
-        Route::get('/topics/{id}', 'show')->name('topics.show'); 
-        Route::post('/topics', 'store')->name('topics.store'); 
-        Route::put('/topics/{id}', 'update')->name('topics.update'); 
-        Route::delete('/topics/{id}','destroy')->name('topics.destroy'); 
+        Route::get('/admin/topics', 'index')->name('topics.index'); 
+        Route::get('/admin/topics/{id}', 'show')->name('topics.show'); 
+        Route::post('/admin/topics', 'store')->name('topics.store'); 
+        Route::put('/admin/topics/{id}', 'update')->name('topics.update'); 
+        Route::delete('/admin/topics/{id}','destroy')->name('topics.destroy'); 
     });
 
     Route::controller(ManagePsikologController::class)->group(function () {
@@ -166,16 +173,15 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
     });
 
     Route::controller(ConsultationTransactionController::class)->group(function () {
-        Route::get('consultation/transactions', 'listConsulTransaction'); 
-        Route::post('consultation/transactions/approve/{transactionId}', 'approvePaymentProof'); 
-        Route::post('consultation/transactions/reject/{transactionId}', 'rejectPaymentProof');
+        Route::get('/admin/consultation/transactions', 'listConsulTransaction'); 
+        Route::post('/admin/consultation/transactions/approve/{transactionId}', 'approvePaymentProof'); 
+        Route::post('/admin/consultation/transactions/reject/{transactionId}', 'rejectPaymentProof');
     });
+
     Route::controller(ArticleCategoryController::class)->group(function () {
-        Route::get('/article/categories', 'index')->name('article.categories.index'); 
-        Route::get('/article/categories/{id}', 'show')->name('article.categories.show'); 
-        Route::post('/article/categories', 'store')->name('article.categories.store'); 
-        Route::put('/article/categories/{id}', 'update')->name('article.categories.update'); 
-        Route::delete('/article/categories/{id}','destroy')->name('article.categories.destroy'); 
+        Route::get('/admin/article/categories', 'index'); 
+        Route::post('/admin/article/categories', 'store'); 
+        Route::delete('/admin/article/categories/{id}','destroy'); 
     });
     Route::controller(ArticleController::class)->group(function () {
         Route::get('/admin/articles', 'listAdminArticle')->name('articles.index'); 
@@ -210,18 +216,18 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
 
     // Masukkan langsung ke atribut / Nggak perlu tabel
     Route::controller(PsikologPriceController::class)->group(function () {
-        Route::get('admin/psikolog-price', 'index')->name('psikolog.price.index'); 
-        Route::get('admin/psikolog-price/{id}', 'show')->name('psikolog.price.show'); 
-        Route::post('admin/psikolog-price', 'store')->name('psikolog.price.store'); 
-        Route::put('admin/psikolog-price/{id}', 'update')->name('psikolog.price.update'); 
-        Route::delete('admin/psikolog-price/{id}','destroy')->name('psikolog.price.destroy'); 
+        Route::get('/admin/psikolog-price', 'index')->name('psikolog.price.index'); 
+        Route::get('/admin/psikolog-price/{id}', 'show')->name('psikolog.price.show'); 
+        Route::post('/admin/psikolog-price', 'store')->name('psikolog.price.store'); 
+        Route::put('/admin/psikolog-price/{id}', 'update')->name('psikolog.price.update'); 
+        Route::delete('/admin/psikolog-price/{id}','destroy')->name('psikolog.price.destroy'); 
     });
     Route::controller(PsikologCategoryController::class)->group(function () {
-        Route::get('/piskolog/categories', 'index')->name('psikolog.categories.index'); 
-        Route::get('/piskolog/categories/{id}', 'show')->name('psikolog.categories.show'); 
-        Route::post('/piskolog/categories', 'store')->name('psikolog.categories.store'); 
-        Route::put('/piskolog/categories/{id}', 'update')->name('psikolog.categories.update'); 
-        Route::delete('/piskolog/categories/{id}','destroy')->name('psikolog.categories.destroy'); 
+        Route::get('/admin/piskolog/categories', 'index')->name('psikolog.categories.index'); 
+        Route::get('/admin/piskolog/categories/{id}', 'show')->name('psikolog.categories.show'); 
+        Route::post('/admin/piskolog/categories', 'store')->name('psikolog.categories.store'); 
+        Route::put('/admin/piskolog/categories/{id}', 'update')->name('psikolog.categories.update'); 
+        Route::delete('/admin/piskolog/categories/{id}','destroy')->name('psikolog.categories.destroy'); 
     });
     
 });
