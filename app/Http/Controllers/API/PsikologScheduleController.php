@@ -257,29 +257,54 @@ class PsikologScheduleController extends BaseController
      */
     public function listPsikolog()
     {
-       $psikolog = Psikolog::with('user:id,name')
-            ->select('id', 'sipp', 'is_active')
-            ->where('is_active', 1)
+        $psikologs = Psikolog::with('user:id,name,email')
+            ->where('is_active', true)
             ->get();
-        
-        $list_psikolog = $psikolog->map(function ($psikolog) {
+        // dd($psikologs);
+
+        $list_psikolog = $psikologs->map(function ($psikolog) {
             return [
                 'id' => $psikolog->id,
-                'name' => $psikolog->user->name,
                 'sipp' => $psikolog->sipp,
-                'is_active' => $psikolog->is_active,
+                'name' => $psikolog->user->name,
             ];
         });
 
         return $this->sendResponse('List psikolog pada jadwal konsultasi berhasil diambil.', $list_psikolog);
     }
 
-    public function detailPsikologSchedule($psikologId)
+    /**
+     * Get the psychologist's schedule for a specific date.
+     *
+     * @param int $psikologId The ID of the psychologist.
+     * @param string $date The date of the schedules to retrieve. Format: "YYYY-MM-DD".
+     * @return \Illuminate\Http\JsonResponse A response containing the list of schedules in the required format.
+     */
+    public function detailPsikologSchedule(Request $request, $psikologId)
     {
+        $date = $request->date; // Expected input: "YYYY-MM-DD"
 
+        // Fetch schedules for the specific date
+        $schedules = PsikologSchedule::with(['mainSchedule', 'consultation']) 
+            ->where('psikolog_id', $psikologId) 
+            ->where('date', $date)
+            ->get();
+
+        // Map the schedules into the required format
+        $formattedSchedules = $schedules->map(function ($schedule) {
+            return [
+                'id' => $schedule->id,
+                'time_slot' => Carbon::parse($schedule->mainSchedule->start_hour)->format('H:i')
+                    . ' - ' .
+                    Carbon::parse($schedule->mainSchedule->end_hour)->format('H:i'),
+                'consul_status' => $schedule->consultation
+                    ? $schedule->consultation->consul_status
+                    : 'available',
+                'is_available' => $schedule->is_available,
+            ];
+        });
+
+        return $this->sendResponse('Berhasil mengambil data jadwal psikolog.', $formattedSchedules);
     }
-
-
-
 
 }

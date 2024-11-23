@@ -188,7 +188,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
     // Kelola Jadwal Konsultasi
     Route::controller(PsikologScheduleController::class)->group(function () {
         Route::get('/admin/consul-schedules/psikolog', 'listPsikolog');
-        Route::get('/admin/consul-schedules/psikolog/{id}', 'detailPsikologSchedule');
+        Route::get('/admin/consul-schedules/psikolog/{psikologId}', 'detailPsikologSchedule');
     });
 
     // Kelola Transaksi Konsultasi

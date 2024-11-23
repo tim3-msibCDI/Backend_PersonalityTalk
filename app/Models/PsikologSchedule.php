@@ -33,4 +33,9 @@ class PsikologSchedule extends Model
     {
         return $this->belongsTo(Psikolog::class, 'psikolog_id');
     }
+
+    public function consultation()
+    {
+        return $this->hasOne(Consultation::class, 'psch_id');
+    }
 }
