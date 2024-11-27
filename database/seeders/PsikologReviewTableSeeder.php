@@ -140,7 +140,7 @@ class PsikologReviewTableSeeder extends Seeder
             ],
             [
                 'user_id' => 8,
-                'psi_id' => 7,
+                'psi_id' => 4,
                 'rating' => 4,
                 'review' => 'Psikolog cukup membantu, tetapi bisa lebih baik.',
                 'created_at' => now(),
@@ -148,7 +148,7 @@ class PsikologReviewTableSeeder extends Seeder
             ],
             [
                 'user_id' => 8,
-                'psi_id' => 7,
+                'psi_id' => 4,
                 'rating' => 5,
                 'review' => 'Konsultasi terbaik yang pernah saya alami.',
                 'created_at' => now(),
@@ -156,7 +156,7 @@ class PsikologReviewTableSeeder extends Seeder
             ],
             [
                 'user_id' => 8,
-                'psi_id' => 7,
+                'psi_id' => 4,
                 'rating' => 4,
                 'review' => 'Sesi berjalan lancar, saya puas.',
                 'created_at' => now(),
@@ -164,7 +164,7 @@ class PsikologReviewTableSeeder extends Seeder
             ],
             [
                 'user_id' => 8,
-                'psi_id' => 7,
+                'psi_id' => 4,
                 'rating' => 5,
                 'review' => 'Sangat profesional dan empati tinggi.',
                 'created_at' => now(),
@@ -172,7 +172,7 @@ class PsikologReviewTableSeeder extends Seeder
             ],
             [
                 'user_id' => 8,
-                'psi_id' => 7,
+                'psi_id' => 4,
                 'rating' => 5,
                 'review' => 'Layanan sangat memuaskan, membantu banyak.',
                 'created_at' => now(),

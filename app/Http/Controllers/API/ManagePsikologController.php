@@ -25,9 +25,9 @@ class ManagePsikologController extends BaseController
      * @return \Illuminate\Http\JsonResponse  
      *      
      */
-    public function approvePsikolog($id)
+    public function approvePsikolog($id_psikolog)
     {
-        $psikolog = Psikolog::with('user')->find($id);
+        $psikolog = Psikolog::with('user')->find($id_psikolog);
         if (!$psikolog) {
             return $this->sendError('Psikolog tidak ditemukan.', [], 404);
         }
@@ -51,9 +51,9 @@ class ManagePsikologController extends BaseController
      * @return \Illuminate\Http\JsonResponse
      *        
      */
-    public function rejectPsikolog($id)
+    public function rejectPsikolog($id_psikolog)
     {
-        $psikolog = Psikolog::with('user')->find($id);
+        $psikolog = Psikolog::with('user')->find($id_psikolog);
         if (!$psikolog) {
             return $this->sendError('Psikolog tidak ditemukan.', [], 404);
         }
@@ -82,25 +82,26 @@ class ManagePsikologController extends BaseController
      */
     public function listPsikologRegistrant()
     {
-        $psikologs = User::with('psikolog:id,user_id,sipp,status')
-            ->select('id', 'name', 'photo_profile') 
-            ->where('role', 'P')
-            ->orderBy('created_at', 'desc') 
+        // Ambil daftar psikolog berdasarkan tabel Psikolog
+        $psikologs = Psikolog::with('user:id,name,photo_profile')
+            ->select('id', 'user_id', 'sipp', 'status') // Pilih kolom yang relevan
+            ->orderBy('created_at', 'desc')
             ->get();
-
+    
         $data = [];
         foreach ($psikologs as $psikolog) {
             $data[] = [
-                'id' => $psikolog->id,
-                'name' => $psikolog->name,
-                'photo_profile' => $psikolog->photo_profile,
-                'sipp' => $psikolog->psikolog->sipp ?? null, 
-                'status' => $psikolog->psikolog->status ?? null,
+                'id_psikolog' => $psikolog->id,
+                'name' => $psikolog->user->name,
+                'photo_profile' => $psikolog->user->photo_profile,
+                'sipp' => $psikolog->sipp,
+                'status' => $psikolog->status,
             ];
         }
-
+    
         return $this->sendResponse('List psikolog yang mendaftar berhasil diambil', $data);
     }
+    
 
     /**
      * Menampilkan detail psikolog berdasarkan ID
@@ -108,42 +109,35 @@ class ManagePsikologController extends BaseController
      * @param int $id ID psikolog
      * @return \Illuminate\Http\JsonResponse
      */
-    public function detailPsikolog($id)
+    public function detailPsikolog($id_psikolog)
     {
-        // Ambil user dengan role Psikolog ('P') dan muat relasi
-        $user = User::where('id', $id)
-            ->where('role', 'P')
-            ->with(['psikolog.psikolog_topic.topic', 'psikolog.psikolog_category'])
-            ->whereHas('psikolog', function ($query) {
-                $query->where('is_active', true); // Hanya ambil psikolog yang aktif
-            })
-            ->select('id', 'email', 'name', 'phone_number', 'photo_profile', 'date_birth', 'gender')
-            ->first();
+        // Cari psikolog berdasarkan id_psikolog dan muat relasi
+        $psikolog = Psikolog::with(['user', 'psikolog_topic.topic', 'psikolog_category'])
+            ->find($id_psikolog);
 
-        // Periksa apakah data ditemukan
-        if (!$user) {
-            return $this->sendError("Pengguna dengan kategori {$categoryName} tidak ditemukan", [], 404);
+        if (!$psikolog) {
+            return $this->sendError('Psikolog tidak ditemukan.', [], 404);
         }
 
-        // Format detail user
-        $psikologDetails = $user->psikolog;
-        $formattedUser = [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'phone_number' => $user->phone_number,
-            'photo_profile' => $user->photo_profile,
-            'date_birth' => $user->date_birth,
-            'gender' => $user->gender,
-            'sipp' => $psikologDetails->sipp ?? null,
-            'practice_start_date' => Carbon::parse($psikologDetails->practice_start_date)->translatedFormat('Y-m-d'), 
-            'description' => $psikologDetails->description,
-            'selected_topics' => $psikologDetails->psikolog_topic->map(function ($topicRelation) {
+        // Format detail psikolog
+        $formattedPsikolog = [
+            'id_psikolog' => $psikolog->id,
+            'name' => $psikolog->user->name,
+            'email' => $psikolog->user->email,
+            'phone_number' => $psikolog->user->phone_number,
+            'photo_profile' => $psikolog->user->photo_profile,
+            'date_birth' => $psikolog->user->date_birth,
+            'gender' => $psikolog->user->gender,
+            'sipp' => $psikolog->sipp,
+            'practice_start_date' => Carbon::parse($psikolog->practice_start_date)->translatedFormat('Y-m-d'),
+            'description' => $psikolog->description,
+            'selected_topics' => $psikolog->psikolog_topic->map(function ($topicRelation) {
                 return $topicRelation->topic->topic_name;
             })->toArray(),
         ];
 
-        return $this->sendResponse("Detail psikolog yang mendaftar berhasil diambil.", $formattedUser);  
+        return $this->sendResponse("Detail psikolog yang mendaftar berhasil diambil.", $formattedPsikolog);
     }
+
 
 }

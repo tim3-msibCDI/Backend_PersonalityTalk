@@ -171,9 +171,9 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
     // Manage Pendaftaran Psikolog
     Route::controller(ManagePsikologController::class)->group(function () {
         Route::get('/admin/psikolog-regis', 'listPsikologRegistrant');
-        Route::get('/admin/psikolog-regis/{id}', 'detailPsikolog');
-        Route::post('/admin/psikolog-regis/{id}/approve', 'approvePsikolog'); 
-        Route::post('/admin/psikolog-regis/{id}/reject', 'rejectPsikolog');
+        Route::get('/admin/psikolog-regis/{id_psikolog}', 'detailPsikolog');
+        Route::post('/admin/psikolog-regis/{id_psikolog}/approve', 'approvePsikolog'); 
+        Route::post('/admin/psikolog-regis/{id_psikolog}/reject', 'rejectPsikolog');
     });
 
     // Kelola Topik Konsultasi
