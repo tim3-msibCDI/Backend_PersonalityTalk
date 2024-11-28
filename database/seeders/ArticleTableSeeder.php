@@ -57,7 +57,7 @@ class ArticleTableSeeder extends Seeder
                 'publisher_name' => 'Dr. Psikologi Indonesia',
                 'admin_id' => 1, 
                 'category_id' => 1,
-                'article_img' => 'storage/article_photos/kecemasan_digital.jpg',
+                'article_img' => 'storage/article_photos/kekuatan_berpikir.jpg',
                 // 'article_img' => new \Illuminate\Http\UploadedFile(storage_path('app/public/article_photos/kecemasan_digital.jpg'), 'kecemasan_digital.jpg'),
             ],
             [

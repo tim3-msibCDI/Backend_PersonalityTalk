@@ -59,11 +59,13 @@ class PaymentMethodController extends BaseController
                     return $this->sendError('Gagal menyimpan gambar.', [], 500);
                 }
             }  
+            $imageUrl = 'storage/' . $imagePath; 
+
             $paymentMethod = PaymentMethod::create([
                 'name' => $validatedData->validated()['name'],
                 'type' => $validatedData->validated()['type'],
                 'bank_code' => $validatedData->validated()['bank_code'] ?? null, 
-                'logo' => $imagePath, 
+                'logo' => $imageUrl, 
                 'no_rek' => $validatedData->validated()['no_rek'] ?? null, 
                 'is_active' => 1, 
             ]);
@@ -107,37 +109,42 @@ class PaymentMethodController extends BaseController
 
         try {
             DB::beginTransaction();
-
+        
             $paymentMethod = PaymentMethod::findOrFail($id);
-
+        
             // Update logo jika ada file baru
             if ($request->hasFile('logo')) {
+                // Hapus logo lama jika ada
                 if ($paymentMethod->logo) {
-                    Storage::disk('public')->delete($paymentMethod->logo);
+                    $relativePath = str_replace('storage/', '', $paymentMethod->logo); 
+                    Storage::disk('public')->delete($relativePath);
                 }
-
-                $imagePath = Storage::disk('public')->put('payment_methods', $request->file('logo'));
+        
+                // Simpan logo baru
+                $imagePath = $request->file('logo')->store('payment_methods', 'public'); // Simpan di disk 'public'
                 if (!$imagePath) {
                     return $this->sendError('Gagal menyimpan gambar.', [], 500);
                 }
-                $paymentMethod->logo = $imagePath;
+        
+                // Simpan path logo ke database
+                $paymentMethod->logo = 'storage/' . $imagePath;
             }
-
+        
             // Update data lainnya
-            $paymentMethod->name = $validatedData->validated()['name'];
-            $paymentMethod->type = $validatedData->validated()['type'];
-            $paymentMethod->bank_code = $validatedData->validated()['bank_code'] ?? null;
-            $paymentMethod->no_rek = $validatedData->validated()['no_rek'] ?? null;
+            $validated = $validatedData->validated(); // Simpan hasil validasi dalam variabel
+            $paymentMethod->name = $validated['name'];
+            $paymentMethod->type = $validated['type'];
+            $paymentMethod->bank_code = $validated['bank_code'] ?? null;
+            $paymentMethod->no_rek = $validated['no_rek'] ?? null;
             $paymentMethod->is_active = $request->has('is_active') ? (bool)$request->is_active : $paymentMethod->is_active;
             $paymentMethod->save();
-
+        
             DB::commit();
             return $this->sendResponse('Metode pembayaran berhasil diperbarui.', $paymentMethod);
-
         } catch (Exception $e) {
             DB::rollback();
             return $this->sendError('Terjadi kesalahan saat memperbarui metode pembayaran.', [$e->getMessage()], 500);
-        }
+        }        
     }
 
     /**
@@ -170,10 +177,10 @@ class PaymentMethodController extends BaseController
 
         try {
             // Hapus file logo dari storage jika ada
-            if (Storage::disk('public')->exists($paymentMethod->logo)) {
-                Storage::disk('public')->delete($paymentMethod->logo);
+            if ($paymentMethod->logo) {
+                $relativePath = str_replace('storage/', '', $paymentMethod->logo); 
+                Storage::disk('public')->delete($relativePath);
             }
-
             // Hapus metode pembayaran dari database
             $paymentMethod->delete();
             return $this->sendResponse('Metode pembayaran berhasil dihapus.', null);

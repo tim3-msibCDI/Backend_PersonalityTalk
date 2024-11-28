@@ -4,6 +4,7 @@ use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\MitraController;
 use App\Http\Controllers\API\ArticleController;
 use App\Http\Controllers\API\DiseaseController;
 use App\Http\Controllers\API\VoucherController;
@@ -20,11 +21,11 @@ use App\Http\Controllers\API\PsikologPriceController;
 use App\Http\Controllers\API\ForgotPasswordController;
 use App\Http\Controllers\API\ManagePsikologController;
 use App\Http\Controllers\API\PsikologReviewController;
+use App\Http\Controllers\API\ActivityHistoryController;
 use App\Http\Controllers\API\ArticleCategoryController;
 use App\Http\Controllers\API\PsikologCategoryController;
 use App\Http\Controllers\API\PsikologScheduleController;
 use App\Http\Controllers\API\ConsultationTransactionController;
-use App\Http\Controllers\API\ActivityHistoryController;
 
 /**
  * Authentication
@@ -230,6 +231,14 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::post('/admin/vouchers', 'store'); 
         Route::post('/admin/vouchers/{id}', 'update'); 
         Route::delete('/admin/vouchers/{id}','destroy'); 
+    });
+
+    Route::controller(MitraController::class)->group(function () {
+        Route::get('/admin/mitra', 'index');
+        Route::get('/admin/mitra/{id}', 'show');
+        Route::post('/admin/mitra', 'store');
+        Route::post('/admin/mitra/{id}', 'update');
+        Route::delete('/admin/mitra/{id}', 'destroy');
     });
 
     // Kelola Metode Pembayaran

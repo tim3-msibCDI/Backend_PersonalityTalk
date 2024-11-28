@@ -5,7 +5,6 @@ namespace App\Http\Controllers\API;
 use App\Models\Disease;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController;
@@ -146,11 +145,11 @@ class DiseaseController extends BaseController
      */
     public function update(Request $request, $id)
     {
-        $penyakitMental = Disease::find($id);
+    $penyakitMental = Disease::find($id);
 
-        if (!$penyakitMental) {
-            return $this->sendError('Penyakit mental tidak ditemukan.', [], 404);
-        }
+    if (!$penyakitMental) {
+        return $this->sendError('Penyakit mental tidak ditemukan.', [], 404);
+    }
 
         $validatedData = Validator::make($request->all(), [
             'disease_name' => 'required|string|max:255',
@@ -223,7 +222,8 @@ class DiseaseController extends BaseController
 
             // Hapus gambar terkait jika ada
             if ($penyakitMental->disease_img) {
-                Storage::disk('public')->delete($penyakitMental->disease_img);
+                $relativePath = str_replace('storage/', '', $penyakitMental->disease_img); // Hilangkan prefix 'storage/'
+                Storage::disk('public')->delete($relativePath);
             }
             $penyakitMental->delete();
 

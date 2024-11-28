@@ -313,7 +313,8 @@ class ArticleController extends BaseController
             DB::beginTransaction();
 
             if ($article->article_img) {
-                Storage::disk('public')->delete($article->article_img);
+                $relativePath = str_replace('storage/', '', $article->article_img); 
+                Storage::disk('public')->delete($relativePath);
             }
             $article->delete();
 
