@@ -200,19 +200,33 @@ class ManageUserController extends BaseController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroyUserUmum($id){   
+    public function destroyUserUmum($id)
+    {
+        // Cari user dengan role 'U' (Umum)
         $user = User::where('id', $id)->where('role', 'U')->first();
         if (!$user) {
             return $this->sendError('Pengguna tidak ditemukan', [], 404);
         }
 
         try {
+            DB::beginTransaction();
+
+            // Hapus file photo_profile jika ada
+            if ($user->photo_profile) {
+                $path = str_replace('storage/', '', $user->photo_profile); 
+                Storage::disk('public')->delete($path);
+            }
+
             $user->delete();
+            DB::commit();
             return $this->sendResponse('Pengguna umum berhasil dihapus.');
-        }catch (\Exception $e) {
+
+        } catch (\Exception $e) {
+            DB::rollBack();
             return $this->sendError('Terjadi kesalahan saat menghapus pengguna.', [$e->getMessage()], 500);
         }
     }
+
 
     /**
      * Menampilkan daftar user Mahasiswa
@@ -389,15 +403,34 @@ class ManageUserController extends BaseController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroyUserMahasiswa($id){   
-        $user = User::where('id', $id)->where('role', 'M')->first();
+    public function destroyUserMahasiswa($id)
+    {
+        // Cari user dengan role 'M' (Mahasiswa) dan relasinya
+        $user = User::with('mahasiswa')->where('id', $id)->where('role', 'M')->first();
         if (!$user) {
             return $this->sendError('Mahasiswa tidak ditemukan', [], 404);
         }
+
         try {
+            DB::beginTransaction();
+
+            // Hapus relasi mahasiswa jika ada
+            if ($user->mahasiswa) {
+                $user->mahasiswa->delete();
+            }
+
+            // Hapus file photo_profile jika ada
+            if ($user->photo_profile) {
+                $path = str_replace('storage/', '', $user->photo_profile); // Hilangkan prefix storage/
+                Storage::disk('public')->delete($path);
+            }
             $user->delete();
+
+            DB::commit();
             return $this->sendResponse('Mahasiswa berhasil dihapus.');
-        }catch (\Exception $e) {
+
+        } catch (\Exception $e) {
+            DB::rollBack();
             return $this->sendError('Terjadi kesalahan saat menghapus mahasiswa.', [$e->getMessage()], 500);
         }
     }
@@ -653,6 +686,41 @@ class ManageUserController extends BaseController
             return $this->sendError('Terjadi kesalahan saat memperbarui psikolog.', [$e->getMessage()], 500);
         }
     }
+
+    public function destroyUserPsikolog($id)
+    {
+        // Cari user dengan role 'P' (Psikolog) dan muat relasinya
+        $user = User::with('psikolog.psikolog_topic')->where('id', $id)->where('role', 'P')->first();
+
+        if (!$user) {
+            return $this->sendError('Psikolog tidak ditemukan', [], 404);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Hapus file photo_profile di User jika ada
+            if ($user->photo_profile) {
+                $path = str_replace('storage/', '', $user->photo_profile); 
+                Storage::disk('public')->delete($path);
+            }
+
+            // Hapus data di tabel Psikolog dan data terkait
+            if ($user->psikolog) {
+                $user->psikolog->psikolog_topic()->delete();
+                $user->psikolog->delete();
+            }
+            $user->delete();
+
+            DB::commit();
+            return $this->sendResponse('Psikolog berhasil dihapus.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->sendError('Psikolog tidak dapat dihapus, karena dipakai pada tabel lain.', [$e->getMessage()], 500);
+        }
+    }
+
 
 
 

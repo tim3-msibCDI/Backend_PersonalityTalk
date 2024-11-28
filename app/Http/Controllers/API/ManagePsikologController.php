@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\API;
 
 use Carbon\Carbon;
-use App\Models\Psikolog;
 use App\Models\User;
+use App\Models\Psikolog;
 use Illuminate\Http\Request;
 use App\Services\NotificationService;
+use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController;
 
 class ManagePsikologController extends BaseController
@@ -51,11 +52,23 @@ class ManagePsikologController extends BaseController
      * @return \Illuminate\Http\JsonResponse
      *        
      */
-    public function rejectPsikolog($id_psikolog)
+    public function rejectPsikolog(Request $request, $id_psikolog)
     {
+
         $psikolog = Psikolog::with('user')->find($id_psikolog);
         if (!$psikolog) {
             return $this->sendError('Psikolog tidak ditemukan.', [], 404);
+        }
+
+        // Validasi input request
+        $validatedData = Validator::make($request->all(), [
+            'reason' => 'required|string',
+        ], [
+            'reason.required' => 'Alasan penolakan wajib diisi.',
+        ]);
+
+        if ($validatedData->fails()) {
+            return $this->sendError('Validasi gagal.', $validatedData->errors(), 422);
         }
 
         // Jika psikolog sudah disetujui, tidak boleh diubah statusnya ke rejected
@@ -69,7 +82,9 @@ class ManagePsikologController extends BaseController
 
          // Create message and sending notification to phone number
          $target = $psikolog->user->phone_number;
-         $message = 'Pendaftaran ditolak'; 
+         $message = "Mohon maaf, pendaftaran Anda sebagai mitra psikolog ditolak.!\n\n" .
+                "Alasan: " . $request->reason . "\n\n" .
+                "Harap menghubungi tim kami untuk informasi lebih lanjut.";
          $this->notificationService->sendWhatsAppMessage($target, $message);
 
         return $this->sendResponse('Pendaftaran psikolog ditolak.', null);
@@ -82,27 +97,15 @@ class ManagePsikologController extends BaseController
      */
     public function listPsikologRegistrant()
     {
-        // Ambil daftar psikolog berdasarkan tabel Psikolog
-        $psikologs = Psikolog::with('user:id,name,photo_profile')
-            ->select('id', 'user_id', 'sipp', 'status') // Pilih kolom yang relevan
+        // Ambil daftar psikolog dengan data relasi user
+        $psikologs = Psikolog::with('user:id,name,photo_profile') // Ambil relasi user dengan kolom terbatas
+            ->select('id as id_psikolog', 'user_id', 'sipp', 'status') // Pilih kolom yang relevan dari Psikolog
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(10); // Paginasi dengan 10 item per halaman
     
-        $data = [];
-        foreach ($psikologs as $psikolog) {
-            $data[] = [
-                'id_psikolog' => $psikolog->id,
-                'name' => $psikolog->user->name,
-                'photo_profile' => $psikolog->user->photo_profile,
-                'sipp' => $psikolog->sipp,
-                'status' => $psikolog->status,
-            ];
-        }
-    
-        return $this->sendResponse('List psikolog yang mendaftar berhasil diambil', $data);
+        return $this->sendResponse('List psikolog yang mendaftar berhasil diambil', $psikologs);
     }
     
-
     /**
      * Menampilkan detail psikolog berdasarkan ID
      * 
