@@ -190,6 +190,8 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
     Route::controller(PsikologScheduleController::class)->group(function () {
         Route::get('/admin/consul-schedules/psikolog', 'listPsikolog');
         Route::get('/admin/consul-schedules/psikolog/{psikologId}', 'detailPsikologSchedule');
+        Route::put('/admin/consul-schedules/{scheduleId}/update-availability', 'updateAvailability');
+
     });
 
     // Kelola Transaksi Konsultasi

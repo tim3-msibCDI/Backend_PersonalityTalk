@@ -256,18 +256,10 @@ class PsikologScheduleController extends BaseController
      */
     public function listPsikolog()
     {
-        $psikologs = Psikolog::with('user:id,name,email')
+        $list_psikolog = Psikolog::with('user:id,name')
             ->where('is_active', true)
-            ->get();
-        // dd($psikologs);
-
-        $list_psikolog = $psikologs->map(function ($psikolog) {
-            return [
-                'id' => $psikolog->id,
-                'sipp' => $psikolog->sipp,
-                'name' => $psikolog->user->name,
-            ];
-        });
+            ->select('id as id_psikolog', 'sipp', 'user_id')
+            ->paginate(10);
 
         return $this->sendResponse('List psikolog pada jadwal konsultasi berhasil diambil.', $list_psikolog);
     }
@@ -281,7 +273,7 @@ class PsikologScheduleController extends BaseController
      */
     public function detailPsikologSchedule(Request $request, $psikologId)
     {
-        $date = $request->date; // Expected input: "YYYY-MM-DD"
+        $date = $request->date ?? Carbon::today()->format('Y-m-d'); // Default to today's date
 
         // Fetch schedules for the specific date
         $schedules = PsikologSchedule::with(['mainSchedule', 'consultation']) 
@@ -305,5 +297,48 @@ class PsikologScheduleController extends BaseController
 
         return $this->sendResponse('Berhasil mengambil data jadwal psikolog.', $formattedSchedules);
     }
+
+    /**
+     * Update the availability status of a specific psychologist's schedule.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param int $scheduleId The ID of the schedule to update.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateAvailability(Request $request, $scheduleId)
+    {
+        // Validasi input
+        $validator = Validator::make($request->all(), [
+            'is_available' => 'required|boolean', // Value must be 1 (true) or 0 (false)
+        ], [
+            'is_available.required' => 'Status ketersediaan wajib diisi.',
+            'is_available.boolean' => 'Status ketersediaan harus berupa nilai benar atau salah.',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validasi gagal', $validator->errors(), 422);
+        }
+
+        try {
+            // Cari jadwal berdasarkan ID
+            $schedule = PsikologSchedule::find($scheduleId);
+            if (!$schedule) {
+                return $this->sendError('Jadwal tidak ditemukan.', [], 404);
+            }
+
+            // Update nilai is_available
+            $schedule->is_available = $request->is_available;
+            $schedule->save();
+
+            return $this->sendResponse('Status ketersediaan berhasil diperbarui.', [
+                'id' => $schedule->id,
+                'is_available' => $schedule->is_available,
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->sendError('Gagal memperbarui status ketersediaan.', [$e->getMessage()], 500);
+        }
+    }
+
 
 }
