@@ -166,7 +166,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::get('/admin/konselor', 'listUserKonselor');
         Route::get('/admin/konselor/{id}', 'detailUserKonselor');
         Route::post('/admin/konselor/{id}', 'updateUserPsikolog');
-        Route::delete('/admin/konselor/{id}', 'destroyUserKonselor');    
+        Route::delete('/admin/konselor/{id}', 'destroyUserPsikolog');    
     }); 
 
     // Manage Pendaftaran Psikolog

@@ -52,8 +52,10 @@ class PsikologScheduleController extends BaseController
      */
     public function generatePsikologSchedule(Request $request)
     {
+        $user = Auth::user();
+        $psikologId = $user->psikolog->id;
+
         $validatedData = Validator::make($request->all(),[
-            'psikolog_id' => 'required|exists:psikolog,id',
             'schedules' => 'required|array', // Array of days with specific main_schedule_ids
             'schedules.*.day' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
             'schedules.*.main_schedule_ids' => 'required|array', // Array of selected time slots (main_schedule IDs)
@@ -61,8 +63,6 @@ class PsikologScheduleController extends BaseController
             'month' => 'required|integer|between:1,12',
             'year' => 'required|integer|min:2024|max:2100',
         ],[
-            'psikolog_id.required' => 'Psikolog wajib dipilih.',
-            'psikolog_id.exists' => 'Psikolog tidak ditemukan di sistem.',        
             'month.required' => 'Bulan wajib dipilih.',
             'year.required' => 'Tahun wajib dipilih.',
         ]);
@@ -71,7 +71,6 @@ class PsikologScheduleController extends BaseController
             return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
         }
 
-        $psikologId = $request->psikolog_id;
         $schedules = $request->schedules;
         $month = $request->month;
         $year = $request->year;

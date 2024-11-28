@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Models\User;
 use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
+use App\Services\PsikologService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -15,6 +16,14 @@ use App\Http\Controllers\API\BaseController;
 
 class AuthController extends BaseController
 {
+    protected $psikologService;
+
+    public function __construct(PsikologService $psikologService)
+    {
+        parent::__construct();
+        $this->psikologService = $psikologService;
+    }
+
     /**
      * Login User, Mahasiswa, Psikolog
      *
@@ -89,10 +98,20 @@ class AuthController extends BaseController
             'phone_number' => 'nullable|string|regex:/^[0-9]{10,}$/',
             'date_birth' => 'required|date',
             'gender' => 'required|in:M,F', // 'M' = Male, 'F' = Female
-            'role' => 'required|in:U,M', // 'U' = Umum, 'M' = Mahasiswa
+            'role' => 'required|in:U,M,P,K', // 'U' = Umum, 'M' = Mahasiswa, 'P' = Psikolog/Konselor
+
             // Validasi tambahan untuk mahasiswa
             'universitas' => 'required_if:role,M|string|max:255',
             'jurusan' => 'required_if:role,M|string|max:255',
+
+            //Validasi tambahan untuk psikolog dan konselor
+            'photo_profile' => 'required_if:role,P,K|image|mimes:jpeg,png,jpg|max:2048', 
+            'description' => 'required_if:role,P,K|string|max:255',
+            'sipp' => 'required_if:role,P|string|max:255',
+            'practice_start_date' => 'required_if:role,P|date',
+            'topics' => 'required_if:role,P,K|array',
+            'topics.*' => 'exists:topics,id',
+
         ], [
             'name.required' => 'Nama wajib diisi.',
             'email.required' => 'Email wajib diisi.',
@@ -103,8 +122,16 @@ class AuthController extends BaseController
             'date_birth.required' => 'Tanggal lahir wajib diisi.',
             'gender.required' => 'Jenis kelamin wajib diisi.',
             'role.required' => 'Role wajib dipilih.',
+
             'universitas.required_if' => 'Universitas wajib diisi jika role adalah mahasiswa.',
             'jurusan.required_if' => 'Jurusan wajib diisi jika role adalah mahasiswa.',
+
+            'photo_profile.required_if' => 'Foto profil wajib diisi.',
+            'description.required_if' => 'Deskripsi wajib diisi.',
+            'sipp.required_if' => 'SIPP wajib diisi.',
+            'practice_start_date.required_if' => 'Tanggal mulai praktik wajib diisi.',
+            'topics.required_if' => 'Topik keahlian wajib diisi.',
+            'topics.*.exists' => 'Topik tidak valid.',
         ]);
 
         if ($validator->fails()) {
@@ -114,25 +141,35 @@ class AuthController extends BaseController
         try {
             DB::beginTransaction();
 
-            // Buat user baru
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'phone_number' => $request->phone_number,
-                'date_birth' => $request->date_birth,
-                'gender' => $request->gender,
-                'role' => $request->role, // 'U' atau 'M'
-            ]);
-
-            // Jika role adalah 'M', maka simpan data tambahan mahasiswa
-            if ($request->role === 'M') {
-                Mahasiswa::create([
-                    'user_id' => $user->id,
-                    'universitas' => $request->universitas,
-                    'jurusan' => $request->jurusan,
+            if($request->role === 'M' || $request->role === 'U'){
+                 // Buat user baru
+                $user = User::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => Hash::make($request->password),
+                    'phone_number' => $request->phone_number,
+                    'date_birth' => $request->date_birth,
+                    'gender' => $request->gender,
+                    'role' => $request->role, // 'U', 'M', atau 'P'
                 ]);
+
+                // Jika role adalah 'M', maka simpan data tambahan mahasiswa
+                if ($request->role === 'M') {
+                    Mahasiswa::create([
+                        'user_id' => $user->id,
+                        'universitas' => $request->universitas,
+                        'jurusan' => $request->jurusan,
+                    ]);
+                }
+
+            }elseif ($request->role === 'P' || $request->role === 'K') {
+                // Buat user psikolog dengan menggunakan psikolog service
+                $this->psikologService->registerPsikolog($request->all());
+                DB::commit();
+                $roleName = $request->role === 'P' ? 'psikolog' : 'konselor'; 
+                return $this->sendResponse("Pendaftaran anda sebagai $roleName berhasil dilakukan.");
             }
+
             DB::commit();
 
             $token = $user->createToken('auth_user_token')->plainTextToken;

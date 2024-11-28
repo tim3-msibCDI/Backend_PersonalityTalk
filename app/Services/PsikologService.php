@@ -30,6 +30,10 @@ class PsikologService
                 $photoProfilePath = 'storage/' . $photoProfilePath; 
             }
 
+            if (!$photoProfilePath) {
+                throw new \Exception("Gagal menyimpan foto profil.");
+            }
+
             // Simpan data pengguna
             $user = User::create([
                 'name' => $data['name'],
@@ -57,14 +61,20 @@ class PsikologService
                 $psikologPriceId = $psikologPrice->id ?? 1;
             }
 
+            if ($data['role'] === 'P') {
+                $categoryId = 1; // category ID for psikolog
+            }else {     
+                $categoryId = 2; // category ID for konselor
+            }
+
             // Simpan data psikolog
             $psikolog = Psikolog::create([
                 'user_id' => $user->id,
-                'category_id' => $data['category_id'],
+                'category_id' => $categoryId,
                 'psikolog_price_id' => $psikologPriceId,
                 'description' => $data['description'],
-                'sipp' => $data['sipp'],
-                'practice_start_date' => $data['practice_start_date'],
+                'sipp' => $data['sipp'] ?? null,
+                'practice_start_date' => $data['practice_start_date'] ?? null,
                 'status' => 'pending',
                 'is_active' => false,
             ]);

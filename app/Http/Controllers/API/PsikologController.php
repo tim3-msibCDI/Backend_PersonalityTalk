@@ -43,11 +43,11 @@ class PsikologController extends BaseController
             'date_birth' => 'required|date',
             'gender' => 'required|in:M,F',
             'photo_profile' => 'required|image|mimes:jpeg,png,jpg|max:2048', 
+            'role' => 'required|in:P,K',
 
             // Validasi untuk tabel 'psikolog'
-            'category_id' => 'required|exists:psikolog_categories,id',
             'description' => 'required|string|max:255',
-            'sipp' => 'required|string|max:255',
+            'sipp' => 'required_if:role,P|string|max:255',
             'practice_start_date' => 'required|date',
             'topics' => 'required|array', // Topik keahlian harus dalam bentuk array
             'topics.*' => 'exists:topics,id', // Setiap topik harus ada di tabel 'topics'
@@ -58,9 +58,9 @@ class PsikologController extends BaseController
             'password.required' => 'Password wajib diisi.',
             'phone_number.required' => 'Nomor telepon wajib diisi.',
             'phone_number.regex' => 'Nomor telepon harus valid dan terdiri dari 10-15 angka.',
+            'sipp.required_if' => 'Psikolog wajib mengisi SIPP.',
             'photo_profile.required' => 'Foto profil wajib diunggah.',
             'photo_profile.image' => 'Foto profil harus berupa gambar.',
-            'category_id.required' => 'Kategori wajib dipilih.',
             'topics.required' => 'Pilih setidaknya satu topik keahlian.',
         ]);
 
