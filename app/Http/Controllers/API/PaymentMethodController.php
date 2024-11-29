@@ -19,7 +19,7 @@ class PaymentMethodController extends BaseController
      */
     public function index()
     {
-        $payments = PaymentMethod::select('id', 'name','no_rek', 'type')->paginate(10);
+        $payments = PaymentMethod::select('id', 'name','no_rek', 'owner', 'type')->paginate(10);
         return $this->sendResponse('List metode pembayaran berhasil diambil.', $payments);
     }
 
@@ -36,7 +36,8 @@ class PaymentMethodController extends BaseController
             'name' => 'required|string|max:100',
             'type' => 'required|in:Pembayaran Otomatis,Transfer Bank',
             'bank_code' => 'nullable|string|max:50',
-            'logo' => 'required|image|mimes:jpeg,png,jpg',  
+            'logo' => 'required|image|mimes:jpeg,png,jpg',
+            'owner' => 'nullable|string|max:100',
             'no_rek' => 'nullable|string|max:50',
         ], [
             'name.required' => 'Nama metode pembayaran wajib diisi.',            
@@ -66,6 +67,7 @@ class PaymentMethodController extends BaseController
                 'type' => $validatedData->validated()['type'],
                 'bank_code' => $validatedData->validated()['bank_code'] ?? null, 
                 'logo' => $imageUrl, 
+                'owner' => $validatedData->validated()['owner'] ?? null,
                 'no_rek' => $validatedData->validated()['no_rek'] ?? null, 
                 'is_active' => 1, 
             ]);
@@ -93,6 +95,7 @@ class PaymentMethodController extends BaseController
             'type' => 'required|in:Pembayaran Otomatis,Transfer Bank', // Pastikan enum yang sesuai
             'bank_code' => 'nullable|string|max:50',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg',
+            'owner' => 'nullable|string|max:100',
             'no_rek' => 'nullable|string|max:50',
         ], [
             'name.required' => 'Nama metode pembayaran wajib diisi.',            
@@ -136,6 +139,7 @@ class PaymentMethodController extends BaseController
             $paymentMethod->type = $validated['type'];
             $paymentMethod->bank_code = $validated['bank_code'] ?? null;
             $paymentMethod->no_rek = $validated['no_rek'] ?? null;
+            $paymentMethod->owner = $validated['owner'] ?? null;
             $paymentMethod->is_active = $request->has('is_active') ? (bool)$request->is_active : $paymentMethod->is_active;
             $paymentMethod->save();
         

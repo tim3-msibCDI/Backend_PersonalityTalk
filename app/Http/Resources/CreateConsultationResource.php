@@ -29,7 +29,9 @@ class CreateConsultationResource extends JsonResource
     
             // Tambahan untuk transaction dan payment
             'transaction' => [
-                'payment_method_name' => $this->payment->name ?? null, 
+                'payment_method_name' => $this->payment->name ?? null,
+                'owner_bank' => $this->payment->owner ?? null,
+                'no_rekening' => $this->payment->no_rek ?? null,
                 'status' => $this->transaction->status ?? null,
                 'no_pemesanan' => $this->transaction->payment_number ?? null,
                 'total_harga' => $this->transaction->consul_fee ?? null,

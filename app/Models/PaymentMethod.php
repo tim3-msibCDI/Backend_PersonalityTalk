@@ -15,6 +15,7 @@ class PaymentMethod extends Model
         'type',
         'bank_code',
         'logo',
+        'owner',
         'no_rek',
         'is_active',
     ];
