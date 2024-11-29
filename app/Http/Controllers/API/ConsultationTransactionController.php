@@ -44,7 +44,7 @@ class ConsultationTransactionController extends BaseController
             }
 
             // Validasi status sebelum approve
-            if ($transaction->status !== 'pending') {
+            if ($transaction->status !== 'pending_confirmation') {
                 return $this->sendError('Transaksi tidak dapat diterima karena sudah diproses sebelumnya.', [], 422);
             }
 
@@ -92,7 +92,7 @@ class ConsultationTransactionController extends BaseController
             }
 
             // Validasi status sebelum disapprove
-            if ($transaction->status !== 'pending') {
+            if ($transaction->status !== 'pending_confirmation') {
                 return $this->sendError('Transaksi tidak dapat ditolak karena sudah diproses sebelumnya.', [], 422);
             }
 

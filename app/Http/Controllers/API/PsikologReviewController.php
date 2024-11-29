@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use Carbon\Carbon;
 use App\Models\Psikolog;
+use App\Models\Consultation;
 use Illuminate\Http\Request;
 use App\Models\PsikologReview;
 use App\Models\PsikologSchedule;
@@ -58,6 +59,7 @@ class PsikologReviewController extends BaseController
      * @return \Illuminate\Http\JsonResponse
      * 
      * @bodyParam psi_id int required ID psikolog yang akan di review. Example: 1
+     * @bodyParam consul_id int required ID konsultasi yang terkait. Example: 10
      * @bodyParam rating int required Rating yang diberikan. Example: 4
      * @bodyParam review string nullable Review yang diberikan. Example: Sangat puas dengan pelayanan psikolog ini.
      */
@@ -65,11 +67,14 @@ class PsikologReviewController extends BaseController
     {
         $validatedData = Validator::make($request->all(), [
             'psi_id' => 'required|exists:psikolog,id', 
+            'consul_id' => 'required|exists:consultations,id', // Validasi konsultasi
             'rating' => 'required|integer|min:1|max:5', // Rating 1-5
             'review' => 'nullable|string',
         ], [
             'psi_id.required' => 'ID psikolog wajib diisi.',
             'psi_id.exists' => 'Psikolog tidak ditemukan.',
+            'consul_id.required' => 'ID konsultasi wajib diisi.',
+            'consul_id.exists' => 'Konsultasi tidak ditemukan.',
             'rating.required' => 'Rating wajib diisi.',
             'rating.integer' => 'Rating yang dikirim harus berupa angka.',
             'rating.min' => 'Rating minimal adalah bintang 1.',
@@ -78,25 +83,41 @@ class PsikologReviewController extends BaseController
 
         if ($validatedData->fails()) {
             return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
-        } 
-
-        $psikolog = Psikolog::find($request->psi_id); 
-        if (!$psikolog) {
-            return $this->sendError('Psikolog tidak ditemukan.', [], 404);
         }
-        
+
+        // Pastikan konsultasi terkait psikolog dan user
+        $consultation = Consultation::where('id', $request->consul_id)
+            ->where('psi_id', $request->psi_id) //pastikan konsultasi milik psikolog
+            ->where('user_id', auth()->id()) // Pastikan konsultasi milik user yang login
+            ->first();
+        if (!$consultation) {
+            return $this->sendError('Konsultasi tidak valid untuk user ini.', [], 422);
+        }
+
+        // Cek apakah sudah ada review untuk konsultasi ini
+        $existingReview = PsikologReview::where('consul_id', $request->consul_id)
+            ->where('user_id', auth()->id())
+            ->first();
+        if ($existingReview) {
+            return $this->sendError('Review untuk konsultasi ini sudah ada.', [], 422);
+        }
+
         try {
+            // Simpan review
             $review = PsikologReview::create([
                 'user_id' => auth()->id(),
                 'psi_id' => $request->psi_id,
+                'consul_id' => $request->consul_id,
                 'rating' => $request->rating,
                 'review' => $request->review,
             ]);
+
             return $this->sendResponse('Review berhasil disimpan.', $review);
 
         } catch (\Exception $e) {
             return $this->sendError('Terjadi kesalahan saat menilai psikolog.', [$e->getMessage()], 500);
         }
-    }      
+    }
+   
 
 }

@@ -13,7 +13,9 @@ class CreateConsultationResource extends JsonResource
         $rating = number_format($this->rating ?? 0, 1);
 
         return [
-            'id_transaction' => $this->transaction->id,     
+            'id_transaction' => $this->transaction->id,
+            'id_consultation' => $this->consultation->id,
+            'psch_id' => $this->selectedSchedule->id, 
             'psikolog_name' => $this->psikolog->user->name,
             'photo_profile' => $this->psikolog->user->photo_profile,
             'category' => $this->psikolog->psikolog_category->category_name,

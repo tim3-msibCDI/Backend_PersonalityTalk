@@ -46,5 +46,10 @@ class Consultation extends Model
         return $this->hasMany(ConsultationTransaction::class, 'consultation_id');
     }
 
+    public function review()
+    {
+        return $this->hasOne(PsikologReview::class, 'consul_id');
+    }
+
 }
  

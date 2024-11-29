@@ -153,6 +153,7 @@ class ActivityHistoryController extends BaseController
                 'transaction' => $transaction,
                 'finalAmount' => $transaction->consul_fee - $transaction->discount_amount,
                 'payment' => $transaction->paymentMethod,
+                'consultation' => $transaction->consultation,
             ]);
 
             // Ubah Resource ke array dengan toArray() sebelum mengirim respons

@@ -452,6 +452,7 @@ class ConsultationController extends BaseController
                 'selectedTopic' => $selectedTopic,
                 'rating' => $rating,
                 'transaction' => $transaction,
+                'consultation' => $consultation,
                 'finalAmount' => $finalAmount,
                 'payment' => $payment,
             ]); 
@@ -508,11 +509,11 @@ class ConsultationController extends BaseController
     {
         // Validasi input
         $validatedData = Validator::make($request->all(), [
-            'consul_transaction_id' => 'required|exists:consul_transactions,id',
+            'id_transaction' => 'required|exists:consul_transactions,id',
             'payment_proof' => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048',
         ], [
-            'consul_transaction_id.required' => 'ID transaksi wajib diisi.',
-            'consul_transaction_id.exists' => 'ID transaksi tidak valid.',
+            'id_transaction.required' => 'ID transaksi wajib diisi.',
+            'id_transaction.exists' => 'ID transaksi tidak valid.',
             'payment_proof.required' => 'Bukti pembayaran wajib diunggah.',
             'payment_proof.mimes' => 'Bukti pembayaran harus berupa file gambar (jpeg, png, jpg) atau PDF.',
             'payment_proof.max' => 'Ukuran file maksimal adalah 2MB.',
@@ -526,7 +527,7 @@ class ConsultationController extends BaseController
             DB::beginTransaction();
 
             // Ambil transaksi berdasarkan ID
-            $transaction = ConsultationTransaction::find($request->consul_transaction_id);
+            $transaction = ConsultationTransaction::with('consultation')->find($request->id_transaction);
             if (!$transaction) {
                 return $this->sendError('Transaksi tidak ditemukan.', [], 404);
             }
@@ -547,7 +548,10 @@ class ConsultationController extends BaseController
             $paymentProofUrl = 'storage/' . $paymentProofPath; 
             $transaction->payment_proof = $paymentProofUrl; 
             $transaction->payment_completed_at = now();
-            $transaction->save();
+
+            // Update status transaksi menjadi pending_confirmation
+            $transaction->status = 'pending_confirmation';
+            $transaction->save(); 
 
             DB::commit();
             return $this->sendResponse('Bukti pembayaran berhasil diunggah.', [

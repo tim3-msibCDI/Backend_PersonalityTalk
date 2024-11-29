@@ -14,6 +14,7 @@ class PsikologReview extends Model
     protected $fillable = [
         'user_id',
         'psi_id',
+        'consul_id',
         'rating',
         'review',
     ];
@@ -26,6 +27,11 @@ class PsikologReview extends Model
     public function user()
     {
         return $this->belongsTo(Topic::class, 'user_id', 'id');
+    }
+
+    public function consultation()
+    {
+        return $this->belongsTo(Consultation::class, 'consul_id', 'id');
     }
     
 }
