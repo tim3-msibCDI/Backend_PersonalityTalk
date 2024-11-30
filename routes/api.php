@@ -202,6 +202,13 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
 
     });
 
+    //Kelola riwayat konsultasi
+    Route::controller(ConsultationController::class)->group(function () {
+        Route::get('/admin/consultation/history', 'consultationHistory');
+        Route::get('/admin/consultation/{consultationId}/rating', 'detailConsultationRating');
+
+    });
+
     // Kelola Transaksi Konsultasi
     Route::controller(ConsultationTransactionController::class)->group(function () {
         Route::get('/admin/consultation/transactions', 'listConsulTransaction'); 

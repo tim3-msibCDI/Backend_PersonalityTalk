@@ -54,7 +54,6 @@ class ConsultationTransactionController extends BaseController
         return $this->sendResponse('List transaksi berhasil diambil.', $paginatedData);
     }
 
-
     /**
      * Approve Payment Proof
      * 
