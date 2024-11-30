@@ -121,6 +121,14 @@ Route::middleware(['auth:sanctum', 'role:P'])->group(function () {
     });
 });
 
+/*
+ * Bisa diakses oleh Psikolog dan User Biasa
+ *
+ */
+Route::middleware(['auth:sanctum', 'role:P,U,M'])->group(function () {
+    
+}); 
+
 /**
  * Bisa diakses oleh Admin 
  */

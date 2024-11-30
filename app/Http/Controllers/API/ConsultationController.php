@@ -510,13 +510,17 @@ class ConsultationController extends BaseController
         // Validasi input
         $validatedData = Validator::make($request->all(), [
             'id_transaction' => 'required|exists:consul_transactions,id',
-            'payment_proof' => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048',
+            'payment_proof' => 'required|file|mimes:jpeg,png,jpg|max:2048',
+            'sender_name' => 'required|string',
+            'sender_bank' => 'required|string',
         ], [
             'id_transaction.required' => 'ID transaksi wajib diisi.',
             'id_transaction.exists' => 'ID transaksi tidak valid.',
             'payment_proof.required' => 'Bukti pembayaran wajib diunggah.',
-            'payment_proof.mimes' => 'Bukti pembayaran harus berupa file gambar (jpeg, png, jpg) atau PDF.',
+            'payment_proof.mimes' => 'Bukti pembayaran harus berupa file gambar (jpeg, png, jpg).',
             'payment_proof.max' => 'Ukuran file maksimal adalah 2MB.',
+            'sender_name.required' => 'Nama pengirim wajib diisi.',
+            'sender_bank.required' => 'Bank pengirim wajib diisi.',
         ]);
 
         if ($validatedData->fails()) {
@@ -548,6 +552,8 @@ class ConsultationController extends BaseController
             $paymentProofUrl = 'storage/' . $paymentProofPath; 
             $transaction->payment_proof = $paymentProofUrl; 
             $transaction->payment_completed_at = now();
+            $transaction->sender_name = $request->sender_name;
+            $transaction->sender_bank = $request->sender_bank;
 
             // Update status transaksi menjadi pending_confirmation
             $transaction->status = 'pending_confirmation';
