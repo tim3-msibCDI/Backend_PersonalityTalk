@@ -28,14 +28,21 @@ use App\Http\Controllers\API\PsikologScheduleController;
 use App\Http\Controllers\API\ConsultationTransactionController;
 
 /**
- * Authentication
+ * Authentication biasa
  */
 Route::controller(AuthController::class)->group(function () {
     Route::post('/user/register', 'registerUser')->name('register.save');
     Route::post('/user/login', 'userloginAction')->name('user.login');
-    // Route::get('/auth/google', 'redirectToGoogle')->name('auth.google.redirect');
-    // Route::get('/auth/google/callback', 'handleGoogleCallback')->name('auth.google.callback');
 });
+
+// Handle login dengan google
+Route::middleware('web')->group(function () {
+    Route::controller(AuthController::class)->group(function () {
+        Route::get('/oauth/google', 'redirectToGoogle')->name('auth.google.redirect');
+        Route::get('/oauth/google/callback', 'handleGoogleCallback')->name('auth.google.callback');
+    });
+});
+
 Route::controller(PsikologController::class)->group(function () {
     Route::post('/psikolog/register', 'psikologRegister')->name('psikolog.register'); 
 });

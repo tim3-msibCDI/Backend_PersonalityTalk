@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
@@ -199,20 +200,34 @@ class AuthController extends BaseController
         return $this->sendResponse('Anda berhasil logout sebagai User.');
     }
 
-
-    // Redirect ke Google
+    /**
+     * Redirect to Google for authentication
+     * 
+     * Fungsi ini digunakan untuk mengarahkan pengguna ke halaman Google untuk melakukan autentikasi.
+     * Pengguna akan diarahkan ke halaman Google untuk memasukkan akun dan kata sandi.
+     * Jika pengguna berhasil melakukan autentikasi, maka akan diarahkan kembali ke aplikasi dengan token akses.
+     * 
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function redirectToGoogle()
     {
         return Socialite::driver('google')->redirect();
     }
+    /**
+     * Handle Google Callback Login/Registration
+     * 
+     * Fungsi ini digunakan untuk menghandle callback dari Google setelah pengguna melakukan login/registrasi menggunakan akun Google.
+     * Jika pengguna sudah ada di database, maka akan dilakukan login. Jika belum, maka akan dibuat akun baru.
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
 
-    // Menangani callback dari Google
     public function handleGoogleCallback()
     {
         try {
-            $googleUser = Socialite::driver('google')->stateless()->users();
+            $googleUser = Socialite::driver('google')->stateless()->user();
             $user = User::where('email', $googleUser->getEmail())->first();
-
+    
             if ($user) {
                 Auth::login($user);
             } else {
@@ -220,20 +235,32 @@ class AuthController extends BaseController
                 $user = User::create([
                     'name' => $googleUser->getName(),
                     'email' => $googleUser->getEmail(),
-                    'google_id' => $googleUser->getId(),
-                    'password' => bcrypt('password_default'),
+                    'social_id' => $googleUser->getId(),
+                    'photo_profile' => $googleUser->getAvatar(),
+                    'date_birth' => Carbon::now()->format('Y-m-d'),
+                    'gender' => 'M',
+                    'password' => Hash::make('password'), 
+                    'role' => 'U',
+                    'social_type' => 'google',
                 ]);
                 Auth::login($user);
             }
-            $token = $user->createToken('auth_user_token')->plainTextToken;
-
-            return redirect()->to('http://localhost:3000/auth/callback?token=' . $token);
+    
+            // Generate token
+            $token = $user->createToken('auth_user_token')->plainTextToken;           
+            $redirectUrl = config('app.frontend_url') . '/oauth/google/callback'; // Sesuaikan dengan URL Next.js Anda
+            $queryParams = http_build_query([
+                'name' => $user->name,
+                'role' => $user->role,
+                'token' => $token,
+            ]);
+    
+            return redirect($redirectUrl . '?' . $queryParams);
+    
         } catch (\Exception $e) {
-            return redirect('/login');
+            return $this->sendError('Terjadi kesalahan saat mendaftarkan pengguna: ', [$e->getMessage()], 500);
         }
     }
-
-    
 
 
 }
