@@ -83,6 +83,7 @@ Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
         Route::post('/consultation/create-transaction', 'createConsultationAndTransaction');
         Route::post('/consultation/submit-complaint', 'submitComplaint');
         Route::post('/consultation/upload-payment-proof', 'uploadPaymentProof');
+        Route::get('/consultation/detail-complaint/{consultationId}', 'detailComplaint');
     });
 
     // Psikolog Review

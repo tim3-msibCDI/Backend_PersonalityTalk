@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController;
 use App\Http\Resources\CreateConsultationResource;
 use App\Http\Resources\PreviewConsultationResource;
+use Illuminate\Support\Facades\Auth;
 
 class ConsultationController extends BaseController
 {
@@ -498,6 +499,29 @@ class ConsultationController extends BaseController
         $consultation->patient_complaint = $request->patient_complaint;
         $consultation->save();   
         return $this->sendResponse('Keluhan berhasil dikirim.', $consultation);
+    }
+
+    /**
+     * Detail Complaint
+     *
+     * Menampilkan detail keluhan dari konsultasi yang dibuat pengguna.
+     * Hanya pengguna yang memiliki akses untuk melihat keluhan ini.
+     * 
+     * @param int $consultationId ID konsultasi yang dibuat
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function detailComplaint($consultationId){
+        $consultation = Consultation::find($consultationId);
+        $user = Auth::user();
+
+        if (!$consultation) {
+            return $this->sendError('Konsultasi tidak ditemukan.', [], 404);
+        }
+        if ($user->id !== $consultation->user_id) {
+            return $this->sendError('Anda tidak memiliki akses untuk melihat keluhan ini.', [], 403);
+        }
+        $complaint = $consultation->patient_complaint;
+        return $this->sendResponse('Detail keluhan berhasil didapatkan.', $complaint);
     }
 
     /**
