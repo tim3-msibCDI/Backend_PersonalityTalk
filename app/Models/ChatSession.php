@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ChatSession extends Model
 {
+    protected $table = 'chat_sessions';
+
     protected $fillable = [
         'user_id', 
         'psi_id', 
@@ -16,15 +18,15 @@ class ChatSession extends Model
     ];
 
     public function messages() {
-        return $this->hasMany(Message::class);
+        return $this->hasMany(Message::class, 'chat_session_id');
     }
 
     public function user() {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
     public function psikolog() {
-        return $this->belongsTo(User::class, 'psi_id');
+        return $this->belongsTo(User::class, 'psi_id', 'id');
     }
 }
 

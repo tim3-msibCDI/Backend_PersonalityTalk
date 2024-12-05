@@ -11,13 +11,14 @@ class NotificationService
      */
     public function sendWhatsAppMessage($target, $message)
     {
-        $token = env('FONNTE_TOKEN');
+        $token = config('app.fonnte_token');
 
         $response = Http::withHeaders([
             'Authorization' => $token,
         ])->post('https://api.fonnte.com/send', [
             'target' => $target,
-            'message' => $message
+            'message' => $message,
+            'countryCode' => '62',
         ]);
     
         return $response->body();
