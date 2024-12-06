@@ -126,6 +126,7 @@ Route::middleware(['auth:sanctum', 'role:P'])->group(function () {
     Route::controller(PsikologScheduleController::class)->group(function () {
         Route::get('/psikolog/schedule/main-schedules', 'getMainSchedules');
         Route::get('/psikolog/schedule/selected-by-date', 'getSchedulesByDate');
+        Route::get('/psikolog/schedule/existing-schedules', 'getExistingSchedules');
         Route::post('/psikolog/schedule/generate', 'generatePsikologSchedule');
         Route::get('/psikolog/schedule/update', 'bulkUpdatePsikologSchedule');
     });
