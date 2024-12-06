@@ -404,5 +404,5 @@ class PsikologScheduleController extends BaseController
         }
     }
 
-
+    
 }

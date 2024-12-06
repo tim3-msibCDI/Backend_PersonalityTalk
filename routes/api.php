@@ -42,16 +42,16 @@ Route::get('/psikolog/topics', [ConsultationController::class, 'getPsikologTopic
 // Handle login dengan google
 Route::middleware('web')->group(function () {
     Route::controller(AuthController::class)->group(function () {
-        Route::get('/oauth/google', 'redirectToGoogle')->name('auth.google.redirect');
-        Route::get('/oauth/google/callback', 'handleGoogleCallback')->name('auth.google.callback');
+        Route::get('/oauth/google', 'redirectToGoogle');
+        Route::get('/oauth/google/callback', 'handleGoogleCallback');
     });
 });
 
 Route::controller(PsikologController::class)->group(function () {
-    Route::post('/psikolog/register', 'psikologRegister')->name('psikolog.register'); 
+    Route::post('/psikolog/register', 'psikologRegister'); 
 });
 Route::controller(AdminAuthController::class)->group(function () {
-    Route::post('/admin/login', 'loginAdmin')->name('admin.login');
+    Route::post('/admin/login', 'loginAdmin');
 });
 Route::controller(ForgotPasswordController::class)->group(function () {
     Route::post('/password/reset/request', 'requestReset');
@@ -60,7 +60,7 @@ Route::controller(ForgotPasswordController::class)->group(function () {
 });
 
 Route::middleware(['auth:sanctum', 'role:M,U,P'])->group(function () {
-    Route::post('/user/logout', [AuthController::class, 'logoutAction'])->name('user.logout');
+    Route::post('/user/logout', [AuthController::class, 'logoutAction']);
 
     // User Profile 
     Route::controller(UserProfileController::class)->group(function(){
@@ -206,11 +206,11 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
 
     // Kelola Topik Konsultasi
     Route::controller(ConsulTopicController::class)->group(function () {
-        Route::get('/admin/topics', 'index')->name('topics.index'); 
-        Route::get('/admin/topics/{id}', 'show')->name('topics.show'); 
-        Route::post('/admin/topics', 'store')->name('topics.store'); 
-        Route::put('/admin/topics/{id}', 'update')->name('topics.update'); 
-        Route::delete('/admin/topics/{id}','destroy')->name('topics.destroy'); 
+        Route::get('/admin/topics', 'index'); 
+        Route::get('/admin/topics/{id}', 'show'); 
+        Route::post('/admin/topics', 'store'); 
+        Route::put('/admin/topics/{id}', 'update'); 
+        Route::delete('/admin/topics/{id}','destroy'); 
     });
 
     // Kelola Jadwal Konsultasi
@@ -244,20 +244,20 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
 
     // Kelola Artikel
     Route::controller(ArticleController::class)->group(function () {
-        Route::get('/admin/articles', 'listAdminArticle')->name('articles.index'); 
-        Route::get('/admin/articles/{id}', 'show')->name('articles.show'); 
-        Route::post('/admin/articles', 'store')->name('articles.store'); 
-        Route::post('/admin/articles/{id}', 'update')->name('articles.update'); 
-        Route::delete('/admin/articles/{id}','destroy')->name('articles.destroy'); 
+        Route::get('/admin/articles', 'listAdminArticle'); 
+        Route::get('/admin/articles/{id}', 'show'); 
+        Route::post('/admin/articles', 'store'); 
+        Route::post('/admin/articles/{id}', 'update'); 
+        Route::delete('/admin/articles/{id}','destroy'); 
     });
 
     // Kelola Informasi Kesehatan Mental
     Route::controller(DiseaseController::class)->group(function () {
-        Route::get('/admin/diseases', 'listAdminDisease')->name('diseases.index'); 
-        Route::get('/admin/diseases/{id}', 'show')->name('diseases.show'); 
-        Route::post('/admin/diseases', 'store')->name('diseases.store'); 
-        Route::post('/admin/diseases/{id}', 'update')->name('diseases.update'); 
-        Route::delete('/admin/diseases/{id}','destroy')->name('diseases.destroy'); 
+        Route::get('/admin/diseases', 'listAdminDisease'); 
+        Route::get('/admin/diseases/{id}', 'show'); 
+        Route::post('/admin/diseases', 'store'); 
+        Route::post('/admin/diseases/{id}', 'update'); 
+        Route::delete('/admin/diseases/{id}','destroy'); 
     }); 
 
     // Kelola Voucher
@@ -288,18 +288,18 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
 
     // Kelola Psikolog Price
     Route::controller(PsikologPriceController::class)->group(function () {
-        Route::get('/admin/psikolog-price', 'index')->name('psikolog.price.index'); 
-        Route::get('/admin/psikolog-price/{id}', 'show')->name('psikolog.price.show'); 
-        Route::post('/admin/psikolog-price', 'store')->name('psikolog.price.store'); 
-        Route::put('/admin/psikolog-price/{id}', 'update')->name('psikolog.price.update'); 
-        Route::delete('/admin/psikolog-price/{id}','destroy')->name('psikolog.price.destroy'); 
+        Route::get('/admin/psikolog-price', 'index'); 
+        Route::get('/admin/psikolog-price/{id}', 'show'); 
+        Route::post('/admin/psikolog-price', 'store'); 
+        Route::put('/admin/psikolog-price/{id}', 'update'); 
+        Route::delete('/admin/psikolog-price/{id}','destroy'); 
     });
     Route::controller(PsikologCategoryController::class)->group(function () {
-        Route::get('/admin/piskolog/categories', 'index')->name('psikolog.categories.index'); 
-        Route::get('/admin/piskolog/categories/{id}', 'show')->name('psikolog.categories.show'); 
-        Route::post('/admin/piskolog/categories', 'store')->name('psikolog.categories.store'); 
-        Route::put('/admin/piskolog/categories/{id}', 'update')->name('psikolog.categories.update'); 
-        Route::delete('/admin/piskolog/categories/{id}','destroy')->name('psikolog.categories.destroy'); 
+        Route::get('/admin/piskolog/categories', 'index'); 
+        Route::get('/admin/piskolog/categories/{id}', 'show'); 
+        Route::post('/admin/piskolog/categories', 'store'); 
+        Route::put('/admin/piskolog/categories/{id}', 'update'); 
+        Route::delete('/admin/piskolog/categories/{id}','destroy'); 
     });
     
 });
@@ -315,8 +315,8 @@ Route::controller(ArticleController::class)->group(function () {
 });
 
 Route::controller(DiseaseController::class)->group(function () {
-    Route::get('/diseases', 'listUserDisease')->name('user.diseases.index'); 
-    Route::get('/diseases/{id}', 'showDiseaseDetail')->name('user.diseases.show');
+    Route::get('/diseases', 'listUserDisease'); 
+    Route::get('/diseases/{id}', 'showDiseaseDetail');
 });
 
 
