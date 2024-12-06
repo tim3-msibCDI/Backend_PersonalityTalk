@@ -21,6 +21,11 @@ class ManageUserController extends BaseController
 {   
     protected $notificationService;
 
+    /**
+     * ManageUserController constructor.
+     *
+     * @param NotificationService $notificationService
+     */
     public function __construct(NotificationService $notificationService)
     {
         $this->notificationService = $notificationService;

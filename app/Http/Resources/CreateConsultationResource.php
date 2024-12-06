@@ -15,7 +15,8 @@ class CreateConsultationResource extends JsonResource
         return [
             'id_transaction' => $this->transaction->id,
             'id_consultation' => $this->consultation->id,
-            'psch_id' => $this->selectedSchedule->id, 
+            // 'psch_id' => $this->selectedSchedule->id, 
+            'psi_id' => $this->psikolog->id,
             'psikolog_name' => $this->psikolog->user->name,
             'photo_profile' => $this->psikolog->user->photo_profile,
             'category' => $this->psikolog->psikolog_category->category_name,
@@ -26,6 +27,7 @@ class CreateConsultationResource extends JsonResource
             'consultation_date' => Carbon::parse($this->selectedSchedule->date)->translatedFormat('l, j F'),
             'consultation_time' => Carbon::parse($this->selectedSchedule->mainSchedule->start_hour)->format('H:i') . ' - ' .
                 Carbon::parse($this->selectedSchedule->mainSchedule->end_hour)->format('H:i'),
+            'patient_complaint' => $this->consultation->patient_complaint ?? null,
     
             // Tambahan untuk transaction dan payment
             'transaction' => [

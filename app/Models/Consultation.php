@@ -51,5 +51,10 @@ class Consultation extends Model
         return $this->hasOne(PsikologReview::class, 'consul_id');
     }
 
+    public function chatSession()
+    {
+        return $this->HasOne(ChatSession::class, 'consultation_id');
+    }
+
 }
  

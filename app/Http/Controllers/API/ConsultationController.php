@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use App\Models\Consultation;
 use Illuminate\Http\Request;
 use App\Models\PaymentMethod;
+use App\Models\PsikologReview;
 use App\Models\PsikologCategory;
 use App\Models\PsikologSchedule;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController;
 use App\Http\Resources\CreateConsultationResource;
 use App\Http\Resources\PreviewConsultationResource;
+use Illuminate\Support\Facades\Auth;
 
 class ConsultationController extends BaseController
 {
@@ -500,6 +502,29 @@ class ConsultationController extends BaseController
     }
 
     /**
+     * Detail Complaint
+     *
+     * Menampilkan detail keluhan dari konsultasi yang dibuat pengguna.
+     * Hanya pengguna yang memiliki akses untuk melihat keluhan ini.
+     * 
+     * @param int $consultationId ID konsultasi yang dibuat
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function detailComplaint($consultationId){
+        $consultation = Consultation::find($consultationId);
+        $user = Auth::user();
+
+        if (!$consultation) {
+            return $this->sendError('Konsultasi tidak ditemukan.', [], 404);
+        }
+        if ($user->id !== $consultation->user_id) {
+            return $this->sendError('Anda tidak memiliki akses untuk melihat keluhan ini.', [], 403);
+        }
+        $complaint = $consultation->patient_complaint;
+        return $this->sendResponse('Detail keluhan berhasil didapatkan.', $complaint);
+    }
+
+    /**
      * Upload consultation payment proof photo
      *
      * @param  \Illuminate\Http\Request $request
@@ -510,13 +535,17 @@ class ConsultationController extends BaseController
         // Validasi input
         $validatedData = Validator::make($request->all(), [
             'id_transaction' => 'required|exists:consul_transactions,id',
-            'payment_proof' => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048',
+            'payment_proof' => 'required|file|mimes:jpeg,png,jpg|max:2048',
+            'sender_name' => 'required|string',
+            'sender_bank' => 'required|string',
         ], [
             'id_transaction.required' => 'ID transaksi wajib diisi.',
             'id_transaction.exists' => 'ID transaksi tidak valid.',
             'payment_proof.required' => 'Bukti pembayaran wajib diunggah.',
-            'payment_proof.mimes' => 'Bukti pembayaran harus berupa file gambar (jpeg, png, jpg) atau PDF.',
+            'payment_proof.mimes' => 'Bukti pembayaran harus berupa file gambar (jpeg, png, jpg).',
             'payment_proof.max' => 'Ukuran file maksimal adalah 2MB.',
+            'sender_name.required' => 'Nama pengirim wajib diisi.',
+            'sender_bank.required' => 'Bank pengirim wajib diisi.',
         ]);
 
         if ($validatedData->fails()) {
@@ -548,6 +577,8 @@ class ConsultationController extends BaseController
             $paymentProofUrl = 'storage/' . $paymentProofPath; 
             $transaction->payment_proof = $paymentProofUrl; 
             $transaction->payment_completed_at = now();
+            $transaction->sender_name = $request->sender_name;
+            $transaction->sender_bank = $request->sender_bank;
 
             // Update status transaksi menjadi pending_confirmation
             $transaction->status = 'pending_confirmation';
@@ -563,6 +594,74 @@ class ConsultationController extends BaseController
             DB::rollback();
             return $this->sendError('Terjadi kesalahan saat mengunggah bukti pembayaran.', [$e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Menampilkan riwayat konsultasi yang telah selesai, sedang berlangsung, atau telah dijadwalkan.
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function consultationHistory()
+    {
+        $consultations = Consultation::with([
+            'psikologSchedule.mainSchedule', 
+            'user', 
+            'psikolog.user'
+        ])
+        ->whereIn('consul_status', ['completed', 'ongoing', 'scheduled']) 
+        ->paginate(10);
+        
+        $consultations->getCollection()->transform(function ($consultation) {
+            return [
+                'consul_id' => $consultation->id,
+                'psch_id' => $consultation->psikologSchedule->id,
+                'psi_id' => $consultation->psikolog->id,
+                'date' => Carbon::parse($consultation->psikologSchedule->date)->format('d F Y') ?? null, // Mengambil tanggal dari psikolog_schedule$consultation->psikologSchedule->date ?? null,
+                'start_hour' => $consultation->psikologSchedule->mainSchedule->start_hour ?? null,
+                'end_hour' => $consultation->psikologSchedule->mainSchedule->end_hour ?? null,
+                'client' => $consultation->user->name ?? null,
+                'psikolog_name' => $consultation->psikolog->user->name ?? null,
+                'status' => $consultation->consul_status,
+            ];
+        });
+
+        return $this->sendResponse('Riwayat konsultasi berhasil diambil.', $consultations);
+    }
+
+    /**
+     * Detail rating konsultasi berdasarkan ID konsultasi
+     * 
+     * @param int $consultationId ID konsultasi
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function detailConsultationRating(Request $request, $consultationId)
+    {
+        $validatedData = Validator::make($request->all(),[
+            'psch_id' => 'required|exists:psikolog_schedules,id', 
+        ],[
+            'psch_id.required' => 'Jadwal konsultasi harus dipilih.',
+            'psch_id.exists' => 'Jadwal konsultasi yang dipilih tidak valid.',
+        ]);
+
+        if ($validatedData->fails()) {
+            return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
+        }
+ 
+        $selectedSchedule = PsikologSchedule::with(['mainSchedule', 'psikolog'])
+            ->where('id', $request->psch_id)
+            ->first(); 
+            
+        $review = PsikologReview::where('consul_id', $consultationId)->first();
+     
+        return $this->sendResponse('Detail rating konsultasi berhasil diambil.', [
+            'rating' => $review->rating ?? null,
+            'review' => $review->review ?? null,    
+            'name' => $selectedSchedule->psikolog->user->name,
+            'photo_profile' => $selectedSchedule->psikolog->user->photo_profile,
+            'consultation_date' => Carbon::parse($selectedSchedule->date)->translatedFormat('d M Y'),
+            'consultation_time' => Carbon::parse($selectedSchedule->mainSchedule->start_hour)->format('H:i') . ' - ' . 
+                Carbon::parse($selectedSchedule->mainSchedule->end_hour)->format('H:i')
+        ]);
     }
 
    

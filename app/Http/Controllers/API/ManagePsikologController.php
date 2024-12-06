@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Psikolog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController;

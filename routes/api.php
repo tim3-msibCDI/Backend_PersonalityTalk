@@ -1,9 +1,12 @@
 <?php
 
 use App\Models\Article;
+use App\Events\MessageSent;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\ChatController;
 use App\Http\Controllers\API\MitraController;
 use App\Http\Controllers\API\ArticleController;
 use App\Http\Controllers\API\DiseaseController;
@@ -28,14 +31,22 @@ use App\Http\Controllers\API\PsikologScheduleController;
 use App\Http\Controllers\API\ConsultationTransactionController;
 
 /**
- * Authentication
+ * Authentication biasa
  */
 Route::controller(AuthController::class)->group(function () {
     Route::post('/user/register', 'registerUser')->name('register.save');
     Route::post('/user/login', 'userloginAction')->name('user.login');
-    // Route::get('/auth/google', 'redirectToGoogle')->name('auth.google.redirect');
-    // Route::get('/auth/google/callback', 'handleGoogleCallback')->name('auth.google.callback');
 });
+Route::get('/psikolog/topics', [ConsultationController::class, 'getPsikologTopics']);
+
+// Handle login dengan google
+Route::middleware('web')->group(function () {
+    Route::controller(AuthController::class)->group(function () {
+        Route::get('/oauth/google', 'redirectToGoogle')->name('auth.google.redirect');
+        Route::get('/oauth/google/callback', 'handleGoogleCallback')->name('auth.google.callback');
+    });
+});
+
 Route::controller(PsikologController::class)->group(function () {
     Route::post('/psikolog/register', 'psikologRegister')->name('psikolog.register'); 
 });
@@ -76,6 +87,7 @@ Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
         Route::post('/consultation/create-transaction', 'createConsultationAndTransaction');
         Route::post('/consultation/submit-complaint', 'submitComplaint');
         Route::post('/consultation/upload-payment-proof', 'uploadPaymentProof');
+        Route::get('/consultation/detail-complaint/{consultationId}', 'detailComplaint');
     });
 
     // Psikolog Review
@@ -116,10 +128,24 @@ Route::middleware(['auth:sanctum', 'role:P'])->group(function () {
         Route::get('/psikolog/schedule/selected-by-date', 'getSchedulesByDate');
         Route::post('/psikolog/schedule/generate', 'generatePsikologSchedule');
         Route::get('/psikolog/schedule/update', 'bulkUpdatePsikologSchedule');
+    });
 
-
+    Route::controller(PsikologController::class)->group(function () {
+        Route::get('/psikolog/consultations', 'listChatConsultation');
+        Route::get('/psikolog/consultations/complaint/{consulId}', 'detailComplaintUser');
     });
 });
+
+/*
+ * Bisa diakses oleh Psikolog dan User Biasa
+ *
+ */
+Route::middleware(['auth:sanctum', 'role:P,U,M'])->group(function () {
+    Route::controller(ChatController::class)->group(function () {
+        Route::post('/chat/send', 'sendMessage');
+        Route::get('/chat/{chatSessionId}/messages','getMessages');
+    });
+}); 
 
 /**
  * Bisa diakses oleh Admin 
@@ -191,6 +217,13 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::get('/admin/consul-schedules/psikolog', 'listPsikolog');
         Route::get('/admin/consul-schedules/psikolog/{psikologId}', 'detailPsikologSchedule');
         Route::put('/admin/consul-schedules/{scheduleId}/update-availability', 'updateAvailability');
+
+    });
+
+    //Kelola riwayat konsultasi
+    Route::controller(ConsultationController::class)->group(function () {
+        Route::get('/admin/consultation/history', 'consultationHistory');
+        Route::get('/admin/consultation/{consultationId}/rating', 'detailConsultationRating');
 
     });
 
@@ -285,4 +318,47 @@ Route::controller(DiseaseController::class)->group(function () {
     Route::get('/diseases/{id}', 'showDiseaseDetail')->name('user.diseases.show');
 });
 
+
+Route::get('/test-broadcast', function () {
+    $testMessage = (object)[
+        'chat_session_id' => 1, // Sesuaikan dengan ID yang valid di database
+        'sender_id' => 12,       // ID user pengirim
+        'receiver_id' => 15,     // ID user penerima
+        'message' => 'Test Message Content'
+    ];
+
+    broadcast(new MessageSent($testMessage))->toOthers();
+
+    return response()->json(['message' => 'Broadcast fired!']);
+});
+
+
+Route::post('/sendWa', function () {
+    $message = "Halloooooo"; // Pesan yang ingin dikirim
+    $target = "082146130950"; // Nomor tujuan
+    
+    // Kirim request ke API Fonnte
+    $response = Http::withHeaders([
+        'Authorization' => 'Q8Bn@z672dxp-21!euzp', // Ganti dengan token Anda
+    ])->post('https://api.fonnte.com/send', [
+        'target' => $target,
+        'message' => $message,
+        'countryCode' => '62', // Opsional, default 62 (Indonesia)
+    ]);
+
+    // Periksa respons dari API
+    if ($response->successful()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Pesan berhasil dikirim.',
+            'data' => $response->json(),
+        ]);
+    }
+
+    return response()->json([
+        'success' => false,
+        'message' => 'Gagal mengirim pesan.',
+        'error' => $response->json(),
+    ], $response->status());
+});
 
