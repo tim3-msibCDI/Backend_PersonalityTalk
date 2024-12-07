@@ -44,6 +44,70 @@ class PsikologScheduleController extends BaseController
     }
 
     /**
+     * Get Existing Psikolog Schedule
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getExistingSchedules(Request $request)
+    {
+        $user = Auth::user();
+        $psikologId = $user->psikolog->id;
+
+        $validatedData = Validator::make($request->all(), [
+            'month' => 'required|integer|between:1,12',
+            'year' => 'required|integer|min:2024|max:2100',
+        ], [
+            'month.required' => 'Bulan wajib dipilih.',
+            'year.required' => 'Tahun wajib dipilih.',
+        ]);
+
+        if ($validatedData->fails()) {
+            return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
+        }
+
+        $month = $request->month;
+        $year = $request->year;
+
+        try {
+            // Ambil semua jadwal berdasarkan psikolog_id, bulan, dan tahun
+            $existingSchedules = PsikologSchedule::with('mainSchedule')
+                ->where('psikolog_id', $psikologId)
+                ->whereMonth('date', $month)
+                ->whereYear('date', $year)
+                ->get();
+
+            // Kelompokkan jadwal berdasarkan hari
+            $groupedSchedules = $existingSchedules->groupBy(function ($schedule) {
+                return Carbon::parse($schedule->date)->format('l'); // Nama hari
+            });
+
+            // Format data untuk dikembalikan ke frontend
+            $formattedSchedules = [];
+            foreach ($groupedSchedules as $day => $schedules) {
+                $mainScheduleIds = $schedules->pluck('msch_id')->toArray();
+                $formattedSchedules[] = [
+                    'day' => $day,
+                    'main_schedule_ids' => array_values(array_unique($mainScheduleIds)), // Hilangkan duplikasi
+                ];
+            }
+
+            return $this->sendResponse(
+                'Jadwal berhasil diambil.',
+                [
+                    'schedules' => $formattedSchedules,
+                    'month' => $month,
+                    'year' => $year,
+                ]
+            );
+
+        } catch (\Exception $e) {
+            return $this->sendError('Terjadi kesalahan saat mengambil jadwal.', [$e->getMessage()], 500);
+        }
+    }
+
+
+    /**
      * Gemerate Psikolog Schedule
      *
      * @param  \Illuminate\Http\Request $request
@@ -340,5 +404,5 @@ class PsikologScheduleController extends BaseController
         }
     }
 
-
+    
 }

@@ -17,6 +17,8 @@ class Psikolog extends Model
         'psikolog_price_id',
         'description',
         'sipp',
+        'bank_id',
+        'account_number',
         'practice_start_date',
         'status',
         'is_active',

@@ -609,6 +609,7 @@ class ConsultationController extends BaseController
             'psikolog.user'
         ])
         ->whereIn('consul_status', ['completed', 'ongoing', 'scheduled']) 
+        ->orderBy('created_at', 'desc')
         ->paginate(10);
         
         $consultations->getCollection()->transform(function ($consultation) {
