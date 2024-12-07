@@ -124,6 +124,16 @@ class VoucherController extends BaseController
         return $this->sendResponse('Voucher '. $code .' berhasil diperbarui.', $voucher);
     }
 
+    public function updateStatusVoucher($id){
+        $voucher = Voucher::find($id);
+        if (!$voucher) {
+            return $this->sendError('Voucher tidak ditemukan', [] , 404);
+        }
+        $voucher->update(['is_active' => !$voucher->is_active]);
+        $code = $voucher->code;
+        return $this->sendResponse('Status voucher '. $code .' berhasil diperbarui.', $voucher);
+    }
+
     /**
      * Delete Voucher
      *

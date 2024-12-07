@@ -25,7 +25,9 @@ class ConsultationTransaction extends Model
         'payment_gateway_response',
         'payment_expiration',
         'payment_completed_at',
-        'failure_reason'
+        'failure_reason',
+        'commission_transfer_status',
+        'commission_transfer_proof',
     ];
 
     public function user()

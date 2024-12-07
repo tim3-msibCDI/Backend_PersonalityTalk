@@ -128,7 +128,7 @@ Route::middleware(['auth:sanctum', 'role:P'])->group(function () {
         Route::get('/psikolog/schedule/selected-by-date', 'getSchedulesByDate');
         Route::get('/psikolog/schedule/existing-schedules', 'getExistingSchedules');
         Route::post('/psikolog/schedule/generate', 'generatePsikologSchedule');
-        Route::get('/psikolog/schedule/update', 'bulkUpdatePsikologSchedule');
+        Route::post('/psikolog/schedule/update', 'bulkUpdatePsikologSchedule');
     });
 
     Route::controller(PsikologController::class)->group(function () {
@@ -231,8 +231,13 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
     // Kelola Transaksi Konsultasi
     Route::controller(ConsultationTransactionController::class)->group(function () {
         Route::get('/admin/consultation/transactions', 'listConsulTransaction'); 
+        Route::get('/admin/consultation/transactions/payment-proof/{transactionId}', 'detailPaymentProof'); 
         Route::post('/admin/consultation/transactions/approve/{transactionId}', 'approvePaymentProof'); 
         Route::post('/admin/consultation/transactions/reject/{transactionId}', 'rejectPaymentProof');
+
+        Route::get('/admin/consultation/psikolog_commission', 'listPsikologCommission');
+        Route::get('/admin/consultation/psikolog_commission/{transactionId}', 'getDetailPsikologCommission');
+        Route::post('/admin/consultation/psikolog_commission/{transactionId}/transfer-commission', 'transferCommission');
     });
 
     // Kelola Kategori Artikel
@@ -266,6 +271,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::get('/admin/vouchers/{id}', 'show'); 
         Route::post('/admin/vouchers', 'store'); 
         Route::post('/admin/vouchers/{id}', 'update'); 
+        Route::post('/admin/vouchers/{id}/status', 'updateStatusVoucher'); 
         Route::delete('/admin/vouchers/{id}','destroy'); 
     });
 

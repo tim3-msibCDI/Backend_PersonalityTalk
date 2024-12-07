@@ -58,6 +58,7 @@ class ManageUserController extends BaseController
     public function listUserUmum(){
         $users = User::where('role', 'U')
             ->select('id', 'name', 'phone_number', 'date_birth', 'gender', 'photo_profile')
+            ->orderBy('created_at', 'desc')
             ->paginate(10);
         return $this->sendResponse('List untuk pengguna umum berhasil diambil.', $users);
     }
@@ -243,6 +244,7 @@ class ManageUserController extends BaseController
         $users = User::where('role', 'M')
             ->with(['mahasiswa:id,user_id,universitas,jurusan']) 
             ->select('id', 'name', 'phone_number', 'photo_profile')
+            ->orderBy('created_at', 'desc')
             ->paginate(10);
         return $this->sendResponse('List untuk pengguna mahasiswa berhasil diambil.', $users);
     }
@@ -460,6 +462,7 @@ class ManageUserController extends BaseController
                 'psikolog.psikolog_topic.topic', 
                 'psikolog.psikolog_category'
             ])
+            ->orderBy('created_at', 'desc')
             ->paginate(10);
 
         // Format data dengan map
