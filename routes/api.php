@@ -128,12 +128,20 @@ Route::middleware(['auth:sanctum', 'role:P'])->group(function () {
         Route::get('/psikolog/schedule/selected-by-date', 'getSchedulesByDate');
         Route::get('/psikolog/schedule/existing-schedules', 'getExistingSchedules');
         Route::post('/psikolog/schedule/generate', 'generatePsikologSchedule');
+        Route::post('/psikolog/schedule/generatev2', 'generatePsikologScheduleV2');
         Route::post('/psikolog/schedule/update', 'bulkUpdatePsikologSchedule');
     });
 
     Route::controller(PsikologController::class)->group(function () {
+        //Manage Psikolog Chat
         Route::get('/psikolog/consultations', 'listChatConsultation');
         Route::get('/psikolog/consultations/complaint/{consulId}', 'detailComplaintUser');
+
+        // Manage Psikolog Transactions
+        Route::get('/psikolog/transactions', 'listPsikologTransaction');
+        Route::get('/psikolog/transactions/commission/{transactionId}', 'getPsikologCommissionProof');
+        Route::post('/psikolog/transactions/{transactionId}/approve-commission', 'approveCommission');
+        Route::post('/psikolog/transactions/{transactionId}/reject-commission', 'rejectCommission');
     });
 });
 

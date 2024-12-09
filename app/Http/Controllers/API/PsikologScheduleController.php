@@ -234,6 +234,105 @@ class PsikologScheduleController extends BaseController
         return $dates;
     }
 
+
+    /**
+     * Generate Psikolog Schedule for a Single Day Across a Month
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function generatePsikologScheduleV2(Request $request)
+    {
+        $user = Auth::user();
+        $psikologId = $user->psikolog->id;
+
+        $validatedData = Validator::make($request->all(), [
+            'day' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
+            'main_schedule_ids' => 'required|array',
+            'main_schedule_ids.*' => 'exists:main_schedules,id',
+            'month' => 'required|integer|between:1,12',
+            'year' => 'required|integer|min:2024|max:2100',
+        ], [
+            'day.required' => 'Hari wajib dipilih.',
+            'month.required' => 'Bulan wajib dipilih.',
+            'year.required' => 'Tahun wajib dipilih.',
+        ]);
+
+        if ($validatedData->fails()) {
+            return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
+        }
+
+        $dayOfWeek = $request->day;
+        $mainScheduleIds = $request->main_schedule_ids;
+        $month = $request->month;
+        $year = $request->year;
+
+        try {
+            DB::beginTransaction();
+
+            // Ambil semua tanggal yang sesuai dengan hari dalam bulan yang dipilih
+            $dates = $this->getDatesForDayInMonth($dayOfWeek, $month, $year);
+
+            // Ambil semua jadwal yang sudah ada untuk psikolog pada bulan dan tahun yang sama
+            $existingSchedules = PsikologSchedule::where('psikolog_id', $psikologId)
+                ->whereMonth('date', $month)
+                ->whereYear('date', $year)
+                ->get();
+
+            // Persiapkan jadwal baru
+            $newSchedules = [];
+
+            foreach ($dates as $date) {
+                foreach ($mainScheduleIds as $mschId) {
+                    $newSchedules[] = [
+                        'psikolog_id' => $psikologId,
+                        'date' => $date,
+                        'msch_id' => $mschId,
+                    ];
+
+                    // Jika jadwal belum ada, tambahkan
+                    $existingSchedule = $existingSchedules->firstWhere(function ($schedule) use ($date, $mschId) {
+                        return $schedule->date === $date && $schedule->msch_id === $mschId;
+                    });
+
+                    if (!$existingSchedule) {
+                        PsikologSchedule::create([
+                            'psikolog_id' => $psikologId,
+                            'date' => $date,
+                            'msch_id' => $mschId,
+                            'is_available' => true,
+                        ]);
+                    }
+                }
+            }
+
+            // Hapus jadwal yang tidak ada di input baru
+            foreach ($existingSchedules as $existingSchedule) {
+                $shouldKeep = false;
+                foreach ($newSchedules as $newSchedule) {
+                    if (
+                        $existingSchedule->psikolog_id === $newSchedule['psikolog_id'] &&
+                        $existingSchedule->date === $newSchedule['date'] &&
+                        $existingSchedule->msch_id === $newSchedule['msch_id']
+                    ) {
+                        $shouldKeep = true;
+                        break;
+                    }
+                }
+
+                if (!$shouldKeep) {
+                    $existingSchedule->delete();
+                }
+            }
+
+            DB::commit();
+            return $this->sendResponse('Jadwal psikolog berhasil dibuat untuk bulan ' . $month . ' ' . $year, null);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->sendError('Terjadi kesalahan saat memperbarui jadwal.', [$e->getMessage()], 500);
+        }
+    }
+
     /**
      * Get the psychologist's schedule for a specific date.
      *

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Models\ConsultationTransaction;
 use Illuminate\Support\Facades\Validator;
 
 class PsikologController extends BaseController
@@ -80,12 +81,21 @@ class PsikologController extends BaseController
         }
     }
 
-    // List Chat Konsultasi Psikolog
-    public function listChatConsultation(){
+    /**
+     * Menampilkan list chat consultation yang dimiliki oleh psikolog yang sedang login dengan paginasi.
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function listChatConsultation(Request $request)
+    {
         $user = Auth::user();
         $psikolog = $user->psikolog;
 
-        $consultation = Consultation::with([
+        if (!$psikolog) {
+            return $this->sendError('Psikolog tidak ditemukan.', null, 404);
+        }
+
+        $consultations = Consultation::with([
             'psikologSchedule.mainSchedule', 
             'user', 
             'psikolog.user',
@@ -94,9 +104,10 @@ class PsikologController extends BaseController
         ])
         ->where('psi_id', $psikolog->id)
         ->whereIn('consul_status', ['completed', 'ongoing', 'scheduled']) 
-        ->get();
+        ->paginate(10); // Tambahkan paginasi dengan 10 item per halaman
 
-        $data = $consultation->map(function ($item) {
+        // Transformasi data
+        $consultations->getCollection()->transform(function ($item) {
             return [
                 'consul_id' => $item->id,
                 'client_name' => $item->user->name ?? null,
@@ -109,10 +120,22 @@ class PsikologController extends BaseController
                 'chat_session_id' => $item->chatSession->id ?? null,
             ];
         });
-        
-        return $this->sendResponse('List chat consultation', $data);
+
+        return $this->sendResponse('List chat consultation', $consultations);
     }
 
+
+    /**
+     * Retrieve the complaint details for a specific consultation.
+     *
+     * This function fetches the complaint details for a consultation based on
+     * the provided consultation ID, ensuring that the consultation is associated
+     * with the currently authenticated psychologist.
+     *
+     * @param int $consulId The ID of the consultation to retrieve the complaint from.
+     * @return \Illuminate\Http\JsonResponse The response containing the complaint details
+     * or an error message if the consultation is not found.
+     */
     public function detailComplaintUser($consulId)
     {
         $user = Auth::user();
@@ -133,6 +156,135 @@ class PsikologController extends BaseController
     }
 
 
+    public function listPsikologTransaction(Request $request)
+    {
+        $user = Auth::user();
+        $psikolog = $user->psikolog;
 
+        if (!$psikolog) {
+            return $this->sendError('Psikolog tidak ditemukan.', null, 404);
+        }
 
+        $transactions = ConsultationTransaction::with(['consultation.psikolog.user', 'user', 'paymentMethod'])
+            ->whereHas('consultation', function ($query) use ($psikolog) {
+                $query->where('consul_status', 'completed')
+                    ->where('psi_id', $psikolog->id);
+            })
+            ->orderByRaw('ISNULL(payment_completed_at), payment_completed_at DESC') // Prioritas: yang sudah selesai dulu
+            ->orderBy('created_at', 'asc') // Jika waktu pembayaran sama, urutkan berdasarkan waktu dibuat
+            ->paginate(10); 
+
+        // Transformasi data
+        $transactions->getCollection()->transform(function ($transaction) {
+            $psikolog_comission = $transaction->consul_fee * 0.6;
+
+            return [
+                'id' => $transaction->id,
+                'payment_date' => $transaction->payment_completed_at 
+                    ? Carbon::parse($transaction->payment_completed_at)->format('d-m-Y H:i') 
+                    : null,
+                'client_name' => optional($transaction->user)->name ?? 'Tidak Diketahui',
+                'psikolog_comission' => $psikolog_comission,
+                'commission_transfer_status' => $transaction->commission_transfer_status,
+                'commission_transfer_proof' => $transaction->commission_transfer_proof,
+            ];
+        });
+
+        return $this->sendResponse('List transaksi psikolog berhasil diambil.', $transactions);
+    }
+
+    /**
+     * Retrieve the commission transfer proof for a specific transaction.
+     *
+     * This function fetches the transfer proof of the commission for a given
+     * transaction ID. It ensures the transaction exists and returns the proof
+     * of commission transfer if available.
+     *
+     * @param int $transactionId The ID of the transaction to retrieve the commission proof from.
+     * @return \Illuminate\Http\JsonResponse The response containing the commission proof details
+     * or an error message if the transaction is not found.
+     */
+    public function getPsikologCommissionProof($transactionId)
+    {
+        $user = Auth::user();
+        $psikolog = $user->psikolog;
+    
+        if (!$psikolog) {
+            return $this->sendError('Psikolog tidak ditemukan.', null, 404);
+        }
+    
+        // Cari transaksi milik psikolog terkait
+        $transaction = ConsultationTransaction::where('id', $transactionId)
+            ->whereHas('consultation', function ($query) use ($psikolog) {
+                $query->where('consul_status', 'completed')
+                      ->where('psi_id', $psikolog->id);
+            })
+            ->first();
+    
+        if (!$transaction) {
+            return $this->sendError('Transaksi tidak ditemukan atau tidak dimiliki oleh Anda.', null, 404);
+        }
+
+        $data = [
+            'transfer_proof' => $transaction->commission_transfer_proof
+        ];
+    
+        return $this->sendResponse('Detail bukti transfer komisi psikolog berhasil diambil.', $data);
+    }
+    
+    /**
+     * Approve the commission for a specific transaction.
+     *
+     * This function allows a Psikolog to approve the commission of a given
+     * transaction ID. It ensures the transaction exists and that the user
+     * is the owner of the transaction. If the transaction is found, it
+     * updates the status of the transaction to 'Diterima' and returns a
+     * success message. If the transaction is not found, it returns an error
+     * message.
+     *
+     * @param int $transactionId The ID of the transaction to approve the commission for.
+     * @return \Illuminate\Http\JsonResponse The response containing the result of the approval
+     * or an error message if the transaction is not found.
+     */
+    public function approveCommission($transactionId){
+        $user = Auth::user();
+        $psikolog = $user->psikolog;
+    
+        if (!$psikolog) {
+            return $this->sendError('Psikolog tidak ditemukan.', null, 404);
+        }
+    
+        // Cari transaksi milik psikolog terkait
+        $transaction = ConsultationTransaction::where('id', $transactionId)
+            ->whereHas('consultation', function ($query) use ($psikolog) {
+                $query->where('consul_status', 'completed')
+                      ->where('psi_id', $psikolog->id);
+            })
+            ->first();
+
+        $transaction->commission_transfer_status = 'Diterima';
+        $transaction->save();
+        return $this->sendResponse('Komisi berhasil diterima.', null);
+    }
+
+    public function rejectCommission($transactionId){
+        $user = Auth::user();
+        $psikolog = $user->psikolog;
+    
+        if (!$psikolog) {
+            return $this->sendError('Psikolog tidak ditemukan.', null, 404);
+        }
+    
+        // Cari transaksi milik psikolog terkait
+        $transaction = ConsultationTransaction::where('id', $transactionId)
+            ->whereHas('consultation', function ($query) use ($psikolog) {
+                $query->where('consul_status', 'completed')
+                      ->where('psi_id', $psikolog->id);
+            })
+            ->first();
+
+        $transaction->commission_transfer_status = 'Belum';
+        $transaction->save();
+        return $this->sendResponse('Komisi tidak diterima.', null);
+    }
 }
