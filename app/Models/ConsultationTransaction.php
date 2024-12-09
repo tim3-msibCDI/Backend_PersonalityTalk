@@ -20,6 +20,8 @@ class ConsultationTransaction extends Model
         'consul_fee',
         'discount_amount',
         'payment_proof',
+        'sender_name',
+        'sender_bank',
         'status',
         'transaction_reference',
         'payment_gateway_response',
