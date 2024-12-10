@@ -597,12 +597,22 @@ class ManageUserController extends BaseController
             'photo_profile' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
             'date_birth' => 'sometimes|date',
             'gender' => 'sometimes|in:F,M',
-            'sipp' => 'nullable|string|max:50',
+            'sipp' => 'nullable|string',
             'practice_start_date' => 'nullable|date',
             'updated_topics' => 'nullable|array', 
+            'bank_id' => 'nullable|exists:payment_methods,id',
+            'rekening' => 'nullable|string',
         ], [
-
-            
+            'updated_topics.*' => 'ID topik tidak valid',
+            'email.unique' => 'Email sudah digunakan oleh pengguna lain',
+            'photo_profile.image' => 'Format gambar tidak sesuai.',
+            'photo_profile.mimes' => 'Format gambar harus JPEG, PNG, atau JPG.',
+            'photo_profile.max' => 'Ukuran gambar tidak boleh lebih dari 2 MB.',
+            'date_birth.date' => 'Format tanggal lahir tidak valid.',
+            'gender.in' => 'Jenis kelamin tidak valid.',
+            'sipp.string' => 'SIPP harus berupa teks.',
+            'practice_start_date.date' => 'Format tanggal mulai praktik tidak valid.',
+            'updated_topics.*.exists' => 'ID topik tidak valid.',
         ]);
 
         if ($validator->fails()) {
@@ -637,7 +647,6 @@ class ManageUserController extends BaseController
                 'phone_number' => $validatedData['phone_number'] ?? $user->phone_number,
                 'date_birth' => $validatedData['date_birth'] ?? $user->date_birth,
                 'gender' => $validatedData['gender'] ?? $user->gender,
-                'practice_start_date' => $validatedData['practice_start_date'] ?? $user->practice_start_date,
             ]);
 
             // Update data psikolog
@@ -659,6 +668,9 @@ class ManageUserController extends BaseController
 
                     // Perbarui SIPP dan PsikologPrice di tabel psikolog
                     $psikolog->update([
+                        'practice_start_date' => $validatedData['practice_start_date'] ?? $user->practice_start_date,
+                        'bank_id' => $validatedData['bank_id'] ?? $user->bank_id,
+                        'account_number' => $validatedData['rekening'] ?? $user->account_number,
                         'sipp' => $sipp,
                         'psikolog_price_id' => $psikologPriceId,
                     ]);

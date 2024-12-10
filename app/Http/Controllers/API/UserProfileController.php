@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use Carbon\Carbon;
 use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
 use App\Models\PsikologPrice;
@@ -78,10 +79,16 @@ class UserProfileController extends BaseController
          // Detail jika user psikolog
          if ($user->role === 'P') {
             $psikologDetails = $user->psikolog;
+            $bankDetails = $user->psikolog->bank;
             if ($psikologDetails) {
                 $profileData['psikolog_details'] = [
+                    'bank_id' => $bankDetails->id ?? null,
+                    'bank_name' => $bankDetails->name ?? null,
+                    'rekening' => $psikologDetails->account_number ?? null,
                     'sipp' => $psikologDetails->sipp,
-                    'practice_start_date' => $psikologDetails->practice_start_date,
+                    'practice_start_date' => $psikologDetails->practice_start_date 
+                        ? Carbon::parse($psikologDetails->practice_start_date)->format('Y-m-d') 
+                        : null,
                     'description' => $psikologDetails->description,
                     'topics' => $psikologDetails->psikolog_topic->map(function($pt) {
                         return [
@@ -119,6 +126,8 @@ class UserProfileController extends BaseController
             'jurusan' => 'required_if:role,M|string|max:255',
 
             // Validation for Psikolog
+            'bank_id' => 'required_if:role,P|exists:payment_methods,id',
+            'rekening' => 'required_if:role,P|string|max:255',
             'sipp' => 'required_if:role,P|string|max:255',
             'practice_start_date' => 'required_if:role,P|date',
             'description' => 'nullable|string',
@@ -179,6 +188,8 @@ class UserProfileController extends BaseController
                     'psikolog_price_id' => $psikologPriceId,
                     'practice_start_date' => $request->practice_start_date,
                     'description' => $request->description,
+                    'bank_id' => $request->bank_id,
+                    'account_number' => $request->rekening,
                 ]);
 
                 // Cek apakah ada perubahan dalam topik

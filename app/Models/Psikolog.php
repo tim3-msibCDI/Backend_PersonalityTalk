@@ -68,4 +68,9 @@ class Psikolog extends Model
     {
         return $this->hasMany(PsikologReview::class, 'psi_id');
     }
+
+    public function bank()
+    {
+        return $this->belongsTo(PaymentMethod::class, 'bank_id', 'id');
+    }
 }

@@ -143,6 +143,8 @@ Route::middleware(['auth:sanctum', 'role:P'])->group(function () {
         Route::post('/psikolog/transactions/{transactionId}/approve-commission', 'approveCommission');
         Route::post('/psikolog/transactions/{transactionId}/reject-commission', 'rejectCommission');
     });
+
+    Route::get('/psikolog/banks', [PaymentMethodController::class, 'listPsikologBank']);
 });
 
 /*
@@ -195,6 +197,8 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::post('/admin/psikolog/{id}', 'updateUserPsikolog');
         Route::delete('/admin/psikolog/{id}', 'destroyUserPsikolog');    
     });
+
+    Route::get('/admin/list-psikolog-banks', [PaymentMethodController::class, 'listPsikologBank']);
 
     // Manage User Konselor
     Route::controller(ManageUserController::class)->group(function () {
