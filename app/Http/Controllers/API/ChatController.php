@@ -62,4 +62,21 @@ class ChatController extends BaseController
         return $this->sendResponse('Pesan berhasil dikirim.', $message);
     }
 
+    public function getUserInfo(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return $this->sendError('Pengguna tidak ditemukan', [], 404);
+        }
+
+        $response = [
+            'name' => $user->name,
+            'photo_profile' => $user->photo_profile ?? null, 
+            'role' => $user->role,
+        ];  
+
+        return $this->sendResponse('Informasi pengguna berhasil diambil.', $response);
+    }
+
 }

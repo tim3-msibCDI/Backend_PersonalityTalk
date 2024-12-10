@@ -652,6 +652,14 @@ class ManageUserController extends BaseController
             // Update data psikolog
             $psikolog = $user->psikolog;
             if ($psikolog) {
+
+                //Perbarui data psikolog
+                $psikolog->update([
+                    'practice_start_date' => $validatedData['practice_start_date'] ?? $user->practice_start_date,
+                    'bank_id' => $validatedData['bank_id'] ?? $user->bank_id,
+                    'account_number' => $validatedData['rekening'] ?? $user->account_number,
+                ]);
+
                 // Perbarui SIPP dan PsikologPrice
                 if (isset($validatedData['sipp'])) {
                     $sipp = $validatedData['sipp'];
@@ -668,9 +676,6 @@ class ManageUserController extends BaseController
 
                     // Perbarui SIPP dan PsikologPrice di tabel psikolog
                     $psikolog->update([
-                        'practice_start_date' => $validatedData['practice_start_date'] ?? $user->practice_start_date,
-                        'bank_id' => $validatedData['bank_id'] ?? $user->bank_id,
-                        'account_number' => $validatedData['rekening'] ?? $user->account_number,
                         'sipp' => $sipp,
                         'psikolog_price_id' => $psikologPriceId,
                     ]);
@@ -681,22 +686,24 @@ class ManageUserController extends BaseController
                     );
                 }
 
-               // Cek apakah ada perubahan dalam topik
-               $existingTopicIds = $user->psikolog->psikolog_topic->pluck('topic_id')->toArray();
-               $newTopicIds = $request->updated_topics;
+                // Cek apakah ada data updated_topics pada request
+                if ($request->has('updated_topics')) {
+                    $existingTopicIds = $user->psikolog->psikolog_topic->pluck('topic_id')->toArray();
+                    $newTopicIds = $request->updated_topics;
 
-               // Jika topik berubah, lakukan pembaruan
-               if (array_diff($existingTopicIds, $newTopicIds) || array_diff($newTopicIds, $existingTopicIds)) {
-                   // Hapus topik lama
-                   $user->psikolog->psikolog_topic()->delete();
+                    // Jika topik berubah, lakukan pembaruan
+                    if (array_diff($existingTopicIds, $newTopicIds) || array_diff($newTopicIds, $existingTopicIds)) {
+                        // Hapus topik lama
+                        $user->psikolog->psikolog_topic()->delete();
 
-                   // Tambahkan topik baru
-                   $newTopics = collect($newTopicIds)->map(function ($topicId) {
-                       return ['topic_id' => $topicId];
-                   });
-                   $user->psikolog->psikolog_topic()->createMany($newTopics->toArray());
-               }
-               $user->load('psikolog.psikolog_topic');
+                        // Tambahkan topik baru
+                        $newTopics = collect($newTopicIds)->map(function ($topicId) {
+                            return ['topic_id' => $topicId];
+                        });
+                        $user->psikolog->psikolog_topic()->createMany($newTopics->toArray());
+                    }
+                    $user->load('psikolog.psikolog_topic');
+                }
             }
 
             DB::commit();
@@ -740,8 +747,4 @@ class ManageUserController extends BaseController
             return $this->sendError('Psikolog tidak dapat dihapus, karena dipakai pada tabel lain.', [$e->getMessage()], 500);
         }
     }
-
-
-
-
 }
