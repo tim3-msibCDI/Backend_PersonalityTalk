@@ -515,7 +515,7 @@ class ManageUserController extends BaseController
         // Ambil user dengan role Psikolog ('P') dan muat relasi
         $user = User::where('id', $id)
             ->where('role', 'P')
-            ->with(['psikolog.psikolog_topic.topic', 'psikolog.psikolog_category'])
+            ->with(['psikolog.psikolog_topic.topic', 'psikolog.psikolog_category', 'psikolog.bank'])
             ->whereHas('psikolog', function ($query) {
                 $query->where('is_active', true); // Hanya ambil psikolog yang aktif
             })
@@ -532,6 +532,7 @@ class ManageUserController extends BaseController
 
         // Format detail user
         $psikologDetails = $user->psikolog;
+        // dd($psikologDetails);
         $formattedUser = [
             'id' => $user->id,
             'name' => $user->name,
@@ -542,6 +543,9 @@ class ManageUserController extends BaseController
             'gender' => $user->gender,
             'sipp' => $psikologDetails->sipp ?? null,
             'practice_start_date' => Carbon::parse($psikologDetails->practice_start_date)->translatedFormat('Y-m-d'), 
+            'bank_id' => $psikologDetails->bank->id ?? null,
+            'bank_name' => $psikologDetails->bank->name ?? null,
+            'rekening' => $psikologDetails->account_number ?? null,
             'description' => $psikologDetails->description,
             'selected_topics' => $psikologDetails->psikolog_topic->map(function ($topicRelation) {
                 return [

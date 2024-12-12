@@ -115,31 +115,26 @@ class UserProfileController extends BaseController
         $user = Auth::user();
 
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|unique:users,email,' . $user->id,
+            'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|string|email|unique:users,email,' . $user->id,
             'phone_number' => 'nullable|string|regex:/^[0-9]{10,}$/',
-            'date_birth' => 'required|date',
-            'gender' => 'required|in:M,F', // 'M' = Male, 'F' = Female
-
-            // Validation for Mahasiswa
-            'universitas' => 'required_if:role,M|string|max:255',
-            'jurusan' => 'required_if:role,M|string|max:255',
-
-            // Validation for Psikolog
-            'bank_id' => 'required_if:role,P|exists:payment_methods,id',
-            'rekening' => 'required_if:role,P|string|max:255',
-            'sipp' => 'required_if:role,P|string|max:255',
-            'practice_start_date' => 'required_if:role,P|date',
+            'date_birth' => 'sometimes|date',
+            'gender' => 'sometimes|in:M,F',
+        
+            // Mahasiswa
+            'universitas' => 'sometimes|string|max:255',
+            'jurusan' => 'sometimes|string|max:255',
+        
+            // Psikolog
+            'bank_id' => 'sometimes|exists:payment_methods,id',
+            'rekening' => 'sometimes|string|max:255',
+            'sipp' => 'sometimes|string|max:255',
+            'practice_start_date' => 'sometimes|date',
             'description' => 'nullable|string',
-            'topics' => 'required_if:role,P|array',
+            'topics' => 'sometimes|array',
             'topics.*' => 'exists:topics,id',
         ], [
-            'name.required' => 'Nama wajib diisi.',
-            'email.required' => 'Email wajib diisi.',
-            'email.unique' => 'Email sudah terdaftar.',
             'phone_number.regex' => 'Format nomor telepon salah.',
-            'date_birth.required' => 'Tanggal lahir wajib diisi.',
-            'gender.required' => 'Jenis kelamin wajib diisi.',
 
             'universitas.required_if' => 'Universitas wajib diisi.',
             'jurusan.required_if' => 'Jurusan wajib diisi.',
@@ -166,23 +161,25 @@ class UserProfileController extends BaseController
                 ]);
             }
 
-            // Update untuk SIPP dan juga harga psikolog
-            if (empty($validator->validated()['sipp'])) {
-                $psikologPriceId = 1; // Default ID if SIPP is empty
-            } else {
-                $sippParts = explode('-', $validator->validated()['sipp']);
-                $sippCode = $sippParts[2] ?? null;
-
-                if (!$sippCode) {
-                    throw new \Exception("Format SIPP tidak valid.");  
-                }
-
-                $psikologPrice = PsikologPrice::where('code', $sippCode)->first();
-                $psikologPriceId = $psikologPrice->id ?? 1;
-            }
-
             // Update untuk psikolog
             if ($user->role === 'P') {
+
+                // Update untuk SIPP dan juga harga psikolog
+                if (empty($validator->validated()['sipp'])) {
+                    $psikologPriceId = 1; // Default ID if SIPP is empty
+                } else {
+                    $sippParts = explode('-', $validator->validated()['sipp']);
+                    $sippCode = $sippParts[2] ?? null;
+
+                    if (!$sippCode) {
+                        throw new \Exception("Format SIPP tidak valid.");  
+                    }
+
+                    $psikologPrice = PsikologPrice::where('code', $sippCode)->first();
+                    $psikologPriceId = $psikologPrice->id ?? 1;
+                }
+
+                // Update
                 $user->psikolog()->update([
                     'sipp' => $request->sipp,
                     'psikolog_price_id' => $psikologPriceId,

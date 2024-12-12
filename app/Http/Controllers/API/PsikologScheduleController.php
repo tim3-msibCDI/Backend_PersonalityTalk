@@ -85,16 +85,16 @@ class PsikologScheduleController extends BaseController
             // Format data untuk dikembalikan ke frontend
             $formattedSchedules = [];
             foreach ($groupedSchedules as $day => $schedules) {
-                $slotTimes = $schedules->map(function ($schedule) {
+                $daySchedules = $schedules->map(function ($schedule) {
                     $startHour = Carbon::parse($schedule->mainSchedule->start_hour)->format('H:i');
                     $endHour = Carbon::parse($schedule->mainSchedule->end_hour)->format('H:i');
-                    return "$startHour - $endHour";
-                })->unique()->implode(', '); // Gabungkan semua slot_time dengan koma
-                
-                $formattedSchedules[] = [
-                    'day' => $day,
-                    'slot_times' => $slotTimes, // Semua slot waktu digabung dalam satu string
-                ];
+                    return [
+                        'id' => $schedule->mainSchedule->id,
+                        'time_slot' => "$startHour - $endHour",
+                    ];
+                })->unique('time_slot');
+
+                $formattedSchedules[$day] = $daySchedules->values()->all();
             }
 
             return $this->sendResponse(

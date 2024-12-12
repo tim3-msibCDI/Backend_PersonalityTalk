@@ -17,7 +17,7 @@ class ConsulTopicController extends BaseController
      */
     public function index()
     {
-        $topics = Topic::select('id', 'topic_name')->get();    
+        $topics = Topic::select('id', 'topic_name')->paginate(10);    
         return $this->sendResponse('Data seluruh topik berhasil diambil.', $topics);
     }
 

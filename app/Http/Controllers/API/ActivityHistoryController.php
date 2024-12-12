@@ -30,25 +30,32 @@ class ActivityHistoryController extends BaseController
             ->join('users as psychologists', 'psychologists.id', '=', 'psikolog.user_id') // Ambil nama psikolog
             ->join('psikolog_schedules', 'consultations.psch_id', '=', 'psikolog_schedules.id')
             ->join('main_schedules', 'psikolog_schedules.msch_id', '=', 'main_schedules.id')
+            ->join('chat_sessions', 'consultations.id', '=', 'chat_sessions.consultation_id')
             ->where('patients.id', $user->id) // Filter berdasarkan pengguna yang sedang login
-            // ->whereIn('consultations.consul_status', ['completed', 'done']) // Hanya konsultasi yang telah selesai
+            ->whereIn('consultations.consul_status', [ 'scheduled', 'completed', 'ongoing']) // Hanya konsultasi yang telah selesai
             ->select(
                 'consultations.id as consultation_id',
+                'psychologists.id as psi_id',
                 'psychologists.name as psikolog_name',
                 'psychologists.photo_profile as psikolog_profile',
+                'patients.id as client_id',
                 'consultations.consul_status',
                 'psikolog_schedules.date as schedule_date',
                 'main_schedules.day',
                 'main_schedules.start_hour',
-                'main_schedules.end_hour'
+                'main_schedules.end_hour',
+                'chat_sessions.id as chat_id'
             )
-            ->orderByDesc('consultations.updated_at') // Urutkan berdasarkan tanggal selesai terbaru
+            ->orderByDesc('consultations.created_at') // Urutkan berdasarkan tanggal selesai terbaru
             ->get();
 
         $formattedConsultation = $listConsultation->map(function ($item) {
             return [
                 'consultation_id' => $item->consultation_id,
+                'chat_session_id' => $item->chat_id,
                 'psikolog_name' => $item->psikolog_name,
+                'psikolog_id' => $item->psi_id,
+                'client_id' => $item->client_id,
                 'psikolog_profile'=> $item->psikolog_profile,
                 'status' => $item->consul_status,
                 'date' => \Carbon\Carbon::parse($item->schedule_date)->format('d M Y'),
@@ -82,6 +89,7 @@ class ActivityHistoryController extends BaseController
             ->join('psikolog_schedules', 'consultations.psch_id', '=', 'psikolog_schedules.id')
             ->join('main_schedules', 'psikolog_schedules.msch_id', '=', 'main_schedules.id')
             ->where('patients.id', $user->id)
+            ->whereIn('consul_transactions.status', ['pending', 'pending_confirmation', 'completed', 'failed']) // Hanya konsultasi yang telah selesai
             ->select(
                 'consul_transactions.id as transaction_id',
                 'psychologists.name as psikolog_name',
@@ -92,21 +100,22 @@ class ActivityHistoryController extends BaseController
                 'psikolog_schedules.date as schedule_date',
                 'main_schedules.day',
                 'main_schedules.start_hour',
-                'main_schedules.end_hour'
+                'main_schedules.end_hour',
+                'consul_transactions.payment_number'
             )
-            ->orderByDesc('consul_transactions.updated_at')
+            ->orderByDesc('consul_transactions.created_at')
             ->get();
 
         $formattedTransaction = $listTransaction->map(function ($item) {
             return [
                 'transaction_id' => $item->transaction_id,
+                'no_pemesanan' => $item->payment_number,
                 'psikolog_name' => $item->psikolog_name,
                 'psikolog_profile'=> $item->psikolog_profile,
                 'status' => $item->transaction_status,
                 'total_amount' => $item->consul_fee - $item->discount_amount,
                 'date' => \Carbon\Carbon::parse($item->schedule_date)->format('d M Y'),
                 'time' => \Carbon\Carbon::parse($item->start_hour)->format('H:i') . ' - ' . \Carbon\Carbon::parse($item->end_hour)->format('H:i'),
-                
             ];
         });
 

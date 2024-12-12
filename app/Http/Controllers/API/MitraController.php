@@ -20,7 +20,7 @@ class MitraController extends BaseController
      */
     public function index()
     {
-        $mitra = Mitra::select('id', 'name', 'img')->get();
+        $mitra = Mitra::select('id', 'name', 'img')->paginate(10);
         return $this->sendResponse('Data seluruh mitra berhasil diambil.', $mitra);
     }
     
