@@ -134,12 +134,14 @@ class ActivityHistoryController extends BaseController
             // Ambil data transaksi berdasarkan ID
             $transaction = ConsultationTransaction::with([
                 'consultation',
+                'consultation.user',
                 'consultation.psikolog.user',
                 'consultation.psikolog.psikolog_category',
                 'consultation.psikolog.psikolog_price',
                 'consultation.topic',
                 'consultation.psikologSchedule.mainSchedule',
                 'paymentMethod',
+                'consultation.chatSession',
             ])->findOrFail($transactionId);
 
             // Validasi apakah transaksi dimiliki oleh pengguna yang sedang login
@@ -155,6 +157,7 @@ class ActivityHistoryController extends BaseController
 
             // Data untuk Resource
             $resourceData = new CreateConsultationResource((object)[
+                'user' => $transaction->consultation->user,
                 'psikolog' => $transaction->consultation->psikolog,
                 'selectedSchedule' => $transaction->consultation->psikologSchedule,
                 'selectedTopic' => $transaction->consultation->topic,
@@ -163,6 +166,7 @@ class ActivityHistoryController extends BaseController
                 'finalAmount' => $transaction->consul_fee - $transaction->discount_amount,
                 'payment' => $transaction->paymentMethod,
                 'consultation' => $transaction->consultation,
+                'chatSession' => $transaction->consultation->chatSession
             ]);
 
             // Ubah Resource ke array dengan toArray() sebelum mengirim respons
@@ -177,7 +181,5 @@ class ActivityHistoryController extends BaseController
             return $this->sendError('Terjadi kesalahan saat mengambil detail transaksi.', [$e->getMessage()], 500);
         }
     }
-
-    
 
 }

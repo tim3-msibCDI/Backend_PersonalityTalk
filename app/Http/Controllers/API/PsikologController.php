@@ -283,7 +283,7 @@ class PsikologController extends BaseController
             })
             ->first();
 
-        $transaction->commission_transfer_status = 'Belum';
+        $transaction->commission_transfer_status = 'Menunggu Konfirmasi';
         $transaction->save();
         return $this->sendResponse('Komisi tidak diterima.', null);
     }

@@ -2,6 +2,7 @@
 
 use App\Models\Article;
 use App\Events\MessageSent;
+use App\Models\Consultation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
@@ -155,6 +156,7 @@ Route::middleware(['auth:sanctum', 'role:P,U,M'])->group(function () {
     Route::controller(ChatController::class)->group(function () {
         Route::post('/chat/send', 'sendMessage');
         Route::get('/chat/{chatSessionId}/messages','getMessages');
+        Route::get('/chat/psikolog-info', 'getPsikologInfo');
     });
 }); 
 
@@ -351,6 +353,11 @@ Route::get('/test-broadcast', function () {
     return response()->json(['message' => 'Broadcast fired!']);
 });
 
+Route::get('/inites', function () {
+    $consultations = Consultation::whereIn('consul_status', ['scheduled', 'ongoing'])->get();
+    return dd($consultations);
+});
+
 
 Route::post('/sendWa', function () {
     $message = "Halloooooo"; // Pesan yang ingin dikirim
@@ -380,4 +387,7 @@ Route::post('/sendWa', function () {
         'error' => $response->json(),
     ], $response->status());
 });
+
+
+
 

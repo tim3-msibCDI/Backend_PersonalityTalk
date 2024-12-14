@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\API;
 
+use Carbon\Carbon;
+use App\Models\User;
 use App\Models\Message;
 use App\Events\MessageSent;
+use App\Models\Consultation;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -42,16 +45,17 @@ class ChatController extends BaseController
     
     public function sendMessage(Request $request)
     {
+        $userId = Auth::user()->id;
+
         $validated = $request->validate([
             'chat_session_id' => 'required|exists:chat_sessions,id',
-            'sender_id' => 'required|exists:users,id',
             'receiver_id' => 'required|exists:users,id',
             'message' => 'required|string',
         ]);
 
         $message = Message::create([
             'chat_session_id' => $validated['chat_session_id'],
-            'sender_id' => $validated['sender_id'],
+            'sender_id' => $userId,
             'receiver_id' => $validated['receiver_id'],
             'message' => $validated['message'],
         ]);
@@ -62,21 +66,40 @@ class ChatController extends BaseController
         return $this->sendResponse('Pesan berhasil dikirim.', $message);
     }
 
-    public function getUserInfo(Request $request)
+    public function getPsikologInfo(Request $request)
     {
-        $user = Auth::user();
+        $validated = $request->validate([
+            'consul_id' => 'required|exists:consultations,id',
+        ]);
 
-        if (!$user) {
-            return $this->sendError('Pengguna tidak ditemukan', [], 404);
+        $consultation = Consultation::with([
+            'psikolog.user', 
+            'psikologSchedule.mainSchedule', 
+            ])
+            ->whereIn('consul_status', ['completed', 'ongoing'])
+            ->where('id', $validated['consul_id'])
+            ->first();
+
+        if (!$consultation || !$consultation->psikolog || !$consultation->psikologSchedule) {
+            return $this->sendError('Data konsultasi, psikolog, atau jadwal tidak ditemukan.', [], 404);
         }
+        $mainSchedule = $consultation->psikologSchedule->mainSchedule;
 
         $response = [
-            'name' => $user->name,
-            'photo_profile' => $user->photo_profile ?? null, 
-            'role' => $user->role,
-        ];  
+            'psikolog' => [
+                'name' => $consultation->psikolog->user->name,
+                'photo_profile' => $consultation->psikolog->user->photo_profile ?? null,
+            ],
+            'time' => [
+                'start_time' => Carbon::parse($mainSchedule->start_hour)->format('H:i'),
+                'end_time' => Carbon::parse($mainSchedule->end_hour)->format('H:i'), 
+                'date' => $consultation->psikologSchedule->date, 
+            ],
+            'notes' => $consultation->psikolog_note ?? null, 
+        ];
 
-        return $this->sendResponse('Informasi pengguna berhasil diambil.', $response);
+        return $this->sendResponse('Informasi konsultasi berhasil diambil.', $response);
     }
+
 
 }

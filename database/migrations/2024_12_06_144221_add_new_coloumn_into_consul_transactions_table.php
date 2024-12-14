@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('consul_transactions', function (Blueprint $table) {
-            $table->enum('commission_transfer_status', ['Belum','Menunggu Konfirmasi', 'Diterima'])->default('Belum')->nullable()->after('failure_reason');
+            $table->enum('commission_transfer_status', ['Menunggu Konfirmasi', 'Diterima'])->default('Menunggu Konfirmasi')->nullable()->after('failure_reason');
             $table->string('commission_transfer_proof')->nullable()->after('commission_transfer_status');
         });
     }

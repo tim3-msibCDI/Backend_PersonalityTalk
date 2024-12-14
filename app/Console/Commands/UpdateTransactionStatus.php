@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use App\Models\ConsultationTransaction;
 
 class UpdateTransactionStatus extends Command
@@ -13,7 +14,7 @@ class UpdateTransactionStatus extends Command
      *
      * @var string
      */
-    protected $signature = 'transaction:update-status';
+    protected $signature = 'update:transaction-status';
 
     /**
      * The console command description.
@@ -30,18 +31,32 @@ class UpdateTransactionStatus extends Command
     public function handle()
     {
         $transactions = ConsultationTransaction::where('status', 'pending')
-            ->where('created_at', '<=', Carbon::now()->subHour())
+            ->where('created_at', '<=', now()->subMinute(15))
             ->get();
 
-        // dd($transactions);
-    
-        foreach ($transactions as $transaction) {
-            $transaction->update([
-                'status' => 'failed',
-                'failure_reason' => 'Batas waktu pembayaran telah selesai'
-            ]);
-        }
+        DB::beginTransaction();
 
-        $this->info('Status transaksi berhasil diperbarui');
+        try {
+            foreach ($transactions as $transaction) {
+                // Update transaction status
+                $transaction->status = 'failed';
+                $transaction->failure_reason = 'Batas waktu pembayaran telah selesai';
+                $transaction->save();
+
+                // Update related consultation's status
+                if ($transaction->consultation) {
+                    $transaction->consultation->consul_status = 'failed';
+                    $transaction->save();
+                }
+            }
+
+            DB::commit();
+
+            $this->info('Status transaksi dan konsultasi berhasil diperbarui.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            $this->error('Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 }
