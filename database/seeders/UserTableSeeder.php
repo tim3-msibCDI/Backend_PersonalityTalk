@@ -129,7 +129,7 @@ class UserTableSeeder extends Seeder
             [
                 'name' => 'Ella',
                 'email' => 'ellaumum@gmail.com',
-                'password' => Hash::make('rinamahasiswa'),
+                'password' => Hash::make('ellaumum'),
                 'phone_number' => '082146130950',
                 'date_birth' => '1998-12-05',
                 'gender' => 'F',
@@ -139,7 +139,7 @@ class UserTableSeeder extends Seeder
             [
                 'name' => 'Neli',
                 'email' => 'neliumum@gmail.com',
-                'password' => Hash::make('budiadmin'),
+                'password' => Hash::make('neliumum'),
                 'phone_number' => '082146130950',
                 'date_birth' => '1995-03-21',
                 'gender' => 'M',
@@ -149,7 +149,7 @@ class UserTableSeeder extends Seeder
             [
                 'name' => 'Siti',
                 'email' => 'sitiumum@gmail.com',
-                'password' => Hash::make('sitipsikolog'),
+                'password' => Hash::make('sitiumum'),
                 'phone_number' => '082146130950',
                 'date_birth' => '1985-09-12',
                 'gender' => 'F',

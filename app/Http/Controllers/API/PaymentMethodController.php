@@ -193,4 +193,11 @@ class PaymentMethodController extends BaseController
         }
     }
 
+    public function listPsikologBank()
+    {
+        // dd("halllo");
+        $banks = PaymentMethod::where('id', '!=', 1)->select('id', 'name')->get();
+        return $this->sendResponse('List bank berhasil diambil.', $banks);
+    }
+
 }
