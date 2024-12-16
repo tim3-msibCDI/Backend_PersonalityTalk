@@ -12,6 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('payment_methods', function (Blueprint $table) {
+            $table->engine = 'InnoDB'; // Pastikan tabel menggunakan InnoDB
+            $table->charset = 'utf8'; // Charset untuk mendukung emoji
+            $table->collation = 'utf8_unicode_ci'; // Collation untuk Unicode penuh
             $table->id(); 
             $table->string('name', 100); 
             $table->enum('type', ['Pembayaran Otomatis', 'Transfer Bank']); 

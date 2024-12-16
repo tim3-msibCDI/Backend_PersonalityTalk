@@ -191,6 +191,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
 
     // Manage User Mahasiswa
     Route::controller(ManageUserController::class)->group(function () {
+        Route::get('/admin/mahasiswa/search', 'searchUserMahasiswa');
         Route::get('/admin/mahasiswa', 'listUserMahasiswa');
         Route::get('/admin/mahasiswa/{id}', 'detailUserMahasiswa');
         Route::post('/admin/mahasiswa', 'storeUserMahasiswa');
@@ -200,6 +201,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
 
     // Manage User Psikolog
     Route::controller(ManageUserController::class)->group(function () {
+        Route::get('/admin/psikolog/search', 'searchUserPsikolog');
         Route::get('/admin/psikolog', 'listUserPsikolog');
         Route::get('/admin/psikolog/{id}', 'detailUserPsikolog');
         Route::post('/admin/psikolog/{id}', 'updateUserPsikolog');
