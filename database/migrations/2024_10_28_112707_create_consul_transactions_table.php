@@ -12,12 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('consul_transactions', function (Blueprint $table) {
+            $table->engine = 'InnoDB'; // Pastikan tabel menggunakan InnoDB
+            $table->charset = 'utf8'; // Charset untuk mendukung emoji
+            $table->collation = 'utf8_unicode_ci'; // Collation untuk Unicode penuh
             $table->id();
             $table->unsignedBigInteger('user_id'); 
             $table->unsignedBigInteger('consultation_id'); 
             $table->unsignedBigInteger('voucher_id')->nullable(); 
             $table->unsignedBigInteger('payment_method_id');
-            $table->decimal('total_amount', 10, 2); 
+            $table->decimal('consul_fee', 10, 2); 
             
             // Payment Gateway Attributes
             $table->enum('status', ['pending', 'completed', 'failed', 'canceled'])->default('pending');

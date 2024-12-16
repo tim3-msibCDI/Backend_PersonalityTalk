@@ -12,6 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('chat_sessions', function (Blueprint $table) {
+            $table->engine = 'InnoDB'; // Pastikan tabel menggunakan InnoDB
+            $table->charset = 'utf8'; // Charset untuk mendukung emoji
+            $table->collation = 'utf8_unicode_ci'; // Collation untuk Unicode penuh
             $table->id();
             $table->unsignedBigInteger('user_id'); // ID pengguna
             $table->unsignedBigInteger('psi_id'); // ID psikolog

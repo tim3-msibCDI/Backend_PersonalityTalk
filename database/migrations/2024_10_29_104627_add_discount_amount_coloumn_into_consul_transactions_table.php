@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('consul_transactions', function (Blueprint $table) {
-            $table->decimal('discount_amount', 10, 2)->nullable()->after('total_amount'); 
+            $table->decimal('discount_amount', 10, 2)->nullable()->after('consul_fee'); 
         });
     }
 

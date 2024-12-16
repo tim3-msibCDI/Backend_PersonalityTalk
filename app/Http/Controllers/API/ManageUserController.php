@@ -136,8 +136,6 @@ class ManageUserController extends BaseController
 
         return $this->sendResponse('List untuk pengguna umum berhasil diambil.', $users);
     }
-  
-    
     
     /**
      * Membuat user Umum
@@ -331,6 +329,42 @@ class ManageUserController extends BaseController
             ->paginate(10);
         return $this->sendResponse('List untuk pengguna mahasiswa berhasil diambil.', $users);
     }
+
+    /**
+     * Mencari user Mahasiswa berdasarkan nama, nomor telepon, jurusan, atau universitas
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function searchUserMahasiswa(Request $request)
+    {
+        // Validasi input
+        $request->validate([
+            'search' => 'nullable|string|max:255',
+        ]);
+
+        $search = $request->search;
+
+        // Query pencarian
+        $users = User::where('role', 'M')
+            ->with(['mahasiswa:id,user_id,universitas,jurusan']) // Relasi dengan tabel mahasiswa
+            ->select('id', 'name', 'phone_number', 'photo_profile')
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->orWhere('name', 'like', '%' . $search . '%') // Filter berdasarkan nama
+                        ->orWhere('phone_number', 'like', '%' . $search . '%') // Filter berdasarkan nomor telepon
+                        ->orWhereHas('mahasiswa', function ($mahasiswaQuery) use ($search) {
+                            $mahasiswaQuery->where('universitas', 'like', '%' . $search . '%') // Filter berdasarkan universitas
+                                ->orWhere('jurusan', 'like', '%' . $search . '%'); // Filter berdasarkan jurusan
+                        });
+                });
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return $this->sendResponse('List untuk pengguna mahasiswa berhasil diambil.', $users);
+    }
+
 
     /**
      * Menampilkan detail user Mahasiswa berdasarkan ID User
@@ -591,6 +625,84 @@ class ManageUserController extends BaseController
     {
         return $this->listUserByCategory('Konselor');
     }
+
+    /**
+     * Mencari Psikolog berdasarkan nama, sipp, bulan mulai praktik, atau topik
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function searchUserPsikolog(Request $request)
+    {
+        // Validasi input
+        $request->validate([
+            'search' => 'nullable|string|max:255',
+        ]);
+
+        $search = $request->search;
+
+        // Mapping untuk bulan dalam bahasa Indonesia ke angka
+        $monthMapping = [
+            'januari' => '01', 'februari' => '02', 'maret' => '03',
+            'april' => '04', 'mei' => '05', 'juni' => '06',
+            'juli' => '07', 'agustus' => '08', 'september' => '09',
+            'oktober' => '10', 'november' => '11', 'desember' => '12',
+        ];
+
+        $searchMonth = null;
+
+        // Cek apakah pencarian sesuai dengan nama bulan
+        foreach ($monthMapping as $key => $value) {
+            if (stripos($key, strtolower($search)) !== false) {
+                $searchMonth = $value;
+                break;
+            }
+        }
+
+        // Query pencarian
+        $users = User::where('role', 'P')
+            ->whereHas('psikolog', function ($query) use ($searchMonth) {
+                // Filter untuk psikolog aktif
+                $query->where('is_active', true);
+
+                if ($searchMonth) {
+                    // Filter berdasarkan bulan mulai praktik
+                    $query->where(DB::raw("DATE_FORMAT(practice_start_date, '%m')"), $searchMonth);
+                }
+            })
+            ->when($search, function ($query) use ($search, $searchMonth) {
+                $query->where(function ($subQuery) use ($search, $searchMonth) {
+                    $subQuery->orWhere('name', 'like', '%' . $search . '%') // Filter berdasarkan nama
+                        ->orWhereHas('psikolog', function ($psikologQuery) use ($search) {
+                            $psikologQuery->where('sipp', 'like', '%' . $search . '%') // Filter berdasarkan SIPP
+                                ->orWhereHas('psikolog_topic.topic', function ($topicQuery) use ($search) {
+                                    $topicQuery->where('topic_name', 'like', '%' . $search . '%'); // Filter berdasarkan topik
+                                });
+                        });
+                });
+            })
+            ->with(['psikolog.psikolog_topic.topic']) // Relasi dengan topik psikolog
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        // Format data dengan map
+        $formattedUsers = $users->getCollection()->map(function ($user) {
+            $psikologDetails = $user->psikolog;
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'sipp' => $psikologDetails->sipp,
+                'practice_start_date' => Carbon::parse($psikologDetails->practice_start_date)->translatedFormat('d F Y'),
+                'topics' => $psikologDetails->psikolog_topic->pluck('topic.topic_name')->toArray(),
+            ];
+        });
+
+        // Gantikan koleksi asli dengan koleksi yang diformat
+        $users->setCollection($formattedUsers);
+
+        return $this->sendResponse('List untuk pengguna Psikolog berhasil diambil.', $users);
+    }
+
 
     /**
      * Menampilkan detail user berdasarkan ID User dan kategori Psikolog/Konselor

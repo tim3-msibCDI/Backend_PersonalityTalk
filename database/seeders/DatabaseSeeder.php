@@ -25,8 +25,9 @@ class DatabaseSeeder extends Seeder
         $this->call(VoucherTableSeeder::class);
         $this->call(PaymentMethodTableSeeder::class);
         $this->call(VoucherTableSeeder::class);
-        // $this->call(PsikologReviewTableSeeder::class);
         $this->call(MitraTableSeeder::class);
+        $this->call(PsikologReviewTableSeeder::class);
+
 
 
         
