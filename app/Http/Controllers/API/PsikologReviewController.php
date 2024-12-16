@@ -104,16 +104,15 @@ class PsikologReviewController extends BaseController
 
         try {
             // Simpan review
-            $review = PsikologReview::create([
-                'user_id' => auth()->id(),
-                'psi_id' => $request->psi_id,
-                'consul_id' => $request->consul_id,
-                'rating' => $request->rating,
-                'review' => $request->review,
-            ]);
+            $review = new PsikologReview();
+            $review->user_id = auth()->id();
+            $review->psi_id = $request->psi_id;
+            $review->consul_id = $request->consul_id;
+            $review->rating = $request->rating;
+            $review->review = $request->review;
+            $review->save();
 
             return $this->sendResponse('Review berhasil disimpan.', $review);
-
         } catch (\Exception $e) {
             return $this->sendError('Terjadi kesalahan saat menilai psikolog.', [$e->getMessage()], 500);
         }

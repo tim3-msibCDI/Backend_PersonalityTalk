@@ -74,22 +74,22 @@ class MitraController extends BaseController
                 }
             }
             $imageUrl = 'storage/' . $imagePath; 
-            $mitra = Mitra::create([
-                'name' => $validatedData->validated()['name'],
-                'description' => $validatedData->validated()['description'],
-                'img' => $imageUrl, 
-            ]);
+
+            $mitra = new Mitra();
+            $mitra->name = $validatedData->validated()['name'];
+            $mitra->description = $validatedData->validated()['description'];
+            $mitra->img = $imageUrl;
+            $mitra->save();
+
             DB::commit();
 
             return $this->sendResponse('Mitra baru berhasil ditambahkan.', $mitra);
-
         } catch (Exception $e) {
             DB::rollback();
             return $this->sendError('Terjadi kesalahan saat menambahkan mitra baru.', [$e->getMessage()], 500);
         }
     }
     
-
     /**
      * Update the specified Mitra resource in storage.
      *
@@ -105,9 +105,9 @@ class MitraController extends BaseController
         }
 
         $validatedData = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'img' => 'image|mimes:jpeg,png,jpg|max:512',
-            'description' => 'required|string',
+            'name' => 'sometimes|string|max:255',
+            'img' => 'sometimes|image|mimes:jpeg,png,jpg|max:512',
+            'description' => 'sometimes|string',
         ], [
             'name.required' => 'Nama wajib diisi.',
             'img.image' => 'Foto harus berupa file gambar.',
@@ -142,22 +142,19 @@ class MitraController extends BaseController
             $imageUrl = $imagePath ? 'storage/' . $imagePath : $mitra->img; // Gunakan gambar lama jika tidak ada gambar baru
 
             // Perbarui data mitra
-            $mitra->update([
-                'name' => $validatedData->validated()['name'],
-                'description' => $validatedData->validated()['description'],
-                'img' => $imageUrl,
-            ]);
+            $mitra->name = $validatedData->validated()['name'] ?? $mitra->name;
+            $mitra->description = $validatedData->validated()['description'] ?? $mitra->description;
+            $mitra->img = $imageUrl;
+            $mitra->save();
 
             DB::commit();
 
             return $this->sendResponse('Mitra berhasil diperbarui.', $mitra);
-
         } catch (Exception $e) {
             DB::rollback();
             return $this->sendError('Terjadi kesalahan saat memperbarui mitra.', [$e->getMessage()], 500);
         }
     }
-
 
     /**
      * Remove the specified Mitra resource from storage.

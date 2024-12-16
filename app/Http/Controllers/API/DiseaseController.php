@@ -101,12 +101,14 @@ class DiseaseController extends BaseController
                 }
             }
             $imageUrl = 'storage/' . $imagePath; 
-            $penyakitMental = Disease::create([
-                'disease_name' => $validatedData->validated()['disease_name'],
-                'content' => $validatedData->validated()['content'],
-                'admin_id' => $validatedData->validated()['admin_id'],
-                'disease_img' => $imageUrl, 
-            ]);
+
+            $penyakitMental = new Disease();
+            $penyakitMental->disease_name = $validatedData->validated()['disease_name'];
+            $penyakitMental->content = $validatedData->validated()['content'];
+            $penyakitMental->admin_id = $validatedData->validated()['admin_id'];
+            $penyakitMental->disease_img = $imageUrl;
+            $penyakitMental->save();
+            
             DB::commit();
 
             return $this->sendResponse('Informasi kesehatan mental baru berhasil dibuat.', $penyakitMental);
@@ -152,10 +154,10 @@ class DiseaseController extends BaseController
     }
 
         $validatedData = Validator::make($request->all(), [
-            'disease_name' => 'required|string|max:255',
-            'disease_img' => 'required|image|mimes:jpeg,png,jpg|max:2048', 
-            'admin_id' => 'required|exists:admins,id',
-            'content' => 'required|string',
+            'disease_name' => 'sometimes|string|max:255',
+            'disease_img' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048', 
+            'admin_id' => 'sometimes|exists:admins,id',
+            'content' => 'sometimes|string',
         ], [
             'disease_name.required' => 'Nama wajib diisi.',
             'content.required' => 'Konten kesehatan mental wajib diisi.',
@@ -188,12 +190,15 @@ class DiseaseController extends BaseController
                 if ($penyakitMental->disease_img) {
                     Storage::disk('public')->delete($penyakitMental->disease_img);
                 }
-                $imageUrl = 'storage/' . $imagePath; 
-                $dataToUpdate['disease_img'] = $imageUrl;
+                $penyakitMental->disease_img = 'storage/' . $imagePath; 
             }
 
             // Update penyakit mental 
-            $penyakitMental->update($dataToUpdate);
+            $penyakitMental->disease_name = $dataToUpdate['disease_name'] ?? $penyakitMental->disease_name;
+            $penyakitMental->content = $dataToUpdate['content'] ?? $penyakitMental->content;
+            $penyakitMental->admin_id = $dataToUpdate['admin_id'] ?? $penyakitMental->admin_id;
+            $penyakitMental->save();
+
             DB::commit();
             return $this->sendResponse('Informasi kesehatan mental berhasil dipebarui.', $penyakitMental);
 

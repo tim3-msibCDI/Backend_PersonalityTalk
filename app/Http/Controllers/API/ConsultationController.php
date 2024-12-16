@@ -414,32 +414,39 @@ class ConsultationController extends BaseController
             // Hitung total biaya setelah diskon
             $finalAmount = $consultationFee - $discount;
 
-            $consultation = Consultation::create([
-                'user_id' => auth()->id(),
-                'psi_id' => $request->psi_id,
-                'psch_id' => $request->psch_id,
-                'topic_id' => $request->topic_id,
-                'patient_complaint' => $request->patient_complaint ?? '',
-                'consul_status' => 'pending',
-            ]);
+            // Simpan data konsultasi
+            $consultation = new Consultation();
+            $consultation->user_id = auth()->id();
+            $consultation->psi_id = $request->psi_id;
+            $consultation->psch_id = $request->psch_id;
+            $consultation->topic_id = $request->topic_id;
+            $consultation->patient_complaint = $request->patient_complaint ?? '';
+            $consultation->consul_status = 'pending';
+            $consultation->save();
 
             // Mengupdate is_available pada psikolog_schedule menjadi false
             $psikologSchedule->is_available = false;
             $psikologSchedule->save();
 
             // Kode unik transaksi
-            $paymentNumber = 'CS' . '-' . now()->format('ymd') . Str::upper(Str::random(4)) . $consultation->id;
+            do {
+                $randomString = Str::upper(Str::random(6)); 
+                $timestamp = now()->format('ymd'); 
+                $paymentNumber = 'CS-' . $timestamp . '-' . $randomString;
+                $exists = DB::table('consul_transactions')->where('payment_number', $paymentNumber)->exists();
+            } while ($exists);
 
-            $transaction = ConsultationTransaction::create([
-                'payment_number' => $paymentNumber,
-                'user_id' => auth()->id(),
-                'consultation_id' => $consultation->id,
-                'voucher_id' => $voucher->id ?? null,
-                'payment_method_id' => $request->payment_method_id,
-                'consul_fee' => $consultationFee,
-                'discount_amount' => $discount,
-                'status' => 'pending',
-            ]);
+            // Simpan data transaksi konsultasi
+            $transaction = new ConsultationTransaction();
+            $transaction->payment_number = $paymentNumber;
+            $transaction->user_id = auth()->id();
+            $transaction->consultation_id = $consultation->id;
+            $transaction->voucher_id = $voucher->id ?? null;
+            $transaction->payment_method_id = $request->payment_method_id;
+            $transaction->consul_fee = $consultationFee;
+            $transaction->discount_amount = $discount;
+            $transaction->status = 'pending';
+            $transaction->save();
 
             // Update penggunaan voucher jika digunakan
             if (isset($voucher)) {

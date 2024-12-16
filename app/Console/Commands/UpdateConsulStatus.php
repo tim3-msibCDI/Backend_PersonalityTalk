@@ -28,7 +28,6 @@ class UpdateConsulStatus extends Command
      */
     public function handle()
     {
-        // Ambil semua konsultasi yang statusnya 'scheduled' atau 'ongoing'
         $consultations = Consultation::with('psikologSchedule.mainSchedule')
             ->whereIn('consul_status', ['scheduled', 'ongoing'])
             ->get();

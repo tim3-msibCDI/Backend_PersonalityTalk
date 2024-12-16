@@ -37,10 +37,9 @@ class ForgotPasswordController extends BaseController
     
         // Generate random token
         $reset_token = Str::random(60); 
-        $user->update([
-            'reset_token' => $reset_token, 
-            'reset_token_expires_at' => now()->addMinutes(5)
-        ]); 
+        $user->reset_token = $reset_token;
+        $user->reset_token_expires_at = now()->addMinutes(5);
+        $user->save();
 
         // Send email with reset link
         Mail::to($user->email)->send(new ResetPasswordMail($reset_token));

@@ -56,9 +56,9 @@ class ConsulTopicController extends BaseController
             'topic_name.required' => 'Nama topik wajib diisi.',
         ]);
 
-        $topic = Topic::create([
-            'topic_name' => $request->topic_name, 
-        ]);
+        $topic = new Topic();
+        $topic->topic_name = $request->topic_name;
+        $topic->save();
 
         return $this->sendResponse('Topik baru berhasil ditambahkan', $topic);
     }
@@ -88,9 +88,8 @@ class ConsulTopicController extends BaseController
             'topic_name.required' => 'Nama topik wajib diisi.',
         ]);
 
-        $topic->update([
-            'topic_name' => $request->topic_name, 
-        ]);
+        $topic->topic_name = $request->topic_name;
+        $topic->save();
 
         return $this->sendResponse('Topik berhasil diperbarui.', $topic);
     }

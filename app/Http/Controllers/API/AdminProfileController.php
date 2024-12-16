@@ -79,7 +79,10 @@ class AdminProfileController extends BaseController
         }
 
         try {
-            $admin->update($request->only('name', 'email', 'phone_number'));
+            $admin->name = $request->input('name');
+            $admin->email = $request->input('email');
+            $admin->phone_number = $request->input('phone_number');
+            $admin->save();
             return $this->sendResponse('Profil admin berhasil diperbarui.', $admin); 
         } catch (\Exception $e) {
             return $this->sendError('Gagal memperbarui profil.', $e->getMessage(), 500);

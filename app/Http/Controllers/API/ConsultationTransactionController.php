@@ -103,13 +103,13 @@ class ConsultationTransactionController extends BaseController
             $consultation->save();
 
             // Buat chat session yang terjadwalkan
-            $chatSession = ChatSession::create([
-                'user_id' => $consultation->user_id,
-                'psi_id' => $consultation->psi_id,
-                'consultation_id' => $consultation->id,
-                'start_time' => $consultation->psikologSchedule->mainSchedule->start_hour,
-                'end_time' => $consultation->psikologSchedule->mainSchedule->end_hour
-            ]);
+            $chatSession = new ChatSession();
+            $chatSession->user_id = $consultation->user_id;
+            $chatSession->psi_id = $consultation->psi_id;
+            $chatSession->consultation_id = $consultation->id;
+            $chatSession->start_time = $consultation->psikologSchedule->mainSchedule->start_hour;
+            $chatSession->end_time = $consultation->psikologSchedule->mainSchedule->end_hour;
+            $chatSession->save();
 
             DB::commit();
             return $this->sendResponse('Bukti pembayaran berhasil diterima.', $transaction);

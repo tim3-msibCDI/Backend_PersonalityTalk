@@ -54,9 +54,9 @@ class ArticleCategoryController extends BaseController
             'name.required' => 'Nama kategori wajib diisi.',
         ]);
 
-        $category = ArticleCategory::create([
-            'name' => $request->name, 
-        ]);
+        $category = new ArticleCategory;
+        $category->name = $request->name;
+        $category->save();  
 
         return $this->sendResponse('Kategori baru berhasil ditambahkan', $category);
     }
@@ -83,9 +83,8 @@ class ArticleCategoryController extends BaseController
             'name.required' => 'Nama kategori artikel wajib diisi.',
         ]);
 
-        $category->update([
-            'name' => $request->name, 
-        ]);
+        $category->name = $request->name;
+        $category->save();
 
         return $this->sendResponse('Kategori berhasil diperbarui.', $category);
     }

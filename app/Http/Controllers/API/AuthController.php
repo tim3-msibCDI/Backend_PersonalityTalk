@@ -144,29 +144,30 @@ class AuthController extends BaseController
 
             if($request->role === 'M' || $request->role === 'U'){
                  // Buat user baru
-                $user = User::create([
-                    'name' => $request->name,
-                    'email' => $request->email,
-                    'password' => Hash::make($request->password),
-                    'phone_number' => $request->phone_number,
-                    'date_birth' => $request->date_birth,
-                    'gender' => $request->gender,
-                    'role' => $request->role, // 'U', 'M', atau 'P'
-                ]);
+                $user = new User();
+                $user->name = $request->name;
+                $user->email = $request->email;
+                $user->password = Hash::make($request->password);
+                $user->phone_number = $request->phone_number;
+                $user->date_birth = $request->date_birth;
+                $user->gender = $request->gender;
+                $user->role = $request->role; // 'U', 'M', atau 'P'
+                $user->save();
 
                 // Jika role adalah 'M', maka simpan data tambahan mahasiswa
                 if ($request->role === 'M') {
-                    Mahasiswa::create([
-                        'user_id' => $user->id,
-                        'universitas' => $request->universitas,
-                        'jurusan' => $request->jurusan,
-                    ]);
+                    $mahasiswa = new Mahasiswa();
+                    $mahasiswa->user_id = $user->id;
+                    $mahasiswa->universitas = $request->universitas;
+                    $mahasiswa->jurusan = $request->jurusan;
+                    $mahasiswa->save();
                 }
 
             }elseif ($request->role === 'P' || $request->role === 'K') {
                 // Buat user psikolog dengan menggunakan psikolog service
                 $this->psikologService->registerPsikolog($request->all());
                 DB::commit();
+                
                 $roleName = $request->role === 'P' ? 'psikolog' : 'konselor'; 
                 return $this->sendResponse("Pendaftaran anda sebagai $roleName berhasil dilakukan.");
             }
