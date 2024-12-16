@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
 use App\Models\PsikologPrice;
+use App\Models\PsikologTopic;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -117,7 +118,7 @@ class UserProfileController extends BaseController
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|string|email|unique:users,email,' . $user->id,
-            'phone_number' => 'nullable|string|regex:/^[0-9]{10,}$/',
+            'phone_number' => 'sometimes|nullable|string|regex:/^[0-9]{10,}$/',
             'date_birth' => 'sometimes|date',
             'gender' => 'sometimes|in:M,F',
         
@@ -130,18 +131,19 @@ class UserProfileController extends BaseController
             'rekening' => 'sometimes|string|max:255',
             'sipp' => 'sometimes|string|max:255',
             'practice_start_date' => 'sometimes|date',
-            'description' => 'nullable|string',
+            'description' => 'sometimes|nullable|string',
             'topics' => 'sometimes|array',
             'topics.*' => 'exists:topics,id',
         ], [
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Email sudah digunakan oleh pengguna lain.',
             'phone_number.regex' => 'Format nomor telepon salah.',
-
-            'universitas.required_if' => 'Universitas wajib diisi.',
-            'jurusan.required_if' => 'Jurusan wajib diisi.',
-
-            'sipp.required_if' => 'SIPP wajib diisi.',
-            'practice_start_date.required_if' => 'Tanggal mulai praktik wajib diisi.',
-            'topics.required_if' => 'Topik wajib dipilih.',
+            'date_birth.date' => 'Tanggal lahir harus berupa format tanggal yang valid.',
+            'gender.in' => 'Jenis kelamin hanya dapat berupa M (laki-laki) atau F (perempuan).',
+            'bank_id.exists' => 'Bank yang dipilih tidak valid.',
+            'practice_start_date.date' => 'Tanggal mulai praktik harus berupa format tanggal yang valid.',
+            'topics.array' => 'Topik harus berupa array.',
+            'topics.*.exists' => 'Topik yang dipilih tidak valid.',
         ]);
 
         if ($validator->fails()) {
@@ -151,22 +153,29 @@ class UserProfileController extends BaseController
         try {
             DB::beginTransaction();
 
-            $user->update($request->only('name', 'email', 'phone_number', 'date_birth', 'gender'));
+            // Update user biasa
+            $user->name = $request->name ?? $user->name;
+            $user->email = $request->email ?? $user->email;
+            $user->phone_number = $request->phone_number ?? $user->phone_number;
+            $user->date_birth = $request->date_birth ?? $user->date_birth;
+            $user->gender = $request->gender ?? $user->gender;
+            $user->save();
 
             // Update untuk mahasiswa
             if ($user->role === 'M') {
-                $user->mahasiswa()->update([
-                    'universitas' => $request->universitas,
-                    'jurusan' => $request->jurusan,
-                ]);
+                $mahasiswa = $user->mahasiswa;
+                $mahasiswa->universitas = $request->universitas;
+                $mahasiswa->jurusan = $request->jurusan;
+                $mahasiswa->save();
             }
 
             // Update untuk psikolog
             if ($user->role === 'P') {
-
+                $psikolog = $user->psikolog;
                 // Update untuk SIPP dan juga harga psikolog
                 if (empty($validator->validated()['sipp'])) {
                     $psikologPriceId = 1; // Default ID if SIPP is empty
+                    $psikolog->category_id = 2; //Category untuk konselor
                 } else {
                     $sippParts = explode('-', $validator->validated()['sipp']);
                     $sippCode = $sippParts[2] ?? null;
@@ -174,35 +183,38 @@ class UserProfileController extends BaseController
                     if (!$sippCode) {
                         throw new \Exception("Format SIPP tidak valid.");  
                     }
-
                     $psikologPrice = PsikologPrice::where('code', $sippCode)->first();
                     $psikologPriceId = $psikologPrice->id ?? 1;
+                    $psikolog->category_id = 1; //Category untuk psikolog
                 }
 
-                // Update
-                $user->psikolog()->update([
-                    'sipp' => $request->sipp,
-                    'psikolog_price_id' => $psikologPriceId,
-                    'practice_start_date' => $request->practice_start_date,
-                    'description' => $request->description,
-                    'bank_id' => $request->bank_id,
-                    'account_number' => $request->rekening,
-                ]);
+                // Update psikolog
+                $psikolog->sipp = $request->sipp ?? $psikolog->sipp;
+                $psikolog->psikolog_price_id = $psikologPriceId;
+                $psikolog->practice_start_date = $request->practice_start_date ?? $psikolog->practice_start_date;
+                $psikolog->description = $request->description ?? $psikolog->description;
+                $psikolog->bank_id = $request->bank_id ?? $psikolog->bank_id;
+                $psikolog->account_number = $request->rekening ?? $psikolog->account_number;
+                $psikolog->save();
 
-                // Cek apakah ada perubahan dalam topik
-                $existingTopicIds = $user->psikolog->psikolog_topic->pluck('topic_id')->toArray();
-                $newTopicIds = $request->topics;
+                // Cek apakah ada perubahan dalam topik 
+                if($request->has('topics')) {
+                    $existingTopicIds = $user->psikolog->psikolog_topic->pluck('topic_id')->toArray();
+                    $newTopicIds = $request->topics;
 
-                // Jika topik berubah, lakukan pembaruan
-                if (array_diff($existingTopicIds, $newTopicIds) || array_diff($newTopicIds, $existingTopicIds)) {
-                    // Hapus topik lama
-                    $user->psikolog->psikolog_topic()->delete();
+                    // Jika topik berubah, lakukan pembaruan
+                    if (array_diff($existingTopicIds, $newTopicIds) || array_diff($newTopicIds, $existingTopicIds)) {
+                        // Hapus topik lama
+                        $user->psikolog->psikolog_topic()->delete();
 
-                    // Tambahkan topik baru
-                    $newTopics = collect($newTopicIds)->map(function ($topicId) {
-                        return ['topic_id' => $topicId];
-                    });
-                    $user->psikolog->psikolog_topic()->createMany($newTopics->toArray());
+                        // Tambahkan topik baru
+                        foreach ($newTopicIds as $topicId) {
+                            $newTopic = new PsikologTopic();
+                            $newTopic->psikolog_id = $user->psikolog->id; // Pastikan Anda menetapkan relasi psikolog
+                            $newTopic->topic_id = $topicId;
+                            $newTopic->save();
+                        }
+                    }   
                 }
             }
             
@@ -247,16 +259,17 @@ class UserProfileController extends BaseController
         try {
             DB::beginTransaction();
             
-            // Update role
+            // Update role ke mahasiswa
             $user->role = 'M';
             $user->save();
 
             // Create Mahasiswa entry
-            Mahasiswa::create([
-                'user_id' => $user->id,
-                'jurusan' => $request->jurusan,
-                'universitas' => $request->universitas,
-            ]);
+            $mahasiswa = new Mahasiswa();
+            $mahasiswa->user_id = $user->id;
+            $mahasiswa->jurusan = $request->jurusan;
+            $mahasiswa->universitas = $request->universitas;
+            $mahasiswa->save();
+
             DB::commit();
             
             return $this->sendResponse('Berhasil diperbarui menjadi Mahasiswa.', null);            

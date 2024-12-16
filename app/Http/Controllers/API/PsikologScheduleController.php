@@ -180,12 +180,13 @@ class PsikologScheduleController extends BaseController
                             ->first();
 
                         if (!$existingSchedule) {
-                            PsikologSchedule::create([
-                                'psikolog_id' => $psikologId,
-                                'date' => $date,
-                                'msch_id' => $mschId,
-                                'is_available' => true, // Default to available when generating new schedules
-                            ]);
+                            // Insert new schedule
+                            $psikologSchedule = new PsikologSchedule();
+                            $psikologSchedule->psikolog_id = $psikologId;
+                            $psikologSchedule->date = $date;
+                            $psikologSchedule->msch_id = $mschId;
+                            $psikologSchedule->is_available = true;
+                            $psikologSchedule->save();
                         }
                     }
                 }
@@ -301,12 +302,12 @@ class PsikologScheduleController extends BaseController
                     });
 
                     if (!$existingSchedule) {
-                        PsikologSchedule::create([
-                            'psikolog_id' => $psikologId,
-                            'date' => $date,
-                            'msch_id' => $mschId,
-                            'is_available' => true,
-                        ]);
+                        $psikologSchedule = new PsikologSchedule();
+                        $psikologSchedule->psikolog_id = $psikologId;
+                        $psikologSchedule->date = $date;
+                        $psikologSchedule->msch_id = $mschId;
+                        $psikologSchedule->is_available = true;
+                        $psikologSchedule->save();
                     }
                 }
             }

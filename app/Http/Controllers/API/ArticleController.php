@@ -186,15 +186,16 @@ class ArticleController extends BaseController
                 }
             }
             $imageUrl = 'storage/' . $imagePath; 
-            $article = Article::create([
-                'article_title' => $validatedData->validated()['article_title'],
-                'content' => $validatedData->validated()['content'],
-                'publication_date' => $validatedData->validated()['publication_date'],
-                'publisher_name' => $validatedData->validated()['publisher_name'],
-                'article_img' => $imageUrl, 
-                'admin_id' => $validatedData->validated()['admin_id'],
-                'category_id' => $validatedData->validated()['category_id'],
-            ]);
+            
+            $article = new Article();
+            $article->article_title = $validatedData->validated()['article_title'];
+            $article->content = $validatedData->validated()['content'];
+            $article->publication_date = $validatedData->validated()['publication_date'];
+            $article->publisher_name = $validatedData->validated()['publisher_name'];
+            $article->article_img = $imageUrl;
+            $article->admin_id = $validatedData->validated()['admin_id'];
+            $article->category_id = $validatedData->validated()['category_id'];
+            $article->save();
 
             DB::commit();
             return $this->sendResponse('Artikel baru berhasil dibuat.', $article);
@@ -226,7 +227,7 @@ class ArticleController extends BaseController
      * Update Article - Admin
      *
      * @param  \Illuminate\Http\Request $request
-     * @param int  $id                                                                              
+     * @param int  $id                                                                               
      * @return \Illuminate\Http\JsonResponse   
      *     
      */
@@ -266,10 +267,10 @@ class ArticleController extends BaseController
 
         try {
             DB::beginTransaction();
-            
+
             $dataToUpdate = $validatedData->validated();
 
-            // Jika ada file gambar baru, simpan dan hapus gambar lama
+            // Proses gambar jika ada
             if ($request->hasFile('article_img')) {
                 $imagePath = Storage::disk('public')->put('article_photos', $request->file('article_img'));
                 if (!$imagePath) {
@@ -280,20 +281,27 @@ class ArticleController extends BaseController
                 if ($article->article_img) {
                     Storage::disk('public')->delete($article->article_img);
                 }
-                $imageUrl = 'storage/' . $imagePath; 
-                $dataToUpdate['article_img'] = $imageUrl;
+
+                $article->article_img = 'storage/' . $imagePath;
             }
 
-            // Update artikel 
-            $article->update($dataToUpdate);
+            $article->article_title = $dataToUpdate['article_title'] ?? $article->article_title;
+            $article->content = $dataToUpdate['content'] ?? $article->content;
+            $article->publication_date = $dataToUpdate['publication_date'] ?? $article->publication_date;
+            $article->publisher_name = $dataToUpdate['publisher_name'] ?? $article->publisher_name;
+            $article->admin_id = $dataToUpdate['admin_id'] ?? $article->admin_id;
+            $article->category_id = $dataToUpdate['category_id'] ?? $article->category_id;
+            $article->save();
+            
             DB::commit();
-            return $this->sendResponse('Artikel berhasil diperbarui.', $article);
 
+            return $this->sendResponse('Artikel berhasil diperbarui.', $article);
         } catch (Exception $e) {
             DB::rollback();
             return $this->sendError('Terjadi kesalahan saat memperbarui artikel.', [$e->getMessage()], 500);
         }
     }
+
 
     /**
      * Delete Article - Admin

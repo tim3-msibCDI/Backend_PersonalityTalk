@@ -4,10 +4,12 @@ namespace App\Http\Controllers\API;
 
 use Carbon\Carbon;
 use App\Models\User;
+use App\Models\PsikologTopic;
 use App\Models\Psikolog;
 use App\Models\Mahasiswa;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Models\PsikologPrice;
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Hash;
@@ -15,7 +17,6 @@ use App\Services\NotificationService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController;
-use App\Models\PsikologPrice;
 
 class ManageUserController extends BaseController
 {   
@@ -107,17 +108,18 @@ class ManageUserController extends BaseController
 
             // Generate random password
             $randomPassword = Str::random(8);
-    
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($randomPassword),
-                'phone_number' => $request->phone_number,
-                'date_birth' => $request->date_birth,
-                'gender' => $request->gender,
-                'role' => 'U',
-                'photo_profile' => $imagePath ?? null,
-            ]);
+
+            $user = new User();
+            $user->name = $request->name;
+            $user->email = $request->email;
+            $user->password = Hash::make($randomPassword);
+            $user->phone_number = $request->phone_number;
+            $user->date_birth = $request->date_birth;
+            $user->gender = $request->gender;
+            $user->role = 'U';
+            $user->photo_profile = $imagePath ?? null;
+            $user->save();
+
             DB::commit();
 
             //kirim kredensial ke wa
@@ -156,12 +158,12 @@ class ManageUserController extends BaseController
         }
         
         $validatedData = Validator::make($request->all(), [
-            'name' => 'string|max:255',
-            'email' => 'email|unique:users,email,' . $user->id,
-            'phone_number' => 'string|regex:/^[0-9]{10,15}$/',
-            'date_birth' => 'date',
-            'gender' => 'string',
-            'photo_profile' => 'image|mimes:jpeg,png,jpg|max:2048',
+            'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|unique:users,email,' . $user->id,
+            'phone_number' => 'sometimes|string|regex:/^[0-9]{10,15}$/',
+            'date_birth' => 'sometimes|date',
+            'gender' => 'sometimes|string',
+            'photo_profile' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
         ],[
             'name.string' => 'Nama harus berupa teks.',
             'email.email' => 'Format email salah.',
@@ -180,6 +182,7 @@ class ManageUserController extends BaseController
         
         try {
             DB::beginTransaction();
+
             $dataToUpdate = $validatedData->validated();
 
             if ($request->hasFile('photo_profile')) {
@@ -187,11 +190,16 @@ class ManageUserController extends BaseController
                 if (!$imagePath) {
                     return $this->sendError('Gagal menyimpan foto profile.', [], 500);
                 }
-                $imagePath = 'storage/' . $imagePath;
-                $dataToUpdate['photo_profile'] = $imagePath;
-
+                $user->photo_profile = 'storage/' . $imagePath;
             }
-            $user->update($dataToUpdate);
+
+            $user->name = $dataToUpdate['name'] ?? $user->name;
+            $user->email = $dataToUpdate['email'] ?? $user->email;
+            $user->phone_number = $dataToUpdate['phone_number'] ?? $user->phone_number;
+            $user->date_birth = $dataToUpdate['date_birth'] ?? $user->date_birth;
+            $user->gender = $dataToUpdate['gender'] ?? $user->gender;
+            $user->save();
+
             DB::commit();
             return $this->sendResponse('Pengguna umum berhasil diupdate.', $user);
         }catch (\Exception $e) {
@@ -313,22 +321,23 @@ class ManageUserController extends BaseController
             }
             $randomPassword = Str::random(8);
 
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($randomPassword),
-                'phone_number' => $request->phone_number,
-                'date_birth' => $request->date_birth,
-                'gender' => $request->gender,
-                'photo_profile' => $imagePath,
-                'role' => 'M',
-            ]);
+            $user = new User();
+            $user->name = $request->name;
+            $user->email = $request->email;
+            $user->password = Hash::make($randomPassword);
+            $user->phone_number = $request->phone_number;
+            $user->date_birth = $request->date_birth;
+            $user->gender = $request->gender;
+            $user->photo_profile = $imagePath;
+            $user->role = 'M';
+            $user->save();
 
-            $mahasiswa = Mahasiswa::create([
-                'user_id' => $user->id,
-                'universitas' => $request->universitas,
-                'jurusan' => $request->jurusan,
-            ]);
+            $mahasiswa = new Mahasiswa();
+            $mahasiswa->user_id = $user->id;
+            $mahasiswa->universitas = $request->universitas;
+            $mahasiswa->jurusan = $request->jurusan;
+            $mahasiswa->save();
+
             DB::commit();
 
             //Kirim kredensial pengguna melalui Pesan WhatsApp
@@ -354,8 +363,8 @@ class ManageUserController extends BaseController
         }
 
         $validator = Validator::make($request->all(), [
-            'name' => 'string|max:255',
-            'email' => 'email|unique:users,email,' . $user->id,
+            'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|unique:users,email,' . $user->id,
             'phone_number' => 'string|regex:/^[0-9]{10,15}$/',
             'date_birth' => 'date',
             'gender' => 'string',
@@ -384,17 +393,22 @@ class ManageUserController extends BaseController
                 if (!$imagePath) {
                     return $this->sendError('Gagal menyimpan foto profile.', [], 500);
                 }
-                $imagePath = 'storage/' . $imagePath;
-                $dataToUpdate['photo_profile'] = $imagePath;
+                $user->photo_profile = 'storage/' . $imagePath;
             }
-            $user->update($dataToUpdate);
+
+            //update data user
+            $user->name = $dataToUpdate['name'] ?? $user->name;
+            $user->email = $dataToUpdate['email'] ?? $user->email;
+            $user->phone_number = $dataToUpdate['phone_number'] ?? $user->phone_number;
+            $user->date_birth = $dataToUpdate['date_birth'] ?? $user->date_birth;
+            $user->gender = $dataToUpdate['gender'] ?? $user->gender;
+            $user->save();
 
             //update data mahasiswa
             $mahasiswa = Mahasiswa::where('user_id', $user->id)->first();
-            $mahasiswa->update([
-                'universitas' => $request->universitas,
-                'jurusan' => $request->jurusan,
-            ]);
+            $mahasiswa->universitas = $request->universitas ?? $mahasiswa->universitas;
+            $mahasiswa->jurusan = $request->jurusan ?? $mahasiswa->jurusan;
+            $mahasiswa->save();
 
             DB::commit();
             return $this->sendResponse('Pengguna mahasiswa berhasil diupdate.', $user);
@@ -594,6 +608,17 @@ class ManageUserController extends BaseController
             return $this->sendError('Pengguna tidak ditemukan', [], 404);
         }
 
+        // Pastikan Psikolog aktif
+        if (!$user->psikolog->is_active) {
+            return $this->sendError('Akun Psikolog tidak aktif', [], 403);
+        }
+
+        // Pastikan relasi dengan tabel Psikolog
+        $psikolog = $user->psikolog; // Gunakan relasi "psikolog" pada model User
+        if (!$psikolog) {
+            return $this->sendError('Data Psikolog tidak ditemukan', [], 404);
+        }
+
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|max:255|unique:users,email,' . $id,
@@ -640,29 +665,24 @@ class ManageUserController extends BaseController
                     Storage::disk('public')->delete(str_replace('storage/', '', $user->photo_profile));
                 }
             
-                $imageUrl = 'storage/' . $imagePath; 
-                $user->update(['photo_profile' => $imageUrl]);
+                $user->photo_profile = 'storage/' . $imagePath; 
             }
-
+            
             // Update data user
-            $user->update([
-                'name' => $validatedData['name'] ?? $user->name,
-                'email' => $validatedData['email'] ?? $user->email,
-                'phone_number' => $validatedData['phone_number'] ?? $user->phone_number,
-                'date_birth' => $validatedData['date_birth'] ?? $user->date_birth,
-                'gender' => $validatedData['gender'] ?? $user->gender,
-            ]);
+            $user->name = $validatedData['name'] ?? $user->name;
+            $user->email = $validatedData['email'] ?? $user->email;
+            $user->phone_number = $validateData['phone_number'] ?? $user->phone_number;
+            $user->date_birth = $validatedData['date_birth'] ?? $user->date_birth;
+            $user->gender = $validatedData['gender'] ?? $user->gender;
+            $user->save();
 
             // Update data psikolog
-            $psikolog = $user->psikolog;
             if ($psikolog) {
-
                 //Perbarui data psikolog
-                $psikolog->update([
-                    'practice_start_date' => $validatedData['practice_start_date'] ?? $user->practice_start_date,
-                    'bank_id' => $validatedData['bank_id'] ?? $user->bank_id,
-                    'account_number' => $validatedData['rekening'] ?? $user->account_number,
-                ]);
+                $psikolog->practice_start_date = $validatedData['practice_start_date'] ?? $user->practice_start_date;
+                $psikolog->bank_id = $validatedData['bank_id'] ?? $user->bank_id;
+                $psikolog->account_number = $validatedData['rekening'] ?? $user->account_number;
+                $psikolog->save();
 
                 // Perbarui SIPP dan PsikologPrice
                 if (isset($validatedData['sipp'])) {
@@ -679,15 +699,12 @@ class ManageUserController extends BaseController
                     $psikologPriceId = $psikologPrice->id ?? 1; 
 
                     // Perbarui SIPP dan PsikologPrice di tabel psikolog
-                    $psikolog->update([
-                        'sipp' => $sipp,
-                        'psikolog_price_id' => $psikologPriceId,
-                    ]);
+                    $psikolog->sipp = $sipp;
+                    $psikolog->psikolog_price_id = $psikologPriceId;
 
-                    // Perbarui psikolog_category menjadi 'Psikolog'
-                    $psikolog->updateOrCreate(
-                        ['category_id' => 1],
-                    );
+                    // Perbarui psikolog_category menjadi '1 = Psikolog'
+                    $psikolog->category_id = 1;
+                    $psikolog->save();
                 }
 
                 // Cek apakah ada data updated_topics pada request
@@ -704,7 +721,13 @@ class ManageUserController extends BaseController
                         $newTopics = collect($newTopicIds)->map(function ($topicId) {
                             return ['topic_id' => $topicId];
                         });
-                        $user->psikolog->psikolog_topic()->createMany($newTopics->toArray());
+                        
+                        foreach ($newTopics as $topicData) {
+                            $topic = new PsikologTopic(); 
+                            $topic->topic_id = $topicData['topic_id'];
+                            $topic->psikolog_id = $user->psikolog->id; 
+                            $topic->save();
+                        }
                     }
                     $user->load('psikolog.psikolog_topic');
                 }

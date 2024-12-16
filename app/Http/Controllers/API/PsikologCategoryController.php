@@ -34,10 +34,9 @@ class PsikologCategoryController extends BaseController
             'category_name.required' => 'Nama kategori wajib diisi.',
         ]);
 
-        $category = PsikologCategory::create([
-            'category_name' => $request->category_name, 
-        ]);
-
+        $category = new PsikologCategory();
+        $category->category_name = $request->category_name;
+        $category->save();
         return $this->sendResponse('Kategori baru berhasil ditambahkan', $category);
     }
 
@@ -55,10 +54,8 @@ class PsikologCategoryController extends BaseController
             'category_name.required' => 'Nama kategori wajib diisi.',
         ]);
 
-        $category->update([
-            'category_name' => $request->category_name, 
-        ]);
-
+        $category->category_name = $request->category_name;
+        $category->save();
         return $this->sendResponse('Kategori berhasil diperbarui.', $category);
     }
 

@@ -35,16 +35,16 @@ class PsikologService
             }
 
             // Simpan data pengguna
-            $user = User::create([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'password' => Hash::make($data['password']),
-                'phone_number' => $data['phone_number'],
-                'date_birth' => $data['date_birth'],
-                'gender' => $data['gender'],
-                'photo_profile' => $photoProfilePath,
-                'role' => 'P', // P = psikolog
-            ]);
+            $user = new User();
+            $user->name = $data['name'];
+            $user->email = $data['email'];
+            $user->password = Hash::make($data['password']);
+            $user->phone_number = $data['phone_number'];
+            $user->date_birth = $data['date_birth'];
+            $user->gender = $data['gender'];
+            $user->photo_profile = $photoProfilePath;
+            $user->role = 'P'; // P = psikolog
+            $user->save();
 
             // Tentukan psikolog_price_id berdasarkan kode pada sipp
             if (empty($data['sipp'])) {
@@ -67,17 +67,17 @@ class PsikologService
                 $categoryId = 2; // category ID for konselor
             }
 
-            // Simpan data psikolog
-            $psikolog = Psikolog::create([
-                'user_id' => $user->id,
-                'category_id' => $categoryId,
-                'psikolog_price_id' => $psikologPriceId,
-                'description' => $data['description'],
-                'sipp' => $data['sipp'] ?? null,
-                'practice_start_date' => $data['practice_start_date'] ?? null,
-                'status' => 'pending',
-                'is_active' => false,
-            ]);
+           // Simpan data psikolog
+            $psikolog = new Psikolog();
+            $psikolog->user_id = $user->id;
+            $psikolog->category_id = $categoryId;
+            $psikolog->psikolog_price_id = $psikologPriceId;
+            $psikolog->description = $data['description'];
+            $psikolog->sipp = $data['sipp'] ?? null;
+            $psikolog->practice_start_date = $data['practice_start_date'] ?? null;
+            $psikolog->status = 'pending';
+            $psikolog->is_active = false;
+            $psikolog->save();
 
             // Simpan topik keahlian
             foreach ($data['topics'] as $topicId) {

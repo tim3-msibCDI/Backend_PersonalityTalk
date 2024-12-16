@@ -58,7 +58,8 @@ class VoucherController extends BaseController
         if ($validatedData->fails()) {
             return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
         }
-        $voucher = Voucher::create($request->all());
+        $voucher = new Voucher($request->all());
+        $voucher->save();
         return $this->sendResponse('Voucher baru berhasil ditambahkan.', $voucher);
     }
 
@@ -95,14 +96,14 @@ class VoucherController extends BaseController
         }
 
         $validatedData = Validator::make($request->all(), [
-            'code' => 'required|string|max:50|unique:vouchers,code,' . $voucher->id,
-            'voucher_type' => 'required|in:consultation,course',
-            'discount_value' => 'required|numeric',
-            'min_transaction_amount' => 'nullable|numeric',
-            'valid_from' => 'nullable|date',
-            'valid_to' => 'nullable|date|after:valid_from',
-            'quota' => 'required|nullable|integer|min:0',
-            'is_active' => 'required|boolean'
+            'code' => 'sometimes|string|max:50|unique:vouchers,code,' . $voucher->id,
+            'voucher_type' => 'sometimes|in:consultation,course',
+            'discount_value' => 'sometimes|numeric',
+            'min_transaction_amount' => 'sometimes|nullable|numeric',
+            'valid_from' => 'sometimes|nullable|date',
+            'valid_to' => 'sometimes|nullable|date|after:valid_from',
+            'quota' => 'sometimes|nullable|integer|min:0',
+            'is_active' => 'sometimes|boolean'
         ],[
             'code.required' => 'Kode voucher wajib diisi.',
             'code.unique' => 'Kode voucher sudah digunakan, gunakan kode lain.',
@@ -119,7 +120,18 @@ class VoucherController extends BaseController
         if ($validatedData->fails()) {
             return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
         }
-        $voucher->update($request->all());
+        
+        // Update voucher 
+        $voucher->code = $request->code ?? $voucher->code;
+        $voucher->voucher_type = $request->voucher_type ?? $voucher->voucher_type;
+        $voucher->discount_value = $request->discount_value ?? $voucher->discount_value;
+        $voucher->min_transaction_amount = $request->min_transaction_amount ?? $voucher->min_transaction_amount;
+        $voucher->valid_from = $request->valid_from ?? $voucher->valid_from;
+        $voucher->valid_to = $request->valid_to ?? $voucher->valid_to;
+        $voucher->quota = $request->quota ?? $voucher->quota;
+        $voucher->is_active = $request->is_active ?? $voucher->is_active;
+        $voucher->save();
+
         $code = $voucher->code;
         return $this->sendResponse('Voucher '. $code .' berhasil diperbarui.', $voucher);
     }
@@ -129,7 +141,9 @@ class VoucherController extends BaseController
         if (!$voucher) {
             return $this->sendError('Voucher tidak ditemukan', [] , 404);
         }
-        $voucher->update(['is_active' => !$voucher->is_active]);
+        $voucher->is_active = !$voucher->is_active;
+        $voucher->save();
+
         $code = $voucher->code;
         return $this->sendResponse('Status voucher '. $code .' berhasil diperbarui.', $voucher);
     }

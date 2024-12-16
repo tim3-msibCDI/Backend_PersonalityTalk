@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Models\PsikologPrice;
 use Illuminate\Http\Request;
+use App\Models\PsikologPrice;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController;
 
 class PsikologPriceController extends BaseController
@@ -31,11 +32,9 @@ class PsikologPriceController extends BaseController
     public function show($id)
     {
         $price = PsikologPrice::find($id);
-
         if (!$price) {
             return $this->sendError('Harga tidak ditemukan', [], 404);
         }
-
         return $this->sendResponse('Harga berhasil ditemukan.', $price);
     }
 
@@ -48,23 +47,29 @@ class PsikologPriceController extends BaseController
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'code' => 'required',
+        $validatedData = Validator::make($request->all(),[
+            'code' => 'required|unique:psikolog_prices,code',
             'price' => 'required|numeric|min:0',
         ], [
-            'code.required' => 'Kode psikolog wajib diisi',
+            'code.required' => 'Kode psikolog wajib diisi.',
+            'code.unique' => 'Kode psikolog sudah digunakan.',
             'price.required' => 'Harga wajib diisi.',
             'price.numeric' => 'Harga harus berupa angka.',
             'price.min' => 'Harga tidak boleh kurang dari 0.',
         ]);
 
-        $price = PsikologPrice::create([
-            'code' => $request->code,
-            'price' => $request->price,
-        ]);
+        if($validatedData->fails()){
+            return $this->sendError('Validasi gagal.', $validatedData->errors(), 422);
+        }
+
+        $price = new PsikologPrice();
+        $price->code = $request->code;
+        $price->price = $request->price;
+        $price->save();
 
         return $this->sendResponse('Harga baru berhasil ditambahkan.', $price);
     }
+
 
     /**
      * Update Psikolog Price
@@ -82,21 +87,24 @@ class PsikologPriceController extends BaseController
             return $this->sendError('Harga tidak ditemukan', [], 404);
         }
 
-        $request->validate([
-            'code' => 'required',
-            'price' => 'required|numeric|min:0',
+        $validatedData = Validator::make($request->all(),[
+            'code' => 'sometimes|unique:psikolog_prices,code,' . $id,
+            'price' => 'sometimes|numeric|min:0',
         ], [
-            'code.required' => 'Kode psikolog wajib disi',
+            'code.required' => 'Kode psikolog wajib diisi.',
+            'code.unique' => 'Kode psikolog sudah digunakan.',
             'price.required' => 'Harga wajib diisi.',
             'price.numeric' => 'Harga harus berupa angka.',
             'price.min' => 'Harga tidak boleh kurang dari 0.',
         ]);
 
-        $price->update([
-            'code' => $request->code,
-            'price' => $request->price,
-        ]);
+        if($validatedData->fails()){
+            return $this->sendError('Validasi gagal.', $validatedData->errors(), 422);
+        }
 
+        $price->code = $request->code;
+        $price->price = $request->price;
+        $price->save();
         return $this->sendResponse('Harga berhasil diperbarui.', $price);
     }
 
@@ -116,10 +124,7 @@ class PsikologPriceController extends BaseController
         if ($price->psikolog()->exists()) {
             return $this->sendError('Harga masih digunakan dan tidak bisa dihapus', [], 400);
         }
-
-        $priceValue = $price->price;
         $price->delete();
-
         return $this->sendResponse("Harga sebesar berhasil dihapus.", null);
     }
 }

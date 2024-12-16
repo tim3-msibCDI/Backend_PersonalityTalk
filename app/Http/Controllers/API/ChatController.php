@@ -53,12 +53,12 @@ class ChatController extends BaseController
             'message' => 'required|string',
         ]);
 
-        $message = Message::create([
-            'chat_session_id' => $validated['chat_session_id'],
-            'sender_id' => $userId,
-            'receiver_id' => $validated['receiver_id'],
-            'message' => $validated['message'],
-        ]);
+        $message = new Message();
+        $message->chat_session_id = $validated['chat_session_id'];
+        $message->sender_id = $userId;
+        $message->receiver_id = $validated['receiver_id'];
+        $message->message = $validated['message'];
+        $message->save();
 
         // Broadcast pesan untuk real-time
         // broadcast(new MessageSent($message))->toOthers();
