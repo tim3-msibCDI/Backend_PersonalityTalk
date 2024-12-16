@@ -64,6 +64,81 @@ class ManageUserController extends BaseController
         return $this->sendResponse('List untuk pengguna umum berhasil diambil.', $users);
     }
 
+    
+    /**
+     * Mencari user Umum berdasarkan nama, nomor telepon, bulan lahir, atau gender
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function searchUserUmum(Request $request)
+    {
+        // Validasi input
+        $request->validate([
+            'search' => 'nullable|string|max:255',
+        ]);
+
+        $search = $request->search;
+
+        // Mapping untuk gender
+        $genderMapping = [
+            'perempuan' => 'F',
+            'laki-laki' => 'M',
+        ];
+
+        // Mapping untuk bulan dalam bahasa Indonesia ke angka
+        $monthMapping = [
+            'januari' => '01', 'februari' => '02', 'maret' => '03',
+            'april' => '04', 'mei' => '05', 'juni' => '06',
+            'juli' => '07', 'agustus' => '08', 'september' => '09',
+            'oktober' => '10', 'november' => '11', 'desember' => '12',
+        ];
+
+        $searchGender = null;
+        $searchMonth = null;
+
+        // Cek pencarian gender
+        foreach ($genderMapping as $key => $value) {
+            if (stripos($key, strtolower($search)) !== false) {
+                $searchGender = $value;
+                break;
+            }
+        }
+
+        // Cek pencarian bulan
+        foreach ($monthMapping as $key => $value) {
+            if (stripos($key, strtolower($search)) !== false) {
+                $searchMonth = $value;
+                break;
+            }
+        }
+
+        // Query pencarian
+        $users = User::where('role', 'U')
+            ->select('id', 'name', 'phone_number', 'date_birth', 'gender', 'photo_profile')
+            ->when($search, function ($query) use ($search, $searchGender, $searchMonth) {
+                $query->where(function ($subQuery) use ($search, $searchGender, $searchMonth) {
+                    if ($searchGender) {
+                        // Filter berdasarkan gender
+                        $subQuery->orWhere('gender', $searchGender);
+                    }
+                    if ($searchMonth) {
+                        // Filter berdasarkan bulan lahir
+                        $subQuery->orWhere(DB::raw("DATE_FORMAT(date_birth, '%m')"), $searchMonth);
+                    }
+                    // Filter berdasarkan nama atau nomor telepon
+                    $subQuery->orWhere('name', 'like', '%' . $search . '%')
+                        ->orWhere('phone_number', 'like', '%' . $search . '%');
+                });
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return $this->sendResponse('List untuk pengguna umum berhasil diambil.', $users);
+    }
+  
+    
+    
     /**
      * Membuat user Umum
      * 
@@ -679,9 +754,9 @@ class ManageUserController extends BaseController
             // Update data psikolog
             if ($psikolog) {
                 //Perbarui data psikolog
-                $psikolog->practice_start_date = $validatedData['practice_start_date'] ?? $user->practice_start_date;
-                $psikolog->bank_id = $validatedData['bank_id'] ?? $user->bank_id;
-                $psikolog->account_number = $validatedData['rekening'] ?? $user->account_number;
+                $psikolog->practice_start_date = $validatedData['practice_start_date'] ?? $psikolog->practice_start_date;
+                $psikolog->bank_id = $validatedData['bank_id'] ?? $psikolog->bank_id;
+                $psikolog->account_number = $validatedData['rekening'] ?? $psikolog->account_number;
                 $psikolog->save();
 
                 // Perbarui SIPP dan PsikologPrice
