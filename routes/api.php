@@ -181,6 +181,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
 
     // Manage User Umum
     Route::controller(ManageUserController::class)->group(function () {
+        Route::get('/admin/users/search', 'searchUserUmum');
         Route::get('/admin/users', 'listUserUmum');
         Route::get('/admin/users/{id}', 'detailUserUmum');
         Route::post('/admin/users', 'storeUserUmum');

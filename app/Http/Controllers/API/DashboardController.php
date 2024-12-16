@@ -23,7 +23,7 @@ class DashboardController extends BaseController
         $totalUser = User::whereIn('role', ['M', 'P'])->count();
         $totalPsikolog = User::where('role', 'P')->count();
         $totalConsultation = ChatSession::count();
-        $totlCourse = 0;
+        $totalCourse = 0;
 
         // Data grafik konsultasi dalam 6 bulan terakhir
         $consultationData = ChatSession::select(
@@ -53,7 +53,7 @@ class DashboardController extends BaseController
             'totalUser' => $totalUser,
             'totalPsikolog' => $totalPsikolog,
             'totalConsultation' => $totalConsultation,
-            'totalCourse' => $totlCourse,
+            'totalCourse' => $totalCourse,
             'consultationChart' => $chartData
         ]);
     }
