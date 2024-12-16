@@ -44,6 +44,8 @@ class ConsultationTransactionController extends BaseController
                 'status' => $transaction->status,
                 'consul_fee' => $transaction->consul_fee,
                 'psikolog_comission' => $psikolog_comission,
+                'sender_name' => $transaction->sender_name,
+                'sender_bank' => $transaction->sender_bank,
                 'payment_proof' => $transaction->payment_proof,
             ];
         });

@@ -15,6 +15,7 @@ use App\Http\Controllers\API\VoucherController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\PsikologController;
 use App\Http\Controllers\API\AdminAuthController;
+use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\ManageUserController;
 use App\Http\Controllers\API\ConsulTopicController;
 use App\Http\Controllers\API\UserProfileController;
@@ -124,6 +125,8 @@ Route::middleware(['auth:sanctum', 'role:M'])->group(function () {
  * Bisa diakses oleh Psikolog 
  */
 Route::middleware(['auth:sanctum', 'role:P'])->group(function () {
+    Route::get('/psikolog/dashboard', [DashboardController::class, 'dashboardPsikolog']);
+
     Route::controller(PsikologScheduleController::class)->group(function () {
         Route::get('/psikolog/schedule/main-schedules', 'getMainSchedules');
         Route::get('/psikolog/schedule/selected-by-date', 'getSchedulesByDate');
@@ -165,6 +168,8 @@ Route::middleware(['auth:sanctum', 'role:P,U,M'])->group(function () {
  */
 Route::middleware('auth:sanctum', 'admin')->group(function () {
     Route::post('/admin/logout', [AdminAuthController::class, 'logoutAdmin']);
+
+    Route::get('/admin/dashboard', [DashboardController::class, 'dashboardAdmin']);
 
     // Admin Profile
     Route::controller(AdminProfileController::class)->group(function () {
@@ -354,8 +359,7 @@ Route::get('/test-broadcast', function () {
 });
 
 Route::get('/inites', function () {
-    $consultations = Consultation::whereIn('consul_status', ['scheduled', 'ongoing'])->get();
-    return dd($consultations);
+    dd("hallo");
 });
 
 
@@ -387,6 +391,8 @@ Route::post('/sendWa', function () {
         'error' => $response->json(),
     ], $response->status());
 });
+
+
 
 
 
