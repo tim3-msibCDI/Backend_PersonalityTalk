@@ -31,6 +31,8 @@ class User extends Authenticatable
         'role',
         'reset_token',
         'reset_token_expires_at',
+        'is_online'
+
     ];
 
     public function toSearchableArray(){

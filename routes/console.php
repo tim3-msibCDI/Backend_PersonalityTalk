@@ -5,3 +5,5 @@ use Illuminate\Support\Facades\Artisan;
 
 Schedule::command('update:transaction-status')->everyMinute();
 Schedule::command('update:consultation-status')->everyMinute();
+Schedule::command('update:psikolog-schedules')->hourly();	
+

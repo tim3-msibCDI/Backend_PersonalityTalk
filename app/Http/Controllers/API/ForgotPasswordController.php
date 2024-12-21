@@ -68,8 +68,15 @@ class ForgotPasswordController extends BaseController
             return $this->sendError('Token tidak valid atau telah kadaluwarsa.', [], 404);
         }
 
-        return $this->sendResponse('Konfirmasi berhasil. Silahkan buat kata sandi baru.', null);
-    }
+        // Generate the redirect URL with the token
+        $redirectUrl = config('app.frontend_url') . '/lupa-password/change-password';  // The URL where the frontend handles the reset
+        $queryParams = http_build_query([
+            'token' => $request->reset_token, // Pass the token as a query parameter
+        ]);
+
+        // Redirect to the frontend page with the token
+        return redirect($redirectUrl . '?' . $queryParams);    
+}
 
     /**
      * Reset and Change Password

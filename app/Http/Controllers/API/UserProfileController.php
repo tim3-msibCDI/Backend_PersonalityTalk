@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController;
 
@@ -317,6 +318,63 @@ class UserProfileController extends BaseController
             return $this->sendError('Terjadi kesalahan saat memperbarui password.', [$e->getMessage()], 500);
         }
     }
+
+    public function updatePhotoProfile(Request $request)
+    {
+        $user = Auth::user();
+        // dd($user);
+
+        // Validasi input
+        $validator = Validator::make($request->all(), [
+            'photo_profile' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
+        ], [
+            'photo_profile.image' => 'File harus berupa gambar.',
+            'photo_profile.mimes' => 'Format gambar harus jpeg, png, atau jpg.',
+            'photo_profile.max' => 'Ukuran gambar maksimal 2MB.',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validasi gagal', $validator->errors(), 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Tentukan folder berdasarkan role
+            $folder = match ($user->role) {
+                'M', 'U' => 'user_photos',
+                'P' => 'psikolog_photos',
+                default => 'other_photos',
+            };
+            // dd($folder);
+
+            if($request->hasFile('photo_profile')) {
+                 // Upload gambar baru
+                $imagePath = Storage::disk('public')->put($folder, $request->file('photo_profile'));
+
+                if (!$imagePath) {
+                    return $this->sendError('Gagal menyimpan foto profil.', [], 500);
+                }
+
+                // Hapus foto lama jika ada
+                if ($user->photo_profile) {
+                    $oldPhotoPath = str_replace('storage/', '', $user->photo_profile);
+                    Storage::disk('public')->delete($oldPhotoPath);
+                }
+
+                // Update foto profil di database
+                $user->photo_profile = 'storage/' . $imagePath;
+                $user->save();
+            }
+
+            DB::commit();
+            return $this->sendResponse('Foto profil berhasil diperbarui.', ['photo_profile' => $user->photo_profile]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->sendError('Terjadi kesalahan.', $e->getMessage(), 500);
+        }
+    }
+
 
 }  
 

@@ -19,6 +19,7 @@ class DetailArticleResource extends JsonResource
             'id' => $this->id,
             'article_title' => $this->article_title,
             'category' => $this->article_category->name,
+            'category_id' => $this->article_category->id,
             'article_img' => $this->article_img,
             'publication_date' => Carbon::parse($this->publication_date)->translatedFormat('d F Y'),
             'content' => $this->content, 

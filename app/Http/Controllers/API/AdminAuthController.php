@@ -52,6 +52,7 @@ class AdminAuthController extends BaseController
         $success = [
             'token' => $token,
             'name' => $admin->name,
+            'role' => "A",
         ];
         return $this->sendResponse('Anda berhasil login.', $success);
     }

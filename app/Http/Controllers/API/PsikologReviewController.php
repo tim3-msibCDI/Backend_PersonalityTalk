@@ -8,6 +8,7 @@ use App\Models\Consultation;
 use Illuminate\Http\Request;
 use App\Models\PsikologReview;
 use App\Models\PsikologSchedule;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\API\BaseController;
 
@@ -90,6 +91,7 @@ class PsikologReviewController extends BaseController
             ->where('psi_id', $request->psi_id) //pastikan konsultasi milik psikolog
             ->where('user_id', auth()->id()) // Pastikan konsultasi milik user yang login
             ->first();
+
         if (!$consultation) {
             return $this->sendError('Konsultasi tidak valid untuk user ini.', [], 422);
         }
@@ -98,6 +100,7 @@ class PsikologReviewController extends BaseController
         $existingReview = PsikologReview::where('consul_id', $request->consul_id)
             ->where('user_id', auth()->id())
             ->first();
+
         if ($existingReview) {
             return $this->sendError('Review untuk konsultasi ini sudah ada.', [], 422);
         }
@@ -117,6 +120,67 @@ class PsikologReviewController extends BaseController
             return $this->sendError('Terjadi kesalahan saat menilai psikolog.', [$e->getMessage()], 500);
         }
     }
-   
+
+
+    public function detailReview(Request $request){
+        $userId = Auth::user()->id;
+        $validatedData = Validator::make($request->all(), [
+            'consul_id' => 'required|exists:consultations,id',
+        ], [
+            'consul_id.required' => 'ID konsultasi wajib diisi.',
+            'consul_id.exists' => 'Konsultasi tidak ditemukan.',
+        ]);
+
+        if ($validatedData->fails()) {
+            return $this->sendError('Validasi gagal', $validatedData->errors(), 422);
+        }
+
+        $review = PsikologReview::where('consul_id', $request->consul_id)
+            ->where('user_id', $userId)
+            ->first();
+
+        if (!$review) {
+            return $this->sendError('Review tidak ditemukan.', [], 404);
+        }
+        return $this->sendResponse('Review berhasil diambil.', $review);
+    }
+
+    public function listPsikologReview()
+    {
+        $psikologId = Auth::user()->psikolog->id;
+    
+        // Ambil daftar review beserta pengguna
+        $reviews = PsikologReview::with('user')
+            ->where('psi_id', $psikologId)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($review) {
+                // Ambil kata pertama dari nama user
+                $userName = $review->user->name;
+                $firstName = explode(' ', trim($userName))[0];
+
+                // Samarkan kata pertama dengan bintang-bintang kecuali huruf pertama
+                $hiddenName = substr($firstName, 0, 1) . str_repeat('*', strlen($firstName) - 1);
+
+                return [
+                    'rating' => $review->rating,
+                    'review' => $review->review,
+                    'user_name' => $hiddenName,
+                ];
+            });
+  
+        $totalRatings = $reviews->count();
+        $averageRating = $totalRatings > 0 ? number_format($reviews->avg('rating'), 1) : 0;
+    
+        $response = [
+            'average_rating' => $averageRating,
+            'total_ratings' => $totalRatings,
+            'reviews' => $reviews,
+        ];
+    
+        return $this->sendResponse('Daftar review berhasil diambil.', $response);
+    }
+    
+
 
 }

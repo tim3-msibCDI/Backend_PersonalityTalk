@@ -96,7 +96,7 @@ class PsikologReviewTableSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'user_id' => 15,
+                'user_id' => 12,
                 'psi_id' => 3,
                 'consul_id' => 9,
                 'rating' => 4,
