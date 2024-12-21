@@ -92,6 +92,7 @@ class ActivityHistoryController extends BaseController
             ->whereIn('consul_transactions.status', ['pending', 'pending_confirmation', 'completed', 'failed']) // Hanya konsultasi yang telah selesai
             ->select(
                 'consul_transactions.id as transaction_id',
+                'consultations.id as consultation_id',
                 'psychologists.name as psikolog_name',
                 'psychologists.photo_profile as psikolog_profile',
                 'consul_transactions.status as transaction_status',
@@ -109,6 +110,7 @@ class ActivityHistoryController extends BaseController
         $formattedTransaction = $listTransaction->map(function ($item) {
             return [
                 'transaction_id' => $item->transaction_id,
+                'consultation_id' => $item->consultation_id,
                 'no_pemesanan' => $item->payment_number,
                 'psikolog_name' => $item->psikolog_name,
                 'psikolog_profile'=> $item->psikolog_profile,

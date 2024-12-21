@@ -15,7 +15,7 @@ class Authenticate extends Middleware
         return $request->expectsJson() ? null : null;
     }
 
-     /**
+    /**
      * Override handle method to return 401 error for unauthenticated users in APIs.
      */
     protected function unauthenticated($request, array $guards)

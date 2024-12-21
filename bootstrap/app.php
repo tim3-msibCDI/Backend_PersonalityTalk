@@ -3,6 +3,7 @@
 use App\Http\Middleware\AdminAuth;
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\StatusOnline;
 use Illuminate\Foundation\Application;
 use App\Http\Middleware\AuthenticateApi;
 use App\Http\Middleware\EnsureJsonAuthenticated;
@@ -23,7 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth' => Authenticate::class,
             'role' => CheckRole::class,
             'admin' => AdminAuth::class,
-            
+            // 'statusOnline' => StatusOnline::class,
         ]);
 
     })

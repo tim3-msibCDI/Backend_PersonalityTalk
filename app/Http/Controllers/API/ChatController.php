@@ -89,6 +89,7 @@ class ChatController extends BaseController
             'psikolog' => [
                 'name' => $consultation->psikolog->user->name,
                 'photo_profile' => $consultation->psikolog->user->photo_profile ?? null,
+                'is_online' => $consultation->psikolog->user->is_online ?? false
             ],
             'time' => [
                 'start_time' => Carbon::parse($mainSchedule->start_hour)->format('H:i'),
@@ -101,5 +102,61 @@ class ChatController extends BaseController
         return $this->sendResponse('Informasi konsultasi berhasil diambil.', $response);
     }
 
+    public function getClientInfo(Request $request)
+    {
+        $validated = $request->validate([
+            'consul_id' => 'required|exists:consultations,id',
+        ]);
+
+        $consultation = Consultation::with([
+            'user', 
+            'psikologSchedule.mainSchedule', 
+            ])
+            ->whereIn('consul_status', ['completed', 'ongoing'])
+            ->where('id', $validated['consul_id'])
+            ->first();
+        
+        if (!$consultation || !$consultation->user || !$consultation->psikologSchedule) {
+            return $this->sendError('Data konsultasi, psikolog, atau jadwal tidak ditemukan.', [], 404);
+        }
+
+        $mainSchedule = $consultation->psikologSchedule->mainSchedule;
+
+        $response = [
+            'consul_id' => $consultation->id,
+            'client' => [
+                'name' => $consultation->user->name,
+                'photo_profile' => $consultation->user->photo_profile ?? null,
+                'is_online' => $consultation->user->is_online ?? false
+            ],
+            'time' => [
+                'start_time' => Carbon::parse($mainSchedule->start_hour)->format('H:i'),
+                'end_time' => Carbon::parse($mainSchedule->end_hour)->format('H:i'), 
+                'date' => $consultation->psikologSchedule->date, 
+            ],
+            'notes' => $consultation->psikolog_note ?? null, 
+        ];
+    
+        return $this->sendResponse('Informasi konsultasi berhasil diambil.', $response);
+    }
+
+    public function submitPsikologNotes(Request $request)
+    {
+        $userId = Auth::user()->id;
+
+        $validated = $request->validate([
+            'consul_id' => 'required|exists:consultations,id',
+            'notes' => 'required|string',
+        ]);
+
+        $consultation = Consultation::find($validated['consul_id']);
+        if ($consultation->psi_id !== $userId) {
+            return $this->sendError('Anda tidak berhak mengubah catatan ini.');
+        }
+
+        $consultation->psikolog_note = $validated['notes'];
+        $consultation->save();
+        return $this->sendResponse('Catatan berhasil disimpan.', $consultation);
+    }
 
 }

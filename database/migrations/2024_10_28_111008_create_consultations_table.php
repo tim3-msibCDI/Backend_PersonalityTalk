@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('consultations', function (Blueprint $table) {
             $table->engine = 'InnoDB'; // Pastikan tabel menggunakan InnoDB
             $table->charset = 'utf8'; // Charset untuk mendukung emoji
-            $table->collation = 'utf8_unicode_ci'; // Collation untuk Unicode penuh
+            $table->collation = 'utf8_unicode_ci'; // Collation untuk Unicode penuhser  
             $table->id();
             $table->bigInteger('user_id')->unsigned();
             $table->bigInteger('psi_id')->unsigned();

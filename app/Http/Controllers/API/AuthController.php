@@ -70,6 +70,10 @@ class AuthController extends BaseController
         if (!Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             return $this->sendError('Password anda salah.', [], 401);
         }
+
+        //Update user online
+        $user->is_online = true;
+        $user->save();
     
         // Jika email dan password benar, lakukan login
         $token = $user->createToken('auth_user_token')->plainTextToken;
@@ -174,6 +178,10 @@ class AuthController extends BaseController
 
             DB::commit();
 
+            // Update online status
+            $user->is_online = true;
+            $user->save();
+
             $token = $user->createToken('auth_user_token')->plainTextToken;
             $success = [
                 'name' => $user->name,
@@ -197,6 +205,10 @@ class AuthController extends BaseController
      */
     public function logoutAction(Request $request){
         // Hapus token pengguna saat ini
+        $user = Auth::user();
+        $user->is_online = false;
+        $user->save();
+
         $request->user()->currentAccessToken()->delete();
         return $this->sendResponse('Anda berhasil logout sebagai User.');
     }
@@ -246,6 +258,10 @@ class AuthController extends BaseController
                 ]);
                 Auth::login($user);
             }
+
+            // Update online status
+            $user->is_online = true;
+            $user->save();
     
             // Generate token
             $token = $user->createToken('auth_user_token')->plainTextToken;           

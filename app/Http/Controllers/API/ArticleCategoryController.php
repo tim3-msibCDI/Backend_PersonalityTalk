@@ -17,7 +17,7 @@ class ArticleCategoryController extends BaseController
      */
     public function index()
     {
-        $categories = ArticleCategory::select('id', 'name')->paginate(10);
+        $categories = ArticleCategory::select('id', 'name')->paginate(5);
         return $this->sendResponse('Data seluruh kategori artikel berhasil diambil.', $categories);
     }
 

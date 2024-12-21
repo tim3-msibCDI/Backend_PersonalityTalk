@@ -334,4 +334,11 @@ class ArticleController extends BaseController
             return $this->sendError('Terjadi kesalahan saat menghapus artikel.', [$e->getMessage()], 500);
         }
     }
+
+    public function listArticleCategory()
+    {
+        $categories = ArticleCategory::select('id', 'name')->get();
+        return $this->sendResponse('Daftar kategori artikel berhasil ditemukan.', $categories);
+    }
+
 }

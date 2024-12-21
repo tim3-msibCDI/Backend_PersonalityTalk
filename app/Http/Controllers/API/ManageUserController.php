@@ -259,10 +259,19 @@ class ManageUserController extends BaseController
             $dataToUpdate = $validatedData->validated();
 
             if ($request->hasFile('photo_profile')) {
+                // Hapus foto lama jika ada
+                if ($user->photo_profile) {
+                    $oldPhotoPath = str_replace('storage/', '', $user->photo_profile);
+                    Storage::disk('public')->delete($oldPhotoPath);
+                }
+            
+                // Simpan foto baru
                 $imagePath = Storage::disk('public')->put('user_photos', $request->file('photo_profile'));
                 if (!$imagePath) {
                     return $this->sendError('Gagal menyimpan foto profile.', [], 500);
                 }
+            
+                // Update path foto profile
                 $user->photo_profile = 'storage/' . $imagePath;
             }
 
@@ -497,11 +506,21 @@ class ManageUserController extends BaseController
         try {
             DB::beginTransaction();
             $dataToUpdate = $validator->validated();
+
             if ($request->hasFile('photo_profile')) {
+                // Hapus foto lama jika ada
+                if ($user->photo_profile) {
+                    $oldPhotoPath = str_replace('storage/', '', $user->photo_profile);
+                    Storage::disk('public')->delete($oldPhotoPath);
+                }
+            
+                // Simpan foto baru
                 $imagePath = Storage::disk('public')->put('user_photos', $request->file('photo_profile'));
                 if (!$imagePath) {
                     return $this->sendError('Gagal menyimpan foto profile.', [], 500);
                 }
+            
+                // Update path foto profile
                 $user->photo_profile = 'storage/' . $imagePath;
             }
 
@@ -940,25 +959,38 @@ class ManageUserController extends BaseController
         try {
             DB::beginTransaction();
 
+            // Cek apakah ada relasi yang masih terhubung
+            if ($user->psikolog) {
+                $psikolog = $user->psikolog;
+
+                // Jika masih ada relasi (contoh: Consultation), ubah is_active menjadi false
+                $hasRelations = $psikolog->consultation()->exists() || $psikolog->rating()->exists();
+
+                if ($hasRelations) {
+                    $psikolog->update(['is_active' => false]);
+                    DB::commit();
+                    return $this->sendResponse('Psikolog tidak dapat dihapus. Status diubah menjadi tidak aktif.');
+                }
+
+                // Hapus data terkait jika tidak ada relasi
+                $psikolog->psikolog_topic()->delete();
+                $psikolog->delete();
+            }
+
             // Hapus file photo_profile di User jika ada
             if ($user->photo_profile) {
                 $path = str_replace('storage/', '', $user->photo_profile); 
                 Storage::disk('public')->delete($path);
             }
 
-            // Hapus data di tabel Psikolog dan data terkait
-            if ($user->psikolog) {
-                $user->psikolog->psikolog_topic()->delete();
-                $user->psikolog->delete();
-            }
             $user->delete();
 
             DB::commit();
             return $this->sendResponse('Psikolog berhasil dihapus.');
-
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->sendError('Psikolog tidak dapat dihapus, karena dipakai pada tabel lain.', [$e->getMessage()], 500);
+            return $this->sendError('Gagal memproses penghapusan psikolog.', [$e->getMessage()], 500);
         }
     }
+
 }

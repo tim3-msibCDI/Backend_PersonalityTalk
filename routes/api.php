@@ -18,6 +18,7 @@ use App\Http\Controllers\API\AdminAuthController;
 use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\ManageUserController;
 use App\Http\Controllers\API\ConsulTopicController;
+use App\Http\Controllers\API\LandingPageController;
 use App\Http\Controllers\API\UserProfileController;
 use App\Http\Controllers\API\AdminProfileController;
 use App\Http\Controllers\API\ConsultationController;
@@ -39,6 +40,7 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('/user/register', 'registerUser')->name('register.save');
     Route::post('/user/login', 'userloginAction')->name('user.login');
 });
+
 Route::get('/psikolog/topics', [ConsultationController::class, 'getPsikologTopics']);
 
 // Handle login dengan google
@@ -71,6 +73,7 @@ Route::middleware(['auth:sanctum', 'role:M,U,P'])->group(function () {
         Route::put('/user/profile/update', 'updateProfile');
         Route::put('/user/profile/updatePassword', 'updatePassword');
         Route::put('/user/profile/updateMahasiswa', 'updateToMahasiswa');
+        Route::post('/user/profile/updatePhotoProfile', 'updatePhotoProfile');
     });
 });
 
@@ -96,6 +99,7 @@ Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
     Route::controller(PsikologReviewController::class)->group(function () {
         Route::get('/consultation/detail-psikolog-before-review', 'detailPsikologBeforeReview');
         Route::post('/consultation/submit-review', 'submitReview');
+        Route::get('/consultation/detail-review', 'detailReview');
     });
 
     // Kelola Transaksi Konsultasi
@@ -149,19 +153,32 @@ Route::middleware(['auth:sanctum', 'role:P'])->group(function () {
     });
 
     Route::get('/psikolog/banks', [PaymentMethodController::class, 'listPsikologBank']);
+    Route::get('/psikolog/list-review', [PsikologReviewController::class, 'listPsikologReview']);
 });
 
 /*
  * Bisa diakses oleh Psikolog dan User Biasa
  *
  */
-Route::middleware(['auth:sanctum', 'role:P,U,M'])->group(function () {
-    Route::controller(ChatController::class)->group(function () {
+Route::middleware(['auth:sanctum'])->group(function () {
+    // Rute untuk role P, U, M
+    Route::middleware('role:P,U,M')->controller(ChatController::class)->group(function () {
         Route::post('/chat/send', 'sendMessage');
-        Route::get('/chat/{chatSessionId}/messages','getMessages');
+        Route::get('/chat/{chatSessionId}/messages', 'getMessages');
+    });
+
+    // Rute untuk role U, M
+    Route::middleware('role:U,M')->controller(ChatController::class)->group(function () {
         Route::get('/chat/psikolog-info', 'getPsikologInfo');
     });
-}); 
+
+    // Rute untuk role P saja
+    Route::middleware('role:P')->controller(ChatController::class)->group(function () {
+        Route::get('/chat/client-info', 'getClientInfo');
+        Route::post('chat/submit-notes', 'submitPsikologNotes');
+    });
+});
+
 
 /**
  * Bisa diakses oleh Admin 
@@ -271,6 +288,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
 
     // Kelola Artikel
     Route::controller(ArticleController::class)->group(function () {
+        Route::get('/admin/article-categories', 'listArticleCategory');
         Route::get('/admin/articles', 'listAdminArticle'); 
         Route::get('/admin/articles/{id}', 'show'); 
         Route::post('/admin/articles', 'store'); 
@@ -347,6 +365,12 @@ Route::controller(DiseaseController::class)->group(function () {
     Route::get('/diseases/{id}', 'showDiseaseDetail');
 });
 
+// API untuk landing page
+Route::controller(LandingPageController::class)->group(function () {
+    Route::get('/landing-page/articles/recommendation', 'recomendationArticle'); 
+    Route::get('/landing-page/psikolog/recommendation', 'recomendationPsikolog'); 
+    Route::get('/landing-page/mitra', 'listMitra');
+});
 
 Route::get('/test-broadcast', function () {
     $testMessage = (object)[

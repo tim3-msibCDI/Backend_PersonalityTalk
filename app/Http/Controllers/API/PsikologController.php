@@ -110,14 +110,17 @@ class PsikologController extends BaseController
         $consultations->getCollection()->transform(function ($item) {
             return [
                 'consul_id' => $item->id,
+                'chat_session_id' => $item->chatSession->id ?? null,
+                'status' => $item->consul_status ?? null,
+                'client_id' => $item->user_id ?? null,
                 'client_name' => $item->user->name ?? null,
+                'psikolog_id' => $item->psi_id ?? null,
                 'topic' => $item->topic->topic_name ?? null,
                 'date' => Carbon::parse($item->psikologSchedule->date)->format('j M Y') ?? null,
                 'start_hour' => Carbon::parse($item->psikologSchedule->mainSchedule->start_hour)->format('H:i') ?? null,
                 'end_hour' => Carbon::parse($item->psikologSchedule->mainSchedule->end_hour)->format('H:i') ?? null,
                 'status' => $item->consul_status ?? null,
                 'keluhan' => $item->patient_complaint ?? null,
-                'chat_session_id' => $item->chatSession->id ?? null,
             ];
         });
 
