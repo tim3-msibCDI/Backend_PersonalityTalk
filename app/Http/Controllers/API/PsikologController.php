@@ -104,6 +104,10 @@ class PsikologController extends BaseController
         ])
         ->where('psi_id', $psikolog->id)
         ->whereIn('consul_status', ['completed', 'ongoing', 'scheduled']) 
+        ->orderByRaw("
+            FIELD(consul_status, 'ongoing', 'scheduled', 'completed'),
+            created_at DESC
+        ")
         ->paginate(10); // Tambahkan paginasi dengan 10 item per halaman
 
         // Transformasi data

@@ -275,8 +275,10 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
         Route::post('/admin/consultation/transactions/reject/{transactionId}', 'rejectPaymentProof');
 
         Route::get('/admin/consultation/psikolog_commission', 'listPsikologCommission');
+        Route::get('/admin/consultation/psikolog_commission/id', 'listIdPsikologCommission');
         Route::get('/admin/consultation/psikolog_commission/{transactionId}', 'getDetailPsikologCommission');
         Route::post('/admin/consultation/psikolog_commission/{transactionId}/transfer-commission', 'transferCommission');
+        Route::post('/admin/consultation/psikolog_commission/{transactionId}/update-commission', 'updatePsikologCommission');
     });
 
     // Kelola Kategori Artikel

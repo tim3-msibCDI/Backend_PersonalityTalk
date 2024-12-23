@@ -89,7 +89,7 @@ class ChatController extends BaseController
             'psikolog' => [
                 'name' => $consultation->psikolog->user->name,
                 'photo_profile' => $consultation->psikolog->user->photo_profile ?? null,
-                'is_online' => $consultation->psikolog->user->is_online ?? false
+                'is_online' => $consultation->psikolog->user->is_online
             ],
             'time' => [
                 'start_time' => Carbon::parse($mainSchedule->start_hour)->format('H:i'),
