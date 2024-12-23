@@ -106,6 +106,27 @@ class ManagePsikologController extends BaseController
     
         return $this->sendResponse('List psikolog yang mendaftar berhasil diambil', $psikologs);
     }
+
+    public function searchPsikologRegistrant(Request $request)
+    {
+        // Validasi input request
+        $request->validate( [
+            'search' => 'nullable|string|max:255',
+        ]);
+        $search = $request->search;
+
+        // Ambil daftar psikolog dengan data relasi user
+        $psikologs = Psikolog::with('user:id,name,photo_profile')
+            ->select('id as id_psikolog', 'user_id', 'sipp', 'status') 
+            ->where('sipp', 'like', '%' . $search . '%') // Filter berdasarkan SIPP
+            ->orWhereHas('user', function ($query) use ($search) {
+                $query->where('name', 'like', '%' . $search . '%'); // Filter berdasarkan nama
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10); 
+    
+        return $this->sendResponse('List psikolog yang mendaftar berhasil diambil', $psikologs);
+    }
     
     /**
      * Menampilkan detail psikolog berdasarkan ID

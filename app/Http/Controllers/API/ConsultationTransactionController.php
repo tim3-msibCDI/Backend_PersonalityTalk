@@ -58,6 +58,69 @@ class ConsultationTransactionController extends BaseController
         return $this->sendResponse('List transaksi berhasil diambil.', $paginatedData);
     }
 
+    public function searchConsulTransaction(Request $request)
+    {
+        // Validasi input pencarian
+        $request->validate([
+            'search' => 'nullable|string|max:255',
+        ]);
+
+        $search = $request->search;
+
+        $transactions = ConsultationTransaction::with(['consultation', 'user', 'paymentMethod'])
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    // Filter berdasarkan nama klien
+                    $subQuery->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'like', '%' . $search . '%');
+                    })
+                    // Filter berdasarkan nomor pembayaran
+                    ->orWhere('payment_number', 'like', '%' . $search . '%')
+                    // Filter berdasarkan harga konsultasi
+                    ->orWhere('consul_fee', 'like', '%' . $search . '%')
+                    // Filter berdasarkan nama metode pembayaran
+                    ->orWhereHas('paymentMethod', function ($methodQuery) use ($search) {
+                        $methodQuery->where('name', 'like', '%' . $search . '%');
+                    })
+                    // Filter berdasarkan status transaksi
+                    ->orWhere('status', 'like', '%' . $search . '%');
+                });
+            })
+            ->orderByRaw('ISNULL(payment_completed_at), payment_completed_at DESC') // Prioritas transaksi selesai
+            ->orderBy('created_at', 'asc') // Urutkan berdasarkan waktu dibuat
+            ->paginate(10);
+
+        // Transformasi data untuk setiap item
+        $data = $transactions->getCollection()->transform(function ($transaction) {
+            $consultation_price = $transaction->consul_fee - $transaction->discount_amount;
+            $psikolog_comission = $transaction->consul_fee * 0.6;
+
+            return [
+                'id' => $transaction->id,
+                'payment_number' => $transaction->payment_number,
+                'client_name' => $transaction->user->name,
+                'payment_date' => $transaction->payment_completed_at 
+                    ? Carbon::parse($transaction->payment_completed_at)->format('d-m-Y H:i') 
+                    : null,
+                'payment_method' => $transaction->paymentMethod->name,
+                'status' => $transaction->status,
+                'consul_fee' => $transaction->consul_fee,
+                'psikolog_comission' => $psikolog_comission,
+                'sender_name' => $transaction->sender_name,
+                'sender_bank' => $transaction->sender_bank,
+                'payment_proof' => $transaction->payment_proof,
+                'failure_reason' => $transaction->failure_reason,
+            ];
+        });
+
+        // Simpan data hasil transformasi ke dalam paginasi
+        $paginatedData = $transactions->toArray();
+        $paginatedData['data'] = $data;
+
+        return $this->sendResponse('List transaksi berhasil diambil.', $paginatedData);
+    }
+
+
     public function detailPaymentProof($transactionId){
         $transaction = ConsultationTransaction::find($transactionId);
 

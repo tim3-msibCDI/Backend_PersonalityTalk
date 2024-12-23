@@ -23,6 +23,23 @@ class PaymentMethodController extends BaseController
         return $this->sendResponse('List metode pembayaran berhasil diambil.', $payments);
     }
 
+    public function search(Request $request)
+    {
+        $request->validate([
+            'search' => 'nullable|string|max:255',
+        ]);
+        $search = $request->search;
+
+        $payments = PaymentMethod::select('id', 'name','no_rek', 'owner', 'type')
+            ->where('name', 'like', '%' . $search . '%')
+            ->orWhere('no_rek', 'like', '%' . $search . '%')
+            ->orWhere('owner', 'like', '%' . $search . '%')
+            ->orWhere('type', 'like', '%' . $search . '%')
+            ->paginate(10);
+        
+        return $this->sendResponse('List metode pembayaran berhasil diambil.', $payments);
+    }
+
     /**
      * Store Payment Method - Admin
      *

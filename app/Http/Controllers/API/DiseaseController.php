@@ -62,6 +62,19 @@ class DiseaseController extends BaseController
         return $this->sendResponse('Berhasil mengambil list kesehatan untuk Admin.', $diseases);
     }
 
+    public function searchDisease(Request $request){
+
+        $request->validate([
+            'search' => 'nullable|string|max:255',
+        ]);
+
+        $diseases = Disease::select('id', 'disease_name')
+            ->where('disease_name', 'like', '%' . $request->search . '%')
+            ->paginate(10);
+
+        return $this->sendResponse('Berhasil mengambil daftar kesehatan untuk Admin.', $diseases);
+    }
+
     /**
      * Store Kesehatan Mental - Admin
      *

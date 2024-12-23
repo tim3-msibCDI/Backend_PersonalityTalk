@@ -23,6 +23,20 @@ class MitraController extends BaseController
         $mitra = Mitra::select('id', 'name', 'img')->paginate(10);
         return $this->sendResponse('Data seluruh mitra berhasil diambil.', $mitra);
     }
+
+    public function search(Request $request)
+    {
+        $request->validate([
+            'search' => 'nullable|string|max:255',
+        ]);
+        $search = $request->search;
+
+        $mitra = Mitra::select('id', 'name', 'img')
+            ->where('name', 'like', '%' . $search . '%')
+            ->paginate(10);
+        
+        return $this->sendResponse('List mitra berhasil diambil.', $mitra);
+    }
     
     /**
      * Display the specified Mitra resource.

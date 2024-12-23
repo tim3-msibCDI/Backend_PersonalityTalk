@@ -614,10 +614,12 @@ class ManageUserController extends BaseController
                 'id' => $user->id,
                 'name' => $user->name,
                 'sipp' => $psikologDetails->sipp,
-                'practice_start_date' => Carbon::parse($psikologDetails->practice_start_date)->translatedFormat('d F Y'),
+                'practice_start_date' => $psikologDetails->practice_start_date 
+                    ? Carbon::parse($psikologDetails->practice_start_date)->translatedFormat('d F Y') 
+                    : null, // Mengembalikan null jika practice_start_date kosong
                 'topics' => $psikologDetails->psikolog_topic->pluck('topic.topic_name')->toArray(),
             ];
-        });
+        });        
 
         // Gantikan koleksi asli dengan koleksi yang diformat
         $users->setCollection($formattedUsers);
@@ -651,7 +653,7 @@ class ManageUserController extends BaseController
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function searchUserPsikolog(Request $request)
+    public function searchUserByCategory(Request $request, $categoryId)
     {
         // Validasi input
         $request->validate([
@@ -670,7 +672,7 @@ class ManageUserController extends BaseController
 
         $searchMonth = null;
 
-        // Cek apakah pencarian sesuai dengan nama bulan
+        // Cek pencarian bulan
         foreach ($monthMapping as $key => $value) {
             if (stripos($key, strtolower($search)) !== false) {
                 $searchMonth = $value;
@@ -680,29 +682,38 @@ class ManageUserController extends BaseController
 
         // Query pencarian
         $users = User::where('role', 'P')
-            ->whereHas('psikolog', function ($query) use ($searchMonth) {
-                // Filter untuk psikolog aktif
-                $query->where('is_active', true);
+        ->whereHas('psikolog', function ($query) use ($searchMonth, $categoryId) {
+            // Filter untuk psikolog/konselor aktif
+            $query->where('is_active', true)
+                ->where('category_id', $categoryId);
 
+            if ($searchMonth) {
+                // Filter berdasarkan bulan mulai praktik
+                $query->whereMonth('practice_start_date', $searchMonth);
+            }
+        })
+        ->when($search, function ($query) use ($search, $searchMonth) {
+            $query->where(function ($subQuery) use ($search, $searchMonth) {
                 if ($searchMonth) {
-                    // Filter berdasarkan bulan mulai praktik
-                    $query->where(DB::raw("DATE_FORMAT(practice_start_date, '%m')"), $searchMonth);
+                    // Filter tambahan untuk bulan
+                    $subQuery->orWhereHas('psikolog', function ($psikologQuery) use ($searchMonth) {
+                        $psikologQuery->whereMonth('practice_start_date', $searchMonth);
+                    });
                 }
-            })
-            ->when($search, function ($query) use ($search, $searchMonth) {
-                $query->where(function ($subQuery) use ($search, $searchMonth) {
-                    $subQuery->orWhere('name', 'like', '%' . $search . '%') // Filter berdasarkan nama
-                        ->orWhereHas('psikolog', function ($psikologQuery) use ($search) {
-                            $psikologQuery->where('sipp', 'like', '%' . $search . '%') // Filter berdasarkan SIPP
-                                ->orWhereHas('psikolog_topic.topic', function ($topicQuery) use ($search) {
-                                    $topicQuery->where('topic_name', 'like', '%' . $search . '%'); // Filter berdasarkan topik
-                                });
-                        });
-                });
-            })
-            ->with(['psikolog.psikolog_topic.topic']) // Relasi dengan topik psikolog
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+                // Filter berdasarkan nama (case-insensitive)
+                $subQuery->orWhereRaw('LOWER(name) LIKE ?', ['%' . strtolower($search) . '%'])
+                    ->orWhereHas('psikolog', function ($psikologQuery) use ($search) {
+                        $psikologQuery->where('sipp', 'like', '%' . $search . '%')
+                            ->orWhereHas('psikolog_topic.topic', function ($topicQuery) use ($search) {
+                                $topicQuery->where('topic_name', 'like', '%' . $search . '%');
+                            });
+                    });
+            });
+        })
+        ->with(['psikolog.psikolog_topic.topic']) // Relasi dengan topik psikolog
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
+
 
         // Format data dengan map
         $formattedUsers = $users->getCollection()->map(function ($user) {
@@ -711,7 +722,9 @@ class ManageUserController extends BaseController
                 'id' => $user->id,
                 'name' => $user->name,
                 'sipp' => $psikologDetails->sipp,
-                'practice_start_date' => Carbon::parse($psikologDetails->practice_start_date)->translatedFormat('d F Y'),
+                'practice_start_date' => $psikologDetails->practice_start_date 
+                    ? Carbon::parse($psikologDetails->practice_start_date)->translatedFormat('d F Y') 
+                    : null,
                 'topics' => $psikologDetails->psikolog_topic->pluck('topic.topic_name')->toArray(),
             ];
         });
@@ -722,6 +735,15 @@ class ManageUserController extends BaseController
         return $this->sendResponse('List untuk pengguna Psikolog berhasil diambil.', $users);
     }
 
+    public function searchUserPsikolog(Request $request)
+    {
+        return $this->searchUserByCategory($request, 1); // Kategori Psikolog
+    }
+    
+    public function searchUserKonselor(Request $request)
+    {
+        return $this->searchUserByCategory($request, 2); // Kategori Konselor
+    }
 
     /**
      * Menampilkan detail user berdasarkan ID User dan kategori Psikolog/Konselor
