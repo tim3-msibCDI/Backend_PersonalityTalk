@@ -21,6 +21,16 @@ class ConsulTopicController extends BaseController
         return $this->sendResponse('Data seluruh topik berhasil diambil.', $topics);
     }
 
+    public function searchTopic(Request $request)
+    {
+        $request->validate([
+            'search' => 'nullable|string|max:255',
+        ]);
+        $topics = Topic::select('id', 'topic_name')
+            ->where('topic_name', 'like', '%' . $request->search . '%')
+            ->paginate(10);
+        return $this->sendResponse('Data seluruh topik berhasil diambil.', $topics);
+    }    
     
     /**
      * Get Detail Topic

@@ -229,6 +229,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
 
     // Manage User Konselor
     Route::controller(ManageUserController::class)->group(function () {
+        Route::get('/admin/konselor/search', 'searchUserKonselor');
         Route::get('/admin/konselor', 'listUserKonselor');
         Route::get('/admin/konselor/{id}', 'detailUserKonselor');
         Route::post('/admin/konselor/{id}', 'updateUserPsikolog');
@@ -237,6 +238,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
 
     // Manage Pendaftaran Psikolog
     Route::controller(ManagePsikologController::class)->group(function () {
+        Route::get('/admin/psikolog-regis/search', 'searchPsikologRegistrant');
         Route::get('/admin/psikolog-regis', 'listPsikologRegistrant');
         Route::get('/admin/psikolog-regis/{id_psikolog}', 'detailPsikolog');
         Route::post('/admin/psikolog-regis/{id_psikolog}/approve', 'approvePsikolog'); 
@@ -245,6 +247,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
 
     // Kelola Topik Konsultasi
     Route::controller(ConsulTopicController::class)->group(function () {
+        Route::get('/admin/topics/search', 'searchTopic'); 
         Route::get('/admin/topics', 'index'); 
         Route::get('/admin/topics/{id}', 'show'); 
         Route::post('/admin/topics', 'store'); 
@@ -254,6 +257,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
 
     // Kelola Jadwal Konsultasi
     Route::controller(PsikologScheduleController::class)->group(function () {
+        Route::get('/admin/consul-schedules/psikolog/search', 'searchPsikolog');
         Route::get('/admin/consul-schedules/psikolog', 'listPsikolog');
         Route::get('/admin/consul-schedules/psikolog/{psikologId}', 'detailPsikologSchedule');
         Route::put('/admin/consul-schedules/{scheduleId}/update-availability', 'updateAvailability');
@@ -262,6 +266,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
 
     //Kelola riwayat konsultasi
     Route::controller(ConsultationController::class)->group(function () {
+        Route::get('/admin/consultation/history/search', 'searchConsultationHistory ');
         Route::get('/admin/consultation/history', 'consultationHistory');
         Route::get('/admin/consultation/{consultationId}/rating', 'detailConsultationRating');
 
@@ -269,14 +274,17 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
 
     // Kelola Transaksi Konsultasi
     Route::controller(ConsultationTransactionController::class)->group(function () {
+        Route::get('/admin/consultation/transactions/search', 'searchConsulTransaction'); 
         Route::get('/admin/consultation/transactions', 'listConsulTransaction'); 
         Route::get('/admin/consultation/transactions/payment-proof/{transactionId}', 'detailPaymentProof'); 
         Route::post('/admin/consultation/transactions/approve/{transactionId}', 'approvePaymentProof'); 
         Route::post('/admin/consultation/transactions/reject/{transactionId}', 'rejectPaymentProof');
 
         Route::get('/admin/consultation/psikolog_commission', 'listPsikologCommission');
+        Route::get('/admin/consultation/psikolog_commission/id', 'listIdPsikologCommission');
         Route::get('/admin/consultation/psikolog_commission/{transactionId}', 'getDetailPsikologCommission');
         Route::post('/admin/consultation/psikolog_commission/{transactionId}/transfer-commission', 'transferCommission');
+        Route::post('/admin/consultation/psikolog_commission/{transactionId}/update-commission', 'updatePsikologCommission');
     });
 
     // Kelola Kategori Artikel
@@ -289,6 +297,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
     // Kelola Artikel
     Route::controller(ArticleController::class)->group(function () {
         Route::get('/admin/article-categories', 'listArticleCategory');
+        Route::get('/admin/articles/search', 'searchArticle'); 
         Route::get('/admin/articles', 'listAdminArticle'); 
         Route::get('/admin/articles/{id}', 'show'); 
         Route::post('/admin/articles', 'store'); 
@@ -298,6 +307,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
 
     // Kelola Informasi Kesehatan Mental
     Route::controller(DiseaseController::class)->group(function () {
+        Route::get('/admin/diseases/search', 'searchDisease'); 
         Route::get('/admin/diseases', 'listAdminDisease'); 
         Route::get('/admin/diseases/{id}', 'show'); 
         Route::post('/admin/diseases', 'store'); 
@@ -307,6 +317,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
 
     // Kelola Voucher
     Route::controller(VoucherController::class)->group(function () {
+        Route::get('/admin/vouchers/search', 'searchVoucher'); 
         Route::get('/admin/vouchers', 'index'); 
         Route::get('/admin/vouchers/{id}', 'show'); 
         Route::post('/admin/vouchers', 'store'); 
@@ -316,6 +327,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
     });
 
     Route::controller(MitraController::class)->group(function () {
+        Route::get('/admin/mitra/search', 'search');
         Route::get('/admin/mitra', 'index');
         Route::get('/admin/mitra/{id}', 'show');
         Route::post('/admin/mitra', 'store');
@@ -325,6 +337,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
 
     // Kelola Metode Pembayaran
     Route::controller(PaymentMethodController::class)->group(function () {
+        Route::get('/admin/payment-methods/search', 'search'); 
         Route::get('/admin/payment-methods', 'index'); 
         Route::get('/admin/payment-methods/{id}', 'show'); 
         Route::post('/admin/payment-methods', 'store'); 
@@ -334,6 +347,7 @@ Route::middleware('auth:sanctum', 'admin')->group(function () {
 
     // Kelola Psikolog Price
     Route::controller(PsikologPriceController::class)->group(function () {
+        Route::get('/admin/psikolog-price/search', 'search'); 
         Route::get('/admin/psikolog-price', 'index'); 
         Route::get('/admin/psikolog-price/{id}', 'show'); 
         Route::post('/admin/psikolog-price', 'store'); 

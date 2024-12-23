@@ -636,6 +636,66 @@ class ConsultationController extends BaseController
         return $this->sendResponse('Riwayat konsultasi berhasil diambil.', $consultations);
     }
 
+    public function searchConsultationHistory(Request $request)
+    {
+        // Validasi input
+        $request->validate([
+            'search' => 'nullable|string|max:255',
+        ]);
+
+        $search = $request->search;
+
+        $consultations = Consultation::with([
+            'psikologSchedule.mainSchedule',
+            'user',
+            'psikolog.user'
+        ])
+        ->whereIn('consul_status', ['completed', 'ongoing', 'scheduled'])
+        ->when($search, function ($query) use ($search) {
+            $query->where(function ($subQuery) use ($search) {
+                // Filter berdasarkan nama klien
+                $subQuery->orWhereHas('user', function ($userQuery) use ($search) {
+                    $userQuery->where('name', 'like', '%' . $search . '%');
+                })
+                // Filter berdasarkan nama psikolog
+                ->orWhereHas('psikolog', function ($psikologQuery) use ($search) {
+                    $psikologQuery->whereHas('user', function ($psikologUserQuery) use ($search) {
+                        $psikologUserQuery->where('name', 'like', '%' . $search . '%');
+                    });
+                });
+                
+                // Filter berdasarkan tanggal
+                if (strtotime($search)) {
+                    $subQuery->orWhereHas('psikologSchedule', function ($scheduleQuery) use ($search) {
+                        $scheduleQuery->whereDate('date', '=', Carbon::parse($search)->toDateString());
+                    });
+                }
+            });
+        })
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);        
+
+        // Transformasi data untuk respons
+        $consultations->getCollection()->transform(function ($consultation) {
+            return [
+                'consul_id' => $consultation->id,
+                'psch_id' => $consultation->psikologSchedule->id,
+                'psi_id' => $consultation->psikolog->id,
+                'date' => $consultation->psikologSchedule->date 
+                    ? Carbon::parse($consultation->psikologSchedule->date)->format('d F Y')
+                    : null,
+                'start_hour' => $consultation->psikologSchedule->mainSchedule->start_hour ?? null,
+                'end_hour' => $consultation->psikologSchedule->mainSchedule->end_hour ?? null,
+                'client' => $consultation->user->name ?? null,
+                'psikolog_name' => $consultation->psikolog->user->name ?? null,
+                'status' => $consultation->consul_status,
+            ];
+        });
+
+        return $this->sendResponse('Riwayat konsultasi berhasil diambil.', $consultations);
+    }
+
+
     /**
      * Detail rating konsultasi berdasarkan ID konsultasi
      * 

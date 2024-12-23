@@ -139,6 +139,19 @@ class ArticleController extends BaseController
         return $this->sendResponse('Berhasil mengambil list artikel untuk Admin.', $articles);
     }
 
+    public function searchArticle(Request $request){
+
+        $request->validate([
+            'search' => 'nullable|string|max:255',
+        ]);
+
+        $articles = Article::select('id', 'article_title', 'article_img')
+            ->where('article_title', 'like', '%' . $request->search . '%')
+            ->paginate(10);
+
+        return $this->sendResponse('Berhasil mengambil daftar artikel untuk Admin.', $articles);
+    }
+
     /**
      * Store Article - Admin
      *

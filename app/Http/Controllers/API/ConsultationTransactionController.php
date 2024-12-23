@@ -47,6 +47,7 @@ class ConsultationTransactionController extends BaseController
                 'sender_name' => $transaction->sender_name,
                 'sender_bank' => $transaction->sender_bank,
                 'payment_proof' => $transaction->payment_proof,
+                'failure_reason' => $transaction->failure_reason,
             ];
         });
 
@@ -56,6 +57,69 @@ class ConsultationTransactionController extends BaseController
 
         return $this->sendResponse('List transaksi berhasil diambil.', $paginatedData);
     }
+
+    public function searchConsulTransaction(Request $request)
+    {
+        // Validasi input pencarian
+        $request->validate([
+            'search' => 'nullable|string|max:255',
+        ]);
+
+        $search = $request->search;
+
+        $transactions = ConsultationTransaction::with(['consultation', 'user', 'paymentMethod'])
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    // Filter berdasarkan nama klien
+                    $subQuery->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'like', '%' . $search . '%');
+                    })
+                    // Filter berdasarkan nomor pembayaran
+                    ->orWhere('payment_number', 'like', '%' . $search . '%')
+                    // Filter berdasarkan harga konsultasi
+                    ->orWhere('consul_fee', 'like', '%' . $search . '%')
+                    // Filter berdasarkan nama metode pembayaran
+                    ->orWhereHas('paymentMethod', function ($methodQuery) use ($search) {
+                        $methodQuery->where('name', 'like', '%' . $search . '%');
+                    })
+                    // Filter berdasarkan status transaksi
+                    ->orWhere('status', 'like', '%' . $search . '%');
+                });
+            })
+            ->orderByRaw('ISNULL(payment_completed_at), payment_completed_at DESC') // Prioritas transaksi selesai
+            ->orderBy('created_at', 'asc') // Urutkan berdasarkan waktu dibuat
+            ->paginate(10);
+
+        // Transformasi data untuk setiap item
+        $data = $transactions->getCollection()->transform(function ($transaction) {
+            $consultation_price = $transaction->consul_fee - $transaction->discount_amount;
+            $psikolog_comission = $transaction->consul_fee * 0.6;
+
+            return [
+                'id' => $transaction->id,
+                'payment_number' => $transaction->payment_number,
+                'client_name' => $transaction->user->name,
+                'payment_date' => $transaction->payment_completed_at 
+                    ? Carbon::parse($transaction->payment_completed_at)->format('d-m-Y H:i') 
+                    : null,
+                'payment_method' => $transaction->paymentMethod->name,
+                'status' => $transaction->status,
+                'consul_fee' => $transaction->consul_fee,
+                'psikolog_comission' => $psikolog_comission,
+                'sender_name' => $transaction->sender_name,
+                'sender_bank' => $transaction->sender_bank,
+                'payment_proof' => $transaction->payment_proof,
+                'failure_reason' => $transaction->failure_reason,
+            ];
+        });
+
+        // Simpan data hasil transformasi ke dalam paginasi
+        $paginatedData = $transactions->toArray();
+        $paginatedData['data'] = $data;
+
+        return $this->sendResponse('List transaksi berhasil diambil.', $paginatedData);
+    }
+
 
     public function detailPaymentProof($transactionId){
         $transaction = ConsultationTransaction::find($transactionId);
@@ -156,6 +220,7 @@ class ConsultationTransactionController extends BaseController
             $transaction->status = 'failed';
             $transaction->failure_reason = $request->reason ?? 'Pembayaran tidak valid';
             $transaction->save();
+            \Log::info('Reason received: ', [$request->reason]);
 
             // Update status konsultasi menjadi failed
             $consultation = $transaction->consultation;
@@ -178,7 +243,6 @@ class ConsultationTransactionController extends BaseController
             ->orderByRaw('ISNULL(payment_completed_at), payment_completed_at DESC') // Prioritas: yang sudah selesai dulu
             ->orderBy('created_at', 'asc') // Jika waktu pembayaran sama, urutkan berdasarkan waktu dibuat
             ->paginate(10); // Sesuaikan jumlah per halaman
-
         
         // Transformasi data untuk setiap item
         $data = $transactions->getCollection()->transform(function ($transaction) {
@@ -226,6 +290,23 @@ class ConsultationTransactionController extends BaseController
         return $this->sendResponse('Detail komisi psikolog berhasil diambil', $data);
     }
 
+    /**
+     * Get list of transaction IDs that have completed payment and are waiting for 
+     * commission confirmation.
+     * 
+     * @return \Illuminate\Http\JsonResponse 
+     *  
+     */
+    public function listIdPsikologCommission(){
+        $transactions = ConsultationTransaction::select('id')
+            ->where('status', 'completed')
+            ->where('commission_transfer_status', 'Menunggu Konfirmasi')
+            ->orderBy('payment_completed_at', 'desc')
+            ->get();
+
+        return $this->sendResponse('List transaksi berhasil diambil.', $transactions);
+    }
+
     public function transferCommission(Request $request, $transactionId)
     {
         $request->validate([
@@ -259,5 +340,54 @@ class ConsultationTransactionController extends BaseController
             'transfer_proof_url' => asset($imageUrl), 
         ]);
     }
+
+    public function updatePsikologCommission(Request $request, $transactionId)
+    {
+        $transaction = ConsultationTransaction::find($transactionId);
+        if (!$transaction) {
+            return $this->sendError('Transaksi tidak ditemukan.', [], 404);
+        }
+
+        $request->validate([
+            'transfer_proof' => 'required|file|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $imageUrl = $transaction->commission_transfer_proof; // Default ke nilai lama
+
+            // Hapus file lama jika ada dan file baru diunggah
+            if ($request->hasFile('transfer_proof')) {
+                if ($transaction->commission_transfer_proof) {
+                    $oldFilePath = str_replace('storage/', '', $transaction->commission_transfer_proof);
+                    if (Storage::disk('public')->exists($oldFilePath)) {
+                        Storage::disk('public')->delete($oldFilePath);
+                    }
+                }
+
+                // Simpan file baru
+                $imagePath = Storage::disk('public')->put('commission_psikolog_proofs', $request->file('transfer_proof'));
+                if (!$imagePath) {
+                    return $this->sendError('Gagal menyimpan gambar.', [], 500);
+                }
+
+                $imageUrl = 'storage/' . $imagePath;
+            }
+
+            // Perbarui data transaksi
+            $transaction->commission_transfer_proof = $imageUrl;
+            $transaction->commission_transfer_status = 'Menunggu Konfirmasi';
+            $transaction->save();
+
+            DB::commit();
+
+            return $this->sendResponse('Bukti transfer komisi berhasil diperbarui.', null);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->sendError('Terjadi kesalahan saat memperbarui bukti pembayaran.', [$e->getMessage()], 500);
+        }
+    }
+
 }
 

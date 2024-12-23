@@ -22,6 +22,25 @@ class VoucherController extends BaseController
         $vouchers = Voucher::select('id', 'code', 'voucher_type', 'discount_value', 'min_transaction_amount', 'valid_from', 'valid_to', 'is_active')->paginate(10); 
         return $this->sendResponse('List voucher berhasil diambil.', $vouchers);
     }
+
+    public function searchVoucher(Request $request)
+    {
+        $request->validate([
+            'search' => 'nullable|string|max:255',
+        ]);
+        $search = $request->search;
+
+        $vouchers = Voucher::select('id', 'code', 'voucher_type', 'discount_value', 'min_transaction_amount', 'valid_from', 'valid_to', 'is_active')
+            ->where('code', 'like', '%' . $search . '%')
+            ->orWhere('voucher_type', 'like', '%' . $search . '%')
+            ->orWhere('discount_value', 'like', '%' . $search . '%')
+            ->orWhere('min_transaction_amount', 'like', '%' . $search . '%')
+            ->orWhere('valid_from', 'like', '%' . $search . '%')
+            ->orWhere('valid_to', 'like', '%' . $search . '%')
+            ->paginate(10);
+
+        return $this->sendResponse('List voucher berhasil diambil.', $vouchers);
+    }
     
     /**
      * Store Voucher

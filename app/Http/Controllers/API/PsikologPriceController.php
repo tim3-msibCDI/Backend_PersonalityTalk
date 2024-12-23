@@ -22,6 +22,20 @@ class PsikologPriceController extends BaseController
         return $this->sendResponse('Data seluruh harga psikolog berhasil diambil.', $prices);
     }
 
+    public function search(Request $request)   
+    {
+        $request->validate([
+            'search' => 'nullable|string|max:255',
+        ]);
+
+        $prices = PsikologPrice::select('id', 'code', 'price')
+            ->where('code', 'like', '%' . $request->search . '%')
+            ->orWhere('price', 'like', '%' . $request->search . '%')
+            ->paginate(10);
+
+        return $this->sendResponse('Data harga psikolog berhasil diambil.', $prices);
+    }
+
     /**
      * Detail Psikolog Price
      * 

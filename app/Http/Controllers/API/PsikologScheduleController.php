@@ -434,6 +434,31 @@ class PsikologScheduleController extends BaseController
     }
 
     /**
+     * Search for psychologists based on their SIPP or name.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse A response containing the list of psychologists in the required format.
+     */
+    public function searchPsikolog(Request $request)
+    {
+        $request->validate([
+            'search' => 'nullable|string|max:255',
+        ]);
+        $search = $request->search;
+
+        $list_psikolog = Psikolog::with('user:id,name')
+            ->where('is_active', true)
+            ->select('id as id_psikolog', 'sipp', 'user_id')
+            ->where('sipp', 'like', '%' . $search . '%')
+            ->orWhereHas('user', function ($query) use ($search) {
+                $query->where('name', 'like', '%' . $search . '%');
+            })
+            ->paginate(10);
+
+        return $this->sendResponse('List psikolog pada jadwal konsultasi berhasil diambil.', $list_psikolog);
+    }
+
+    /**
      * Get the psychologist's schedule for a specific date.
      *
      * @param int $psikologId The ID of the psychologist.
