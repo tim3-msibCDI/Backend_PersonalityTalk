@@ -16,7 +16,7 @@ class CreateConsultationResource extends JsonResource
             'id_transaction' => $this->transaction->id,
             'id_consultation' => $this->consultation->id,
             // 'psch_id' => $this->selectedSchedule->id, 
-            'psi_id' => $this->psikolog->id,
+            'psi_id' => $this->psikolog->user_id ?? null, //user id dari psikolog bukan id psikolog
             'client_id' => $this->user->id ?? null,
             'chat_session_id' => $this->chatSession->id ?? null,
             'chat_status' => $this->consultation->consul_status ?? null,

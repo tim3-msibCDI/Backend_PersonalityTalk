@@ -168,10 +168,13 @@ class ConsultationTransactionController extends BaseController
             $consultation->consul_status = 'scheduled';
             $consultation->save();
 
+            // $psikolog = $consultation->psikolog;
+            // dd($psikolog);
+
             // Buat chat session yang terjadwalkan
             $chatSession = new ChatSession();
-            $chatSession->user_id = $consultation->user_id;
-            $chatSession->psi_id = $consultation->psi_id;
+            $chatSession->user_id = $consultation->user_id; 
+            $chatSession->psi_id = $consultation->psikolog->user_id;  // psi_id dari user_id psikolog bukan dari id psikolog
             $chatSession->consultation_id = $consultation->id;
             $chatSession->start_time = $consultation->psikologSchedule->mainSchedule->start_hour;
             $chatSession->end_time = $consultation->psikologSchedule->mainSchedule->end_hour;
@@ -220,7 +223,7 @@ class ConsultationTransactionController extends BaseController
             $transaction->status = 'failed';
             $transaction->failure_reason = $request->reason ?? 'Pembayaran tidak valid';
             $transaction->save();
-            \Log::info('Reason received: ', [$request->reason]);
+            // \Log::info('Reason received: ', [$request->reason]);
 
             // Update status konsultasi menjadi failed
             $consultation = $transaction->consultation;

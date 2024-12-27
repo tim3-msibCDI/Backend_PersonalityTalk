@@ -25,14 +25,14 @@ class ActivityHistoryController extends BaseController
         $user = Auth::user();
 
         $listConsultation = DB::table('consultations')
-            ->join('users as patients', 'consultations.user_id', '=', 'patients.id')
-            ->join('psikolog', 'consultations.psi_id', '=', 'psikolog.id')
-            ->join('users as psychologists', 'psychologists.id', '=', 'psikolog.user_id') // Ambil nama psikolog
-            ->join('psikolog_schedules', 'consultations.psch_id', '=', 'psikolog_schedules.id')
-            ->join('main_schedules', 'psikolog_schedules.msch_id', '=', 'main_schedules.id')
-            ->join('chat_sessions', 'consultations.id', '=', 'chat_sessions.consultation_id')
-            ->where('patients.id', $user->id) // Filter berdasarkan pengguna yang sedang login
-            ->whereIn('consultations.consul_status', [ 'scheduled', 'completed', 'ongoing']) // Hanya konsultasi yang telah selesai
+            ->join('users as patients', 'consultations.user_id', '=', 'patients.id') // Pasien
+            ->join('psikolog', 'consultations.psi_id', '=', 'psikolog.id') // Psikolog
+            ->leftJoin('users as psychologists', 'psychologists.id', '=', 'psikolog.user_id') // Detail pengguna psikolog
+            ->join('psikolog_schedules', 'consultations.psch_id', '=', 'psikolog_schedules.id') // Jadwal
+            ->join('main_schedules', 'psikolog_schedules.msch_id', '=', 'main_schedules.id') // Jadwal utama
+            ->leftJoin('chat_sessions', 'consultations.id', '=', 'chat_sessions.consultation_id') // Sesi chat
+            ->where('patients.id', $user->id) // Filter pengguna login
+            ->whereIn('consultations.consul_status', ['scheduled', 'completed', 'ongoing']) // Status konsultasi
             ->select(
                 'consultations.id as consultation_id',
                 'psychologists.id as psi_id',
@@ -46,15 +46,28 @@ class ActivityHistoryController extends BaseController
                 'main_schedules.end_hour',
                 'chat_sessions.id as chat_id'
             )
-            ->orderByDesc('consultations.created_at') // Urutkan berdasarkan tanggal selesai terbaru
+            ->orderByDesc('consultations.created_at') // Urutkan berdasarkan tanggal terbaru
             ->get();
+
+
+        // dd($listConsultation);  
+        
+        
+        
+        // $consul = DB::table('consultations')
+        //     ->where('user_id', $user->id)
+        //     ->whereIn('consul_status', ['scheduled', 'completed', 'ongoing'])
+        //     ->orderByDesc('consultations.created_at') // Urutkan berdasarkan tanggal terbaru
+        //     ->get();
+
+        // dd($consul);   
 
         $formattedConsultation = $listConsultation->map(function ($item) {
             return [
                 'consultation_id' => $item->consultation_id,
                 'chat_session_id' => $item->chat_id,
                 'psikolog_name' => $item->psikolog_name,
-                'psikolog_id' => $item->psi_id,
+                'psikolog_id' => $item->psi_id, // user_id dari psikolog
                 'client_id' => $item->client_id,
                 'psikolog_profile'=> $item->psikolog_profile,
                 'status' => $item->consul_status,
@@ -79,22 +92,22 @@ class ActivityHistoryController extends BaseController
      */
     public function listConsulTransactionHistory()
     {   
-
         $user = Auth::user();
 
         $listTransaction = DB::table('consul_transactions')
             ->join('consultations', 'consul_transactions.consultation_id', '=', 'consultations.id')
-            ->join('users as patients', 'consultations.user_id', '=', 'patients.id')
-            ->join('users as psychologists', 'psychologists.id', '=', 'consultations.psi_id')
+            ->join('users as patients', 'consultations.user_id', '=', 'patients.id') // Relasi pasien
+            ->join('psikolog', 'psikolog.id', '=', 'consultations.psi_id') // Relasi ke tabel psikolog
+            ->join('users as psychologists', 'psychologists.id', '=', 'psikolog.user_id') // Relasi dari psikolog ke users
             ->join('psikolog_schedules', 'consultations.psch_id', '=', 'psikolog_schedules.id')
             ->join('main_schedules', 'psikolog_schedules.msch_id', '=', 'main_schedules.id')
             ->where('patients.id', $user->id)
-            ->whereIn('consul_transactions.status', ['pending', 'pending_confirmation', 'completed', 'failed']) // Hanya konsultasi yang telah selesai
+            ->whereIn('consul_transactions.status', ['pending', 'pending_confirmation', 'completed', 'failed'])
             ->select(
                 'consul_transactions.id as transaction_id',
                 'consultations.id as consultation_id',
-                'psychologists.name as psikolog_name',
-                'psychologists.photo_profile as psikolog_profile',
+                'psychologists.name as psikolog_name', // Nama dari tabel users
+                'psychologists.photo_profile as psikolog_profile', // Foto dari tabel users
                 'consul_transactions.status as transaction_status',
                 'consul_transactions.consul_fee',
                 'consul_transactions.discount_amount',
@@ -111,18 +124,24 @@ class ActivityHistoryController extends BaseController
             return [
                 'transaction_id' => $item->transaction_id,
                 'consultation_id' => $item->consultation_id,
-                'no_pemesanan' => $item->payment_number,
-                'psikolog_name' => $item->psikolog_name,
-                'psikolog_profile'=> $item->psikolog_profile,
+                'payment_number' => $item->payment_number,
+                'psikolog_name' => $item->psikolog_name ?? 'Unknown', // Jika psikolog tidak ditemukan
+                'psikolog_profile'=> $item->psikolog_profile ?? 'default_profile.jpg', // Gambar default jika null
                 'status' => $item->transaction_status,
-                'total_amount' => $item->consul_fee - $item->discount_amount,
-                'date' => \Carbon\Carbon::parse($item->schedule_date)->format('d M Y'),
-                'time' => \Carbon\Carbon::parse($item->start_hour)->format('H:i') . ' - ' . \Carbon\Carbon::parse($item->end_hour)->format('H:i'),
+                'total_amount' => ($item->consul_fee ?? 0) - ($item->discount_amount ?? 0),
+                'date' => $item->schedule_date 
+                    ? \Carbon\Carbon::parse($item->schedule_date)->format('d M Y') 
+                    : 'N/A',
+                'time' => $item->start_hour && $item->end_hour
+                    ? \Carbon\Carbon::parse($item->start_hour)->format('H:i') . ' - ' . \Carbon\Carbon::parse($item->end_hour)->format('H:i')
+                    : 'N/A',
             ];
         });
 
         return $this->sendResponse('Berhasil mengambil riwayat transaksi konsultasi pengguna', $formattedTransaction);
-    }   
+    }
+
+
     
     /**
      * Get Transaction Detail

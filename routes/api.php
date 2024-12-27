@@ -81,9 +81,9 @@ Route::middleware(['auth:sanctum', 'role:M,U,P'])->group(function () {
  * Bisa diakses oleh Mahasiswa dan Umum
  */
 Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
-
+    
     // User Consultation API
-    Route::controller(ConsultationController::class)->group(function () {
+    Route::controller(ConsultationController::class)->group(function () {   
         Route::get('/consultation/psikolog/topics', 'getPsikologTopics');
         Route::get('/consultation/psikolog/available', 'getAvailablePsikologV2');
         Route::get('/consultation/psikolog/{id}/details-and-schedules', 'getPsikologDetailsAndSchedulesV2');
@@ -102,7 +102,7 @@ Route::middleware(['auth:sanctum', 'role:M,U'])->group(function () {
         Route::get('/consultation/detail-review', 'detailReview');
     });
 
-    // Kelola Transaksi Konsultasi
+    // Kelola Transaksi Konsultasi Ini sepertinya lupa dihapus
     Route::controller(ConsultationController::class)->group(function () {
         Route::post('/transactions/{transactionId}/approve-payment', 'approvePaymentProof');
         Route::post('/transactions/{transactionId}/disapprove-payment', 'disapprovePaymentProof');    

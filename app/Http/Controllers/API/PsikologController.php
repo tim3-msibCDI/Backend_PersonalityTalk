@@ -118,7 +118,7 @@ class PsikologController extends BaseController
                 'status' => $item->consul_status ?? null,
                 'client_id' => $item->user_id ?? null,
                 'client_name' => $item->user->name ?? null,
-                'psikolog_id' => $item->psi_id ?? null,
+                'psikolog_id' => $item->psikolog->user_id ?? null, // ID dari user psikolog bukan id psikolog
                 'topic' => $item->topic->topic_name ?? null,
                 'date' => Carbon::parse($item->psikologSchedule->date)->format('j M Y') ?? null,
                 'start_hour' => Carbon::parse($item->psikologSchedule->mainSchedule->start_hour)->format('H:i') ?? null,
