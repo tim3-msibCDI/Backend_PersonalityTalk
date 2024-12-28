@@ -8,6 +8,7 @@ use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
 use App\Services\PsikologService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\Facades\Socialite;
@@ -226,6 +227,7 @@ class AuthController extends BaseController
     {
         return Socialite::driver('google')->redirect();
     }
+
     /**
      * Handle Google Callback Login/Registration
      * 
@@ -234,7 +236,6 @@ class AuthController extends BaseController
      * 
      * @return \Illuminate\Http\JsonResponse
      */
-
     public function handleGoogleCallback()
     {
         try {
@@ -265,17 +266,18 @@ class AuthController extends BaseController
     
             // Generate token
             $token = $user->createToken('auth_user_token')->plainTextToken;           
-            $redirectUrl = config('app.frontend_url') . '/oauth/google/callback'; // Sesuaikan dengan URL Next.js Anda
+            $frontendUrl = config('app.frontend_url') . '/oauth/google/callback';
             $queryParams = http_build_query([
                 'name' => $user->name,
                 'role' => $user->role,
                 'token' => $token,
             ]);
-    
-            return redirect($redirectUrl . '?' . $queryParams);
-    
+            
+            return redirect($frontendUrl . '?' . $queryParams);
+
         } catch (\Exception $e) {
-            return $this->sendError('Terjadi kesalahan saat mendaftarkan pengguna: ', [$e->getMessage()], 500);
+            Log::error('Google Callback Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return $this->sendError('Terjadi kesalahan saat memproses login.', [$e->getMessage()], 500);
         }
     }
 

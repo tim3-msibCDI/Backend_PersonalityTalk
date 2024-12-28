@@ -29,8 +29,8 @@ class ChatSession extends Model
         return $this->belongsTo(User::class, 'psi_id', 'id');
     }
 
-    // public function consultation() {
-    //     return $this->belongsTo(Consultation::class, 'consultation_id', 'id');
-    // }
+    public function consultation() {
+        return $this->belongsTo(Consultation::class, 'consultation_id', 'id');
+    }
 }
 

@@ -123,7 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
     
-    'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
+    'frontend_url' => env('APP_FRONTEND_URL', 'http://localhost:3000'),
 
     'fonnte_token' => env('FONNTE_TOKEN'),
 

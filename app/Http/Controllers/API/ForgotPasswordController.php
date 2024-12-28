@@ -73,10 +73,10 @@ class ForgotPasswordController extends BaseController
         $queryParams = http_build_query([
             'token' => $request->reset_token, // Pass the token as a query parameter
         ]);
-
+        
         // Redirect to the frontend page with the token
         return redirect($redirectUrl . '?' . $queryParams);    
-}
+    }
 
     /**
      * Reset and Change Password

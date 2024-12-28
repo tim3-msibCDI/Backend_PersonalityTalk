@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Message;
 use App\Events\MessageSent;
+use App\Models\ChatSession;
 use App\Models\Consultation;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -42,7 +43,6 @@ class ChatController extends BaseController
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    
     public function sendMessage(Request $request)
     {
         $userId = Auth::user()->id;
@@ -52,6 +52,35 @@ class ChatController extends BaseController
             'receiver_id' => 'required|exists:users,id',
             'message' => 'required|string',
         ]);
+
+        // Ambil data sesi konsultasi berdasarkan chat_session_id
+        $chatSession = ChatSession::find($validated['chat_session_id']);
+
+        // Periksa apakah sesi konsultasi valid
+        if (!$chatSession) {
+            return $this->sendError('Sesi konsultasi tidak ditemukan.');
+        }
+
+        // Ambil data konsultasi dan jadwal psikolog
+        $consultation = $chatSession->consultation;
+        $psikologSchedule = $consultation->psikologSchedule;
+
+        if (!$psikologSchedule || !$psikologSchedule->mainSchedule) {
+            return $this->sendError('Jadwal konsultasi tidak valid.');
+        }
+
+        // Ambil tanggal dari PsikologSchedule dan waktu dari MainSchedule
+        $scheduleDate = $psikologSchedule->date;
+        $startTime = Carbon::parse($scheduleDate . ' ' . $psikologSchedule->mainSchedule->start_hour);
+        $endTime = Carbon::parse($scheduleDate . ' ' . $psikologSchedule->mainSchedule->end_hour);
+
+        // Ambil waktu sekarang
+        $currentTime = now();
+
+        // Periksa apakah waktu sekarang berada di luar jam konsultasi
+        if ($currentTime->lt($startTime) || $currentTime->gt($endTime)) {
+            return $this->sendError('Pesan tidak dapat dikirim di luar jam konsultasi.');
+        }
 
         $message = new Message();
         $message->chat_session_id = $validated['chat_session_id'];
@@ -65,6 +94,7 @@ class ChatController extends BaseController
 
         return $this->sendResponse('Pesan berhasil dikirim.', $message);
     }
+
 
     public function getPsikologInfo(Request $request)
     {
