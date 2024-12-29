@@ -10,20 +10,77 @@ use App\Models\PsikologReview;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class DashboardController extends BaseController
 {
+    // Properti untuk menyimpan bulan dalam bahasa Indonesia
+    protected $monthsInIndonesian = [];
+    
+    // Constructor untuk set locale dan bulan dalam bahasa Indonesia
+    public function __construct()
+    {
+        // Set locale ke Indonesia
+        Carbon::setLocale('id');
+        
+        // Menyimpan bulan dalam bahasa Indonesia
+        $this->monthsInIndonesian = [
+            'January' => 'Januari', 
+            'February' => 'Februari',
+            'March' => 'Maret',
+            'April' => 'April',
+            'May' => 'Mei',
+            'June' => 'Juni',
+            'July' => 'Juli',
+            'August' => 'Agustus',
+            'September' => 'September',
+            'October' => 'Oktober',
+            'November' => 'November',
+            'December' => 'Desember'
+        ];
+    }
 
-    /**
-     * Get dashboard data for admin
-     * 
-     * @return \Illuminate\Http\JsonResponse
-     */
+    // Fungsi untuk mendapatkan bulan dalam bahasa Indonesia
+    protected function getMonthsInIndonesian($monthsBack = 6)
+    {
+        $months = [];
+        for ($i = 0; $i < $monthsBack; $i++) {
+            $months[] = now()->subMonths($monthsBack - 1 - $i)->locale('id')->isoFormat('MMMM'); // Menggunakan isoFormat untuk bulan Indonesia
+        }
+        return $months;
+    }
+
+    // Fungsi untuk mendapatkan data konsultasi dalam bulan-bulan tertentu
+    protected function getConsultationData($userId, $months)
+    {
+        // Ambil data konsultasi dalam 6 bulan terakhir dari database
+        $consultationData = Consultation::select(
+                DB::raw('DATE_FORMAT(created_at, "%M") as month'),
+                DB::raw('COUNT(*) as total')
+            )
+            ->where('psi_id', $userId)
+            ->where('created_at', '>=', now()->subMonths(count($months)))
+            ->whereIn('consul_status', ['completed', 'ongoing', 'scheduled'])
+            ->groupBy('month')
+            ->orderBy(DB::raw('MIN(created_at)'), 'ASC')
+            ->get()
+            ->pluck('total', 'month');
+        
+        // Mengonversi bulan ke bahasa Indonesia
+        return $consultationData->mapWithKeys(function ($total, $month) {
+            return [$this->monthsInIndonesian[$month] ?? $month => $total]; // Mencocokkan bulan dengan bahasa Indonesia
+        });
+    }
+
+    // Dashboard untuk Admin
     public function dashboardAdmin(){
         $totalUser = User::whereIn('role', ['M', 'P'])->count();
         $totalPsikolog = User::where('role', 'P')->count();
         $totalConsultation = ChatSession::count();
         $totalCourse = 0;
+
+        // Mendapatkan bulan-bulan dalam bahasa Indonesia
+        $months = $this->getMonthsInIndonesian();
 
         // Data grafik konsultasi dalam 6 bulan terakhir
         $consultationData = ChatSession::select(
@@ -36,17 +93,18 @@ class DashboardController extends BaseController
             ->get()
             ->pluck('total', 'month');  
 
-        $months = [];
-        for ($i = 0; $i < 6; $i++) {
-            $months[] = now()->subMonths(5 - $i)->format('F');
-        }
-
         // Gabungkan data dari database dengan bulan-bulan yang kosong
-        $chartData = [
+        $chartConsultation = [
             'months' => $months,
             'totals' => array_map(function ($month) use ($consultationData) {
                 return $consultationData[$month] ?? 0; // Jika tidak ada data, isi 0
             }, $months),
+        ];
+
+        // Data sementara untuk course
+        $chartCourse = [
+            'months' => $months,
+            'totals' => [15, 10, 23, 18, 30, 33],
         ];
 
         return $this->sendResponse('Dashboard admin berhasil diambil.', [
@@ -54,15 +112,12 @@ class DashboardController extends BaseController
             'totalPsikolog' => $totalPsikolog,
             'totalConsultation' => $totalConsultation,
             'totalCourse' => $totalCourse,
-            'consultationChart' => $chartData
+            'consultationChart' => $chartConsultation,
+            'courseChart' => $chartCourse
         ]);
     }
 
-    /**
-     * Get dashboard data for psikolog
-     * 
-     * @return \Illuminate\Http\JsonResponse
-     */
+    // Dashboard untuk Psikolog
     public function dashboardPsikolog()
     {
         $user = Auth::user();
@@ -102,23 +157,11 @@ class DashboardController extends BaseController
                 ];
             });
 
-        // Ambil data konsultasi dalam 6 bulan terakhir dari database
-        $consultationData = Consultation::select(
-            DB::raw('DATE_FORMAT(created_at, "%M") as month'),
-            DB::raw('COUNT(*) as total')
-        )
-        ->where('psi_id', $user->id)
-        ->where('created_at', '>=', now()->subMonths(6))
-        ->groupBy('month')
-        ->orderBy(DB::raw('MIN(created_at)'), 'ASC') // Menggunakan MIN untuk menghindari error
-        ->get()
-        ->pluck('total', 'month');        
+        // Mendapatkan bulan-bulan dalam bahasa Indonesia
+        $months = $this->getMonthsInIndonesian();
 
-        // Generate array semua bulan dalam 6 bulan terakhir
-        $months = [];
-        for ($i = 0; $i < 6; $i++) {
-            $months[] = now()->subMonths(5 - $i)->format('F');
-        }
+        // Mengambil data konsultasi dan bulan-bulan dalam bahasa Indonesia
+        $consultationData = $this->getConsultationData($user->id, $months);
 
         // Gabungkan data dari database dengan bulan-bulan yang kosong
         $chartData = [
@@ -142,5 +185,4 @@ class DashboardController extends BaseController
             'topicChart' => $topics,
         ]);
     }
-
 }

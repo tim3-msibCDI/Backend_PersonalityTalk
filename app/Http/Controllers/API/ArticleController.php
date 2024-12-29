@@ -135,7 +135,9 @@ class ArticleController extends BaseController
      */
     public function listAdminArticle(Request $request)
     {
-        $articles = Article::select('id', 'article_title', 'article_img')->paginate(10);
+        $articles = Article::select('id', 'article_title', 'article_img')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
         return $this->sendResponse('Berhasil mengambil list artikel untuk Admin.', $articles);
     }
 
