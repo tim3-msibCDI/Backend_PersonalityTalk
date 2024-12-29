@@ -115,41 +115,53 @@ class UserProfileController extends BaseController
     public function updateProfile(Request $request)
     {
         $user = Auth::user();
-
-        $validator = Validator::make($request->all(), [
+        // Aturan validasi dasar
+        $rules = [
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|string|email|unique:users,email,' . $user->id,
             'phone_number' => 'sometimes|nullable|string|regex:/^[0-9]{10,}$/',
             'date_birth' => 'sometimes|date',
             'gender' => 'sometimes|in:M,F',
-        
-            // Mahasiswa
-            'universitas' => 'sometimes|string|max:255',
-            'jurusan' => 'sometimes|string|max:255',
-        
-            // Psikolog
-            'bank_id' => 'sometimes|exists:payment_methods,id',
-            'rekening' => 'sometimes|string|max:255',
-            'sipp' => 'sometimes|string|max:255',
-            'practice_start_date' => 'sometimes|date',
-            'description' => 'sometimes|nullable|string',
-            'topics' => 'sometimes|array',
-            'topics.*' => 'exists:topics,id',
-        ], [
+        ];
+    
+        // Tambahkan aturan validasi khusus berdasarkan role (opsional)
+        if ($user->role === 'M') { // Role mahasiswa
+            $rules = array_merge($rules, [
+                'universitas' => 'sometimes|string|max:255',
+                'jurusan' => 'sometimes|string|max:255',
+            ]);
+        }
+    
+        if ($user->role === 'P') { // Role psikolog
+            $rules = array_merge($rules, [
+                'bank_id' => 'sometimes|exists:payment_methods,id',
+                'rekening' => 'sometimes|string|max:255',
+                'sipp' => 'sometimes|string|max:255',
+                'practice_start_date' => 'sometimes|date',
+                'description' => 'sometimes|nullable|string',
+                'topics' => 'sometimes|array',
+                'topics.*' => 'exists:topics,id',
+            ]);
+        }
+    
+        // Pesan error khusus
+        $messages = [
             'email.email' => 'Format email tidak valid.',
             'email.unique' => 'Email sudah digunakan oleh pengguna lain.',
             'phone_number.regex' => 'Format nomor telepon salah.',
             'date_birth.date' => 'Tanggal lahir harus berupa format tanggal yang valid.',
             'gender.in' => 'Jenis kelamin hanya dapat berupa M (laki-laki) atau F (perempuan).',
             'bank_id.exists' => 'Bank yang dipilih tidak valid.',
-            'practice_start_date.date' => 'Tanggal mulai praktik harus berupa format tanggal yang valid.',
             'topics.array' => 'Topik harus berupa array.',
             'topics.*.exists' => 'Topik yang dipilih tidak valid.',
-        ]);
-
+        ];
+    
+        $validator = Validator::make($request->all(), $rules, $messages);
+    
         if ($validator->fails()) {
             return $this->sendError('Validasi gagal', $validator->errors(), 422);
         }
+    
 
         try {
             DB::beginTransaction();

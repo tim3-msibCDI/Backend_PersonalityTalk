@@ -44,8 +44,8 @@ class LandingPageController extends BaseController
                     return $pt->topic->topic_name;
                 });
 
-                $formattedTopics = $topics->take(4)->toArray();
-                $remainingCount = $topics->count() - 4;
+                $formattedTopics = $topics->take(3)->toArray();
+                $remainingCount = $topics->count() - 3;
 
                 // Tambahkan "2+" langsung ke formattedTopics jika ada sisa topik
                 if ($remainingCount > 0) {

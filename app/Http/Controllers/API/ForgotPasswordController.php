@@ -34,7 +34,33 @@ class ForgotPasswordController extends BaseController
         }
 
         $user = User::where('email', $validatedData->validated()['email'])->first();
-    
+
+        // Cek apakah permintaan reset baru-baru ini dibuat
+        if ($user->reset_token_expires_at) {
+            $expiresAt = \Carbon\Carbon::parse($user->reset_token_expires_at);
+            $now = now();
+        
+            // Hitung selisih waktu menggunakan timestamp
+            $remainingSeconds = max(0, $expiresAt->timestamp - $now->timestamp);
+            $remainingMinutes = (int) ceil($remainingSeconds / 60);
+        
+            if ($remainingSeconds > 0) {
+                if ($remainingMinutes > 1) {
+                    return $this->sendError(
+                        "Anda sudah meminta reset kata sandi. Silakan coba lagi dalam $remainingMinutes menit lagi.",
+                        null,
+                        429
+                    );
+                } else {
+                    return $this->sendError(
+                        "Anda sudah meminta reset kata sandi. Silakan coba lagi dalam $remainingSeconds detik lagi.",
+                        null,
+                        429
+                    );
+                }
+            }
+        }
+        
         // Generate random token
         $reset_token = Str::random(60); 
         $user->reset_token = $reset_token;
@@ -73,7 +99,7 @@ class ForgotPasswordController extends BaseController
         $queryParams = http_build_query([
             'token' => $request->reset_token, // Pass the token as a query parameter
         ]);
-        
+
         // Redirect to the frontend page with the token
         return redirect($redirectUrl . '?' . $queryParams);    
     }
